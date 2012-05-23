@@ -1,0 +1,43 @@
+Marriage System
+Players can marry other players and share money (not houses)
+$10.00 USD
+
+
+Polling Booth
+Set polls for your users (via SQL)! Each user can only vote once.
+$10.00 USD
+
+
+Enhanced Attacking
+Enhances attacking to include leaving, mugging, and hospitalizing.
+$10.00 USD
+
+
+Gang Pictures
+Add a logo to each gang (468x60 standard affiliate banner size)
+$4.00 USD
+
+
+Forums
+Fully featured forums for your game.
+$40.00 USD
+
+
+Advanced Search
+Lets users construct their own search for another player - eg level, house, job, etc.
+$10.00 USD
+
+
+Game Ranks
+Ranks users based on a variety of factors.
+$8.00 USD
+
+
+Automatic Donator Pack Crediting
+Vastly improves the donator packs system.
+$70.00 USD
+
+
+Organised Crime Logs
+Users can see previous organised crimes from a link in the gang homepage.
+$5.00 USD
