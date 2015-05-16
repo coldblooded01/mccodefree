@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-education.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -46,8 +45,8 @@ $h->menuarea();
 print "<h3>Schooling</h3>";
 if ($ir['course'] > 0)
 {
-    $cd = mysql_query("SELECT * FROM courses WHERE crID={$ir['course']}", $c);
-    $coud = mysql_fetch_array($cd);
+    $cd = mysqli_query($c,"SELECT * FROM courses WHERE crID={$ir['course']}");
+    $coud = mysqli_fetch_array($cd);
     print
             "You are currently doing the {$coud['crNAME']}, you have {$ir['cdays']} days remaining.";
 }
@@ -58,35 +57,32 @@ else
         $_GET['cstart'] = abs((int) $_GET['cstart']);
         //Verify.
         $cd =
-                mysql_query(
-                        "SELECT * FROM courses WHERE crID={$_GET['cstart']}",
-                        $c);
-        if (mysql_num_rows($cd) == 0)
+                mysqli_query($c,
+                        "SELECT * FROM courses WHERE crID={$_GET['cstart']}");
+        if (mysqli_num_rows($cd) == 0)
         {
             print "You are trying to start a non-existant course!";
         }
         else
         {
-            $coud = mysql_fetch_array($cd);
+            $coud = mysqli_fetch_array($cd);
             $cdo =
-                    mysql_query(
-                            "SELECT * FROM coursesdone WHERE userid=$userid AND courseid={$_GET['cstart']}",
-                            $c);
+                    mysqli_query($c,
+                            "SELECT * FROM coursesdone WHERE userid=$userid AND courseid={$_GET['cstart']}");
             if ($ir['money'] < $coud['crCOST'])
             {
                 print "You don't have enough money to start this course.";
                 $h->endpage();
                 exit;
             }
-            if (mysql_num_rows($cdo) > 0)
+            if (mysqli_num_rows($cdo) > 0)
             {
                 print "You have already done this course.";
                 $h->endpage();
                 exit;
             }
-            mysql_query(
-                    "UPDATE users SET course={$_GET['cstart']},cdays={$coud['crDAYS']},money=money-{$coud['crCOST']} WHERE userid=$userid",
-                    $c);
+            mysqli_query($c,
+                    "UPDATE users SET course={$_GET['cstart']},cdays={$coud['crDAYS']},money=money-{$coud['crCOST']} WHERE userid=$userid");
             print
                     "You have started the {$coud['crNAME']}, it will take {$coud['crDAYS']} days to complete.";
         }
@@ -95,16 +91,16 @@ else
     {
         //list courses
         print "Here is a list of available courses.";
-        $q = mysql_query("SELECT * FROM courses", $c);
+        $q = mysqli_query($c,"SELECT * FROM courses");
         print
                 "<br /><table width=75%><tr style='background:gray;'><th>Course</th><th>Description</th><th>Cost</th><th>Take</th></tr>";
-        while ($r = mysql_fetch_array($q))
+        while ($r = mysqli_fetch_array($q))
         {
             $cdo =
-                    mysql_query(
-                            "SELECT * FROM coursesdone WHERE userid=$userid AND courseid={$r['crID']}",
-                            $c);
-            if (mysql_num_rows($cdo))
+                    mysqli_query($c,
+                            "SELECT * FROM coursesdone WHERE userid=$userid AND courseid={$r['crID']}"
+                            );
+            if (mysqli_num_rows($cdo))
             {
                 $do = "<i>Done</i>";
             }

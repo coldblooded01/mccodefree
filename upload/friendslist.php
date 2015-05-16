@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-friendslist.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($c)) ? mysqli_error($c) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -74,17 +74,16 @@ function friends_list()
             "<a href='friendslist.php?action=add'>&gt; Add a Friend</a><br />
 These are the people on your friends list. ";
     $q_y =
-            mysql_query("SELECT * FROM friendslist WHERE fl_ADDED=$userid", $c);
+            mysqli_query($c,"SELECT * FROM friendslist WHERE fl_ADDED=$userid");
     print
-            mysql_num_rows($q_y)
+            mysqli_num_rows($q_y)
                     . " people have added you to their list.<br />
 Most liked: [";
     $q2r =
-            mysql_query(
-                    "SELECT u.username,count( * ) as cnt,fl.fl_ADDED FROM friendslist fl LEFT JOIN users u on fl.fl_ADDED=u.userid GROUP BY fl.fl_ADDED ORDER BY cnt DESC LIMIT 5",
-                    $c) or die(mysql_error());
+            mysqli_query($c,
+                    "SELECT u.username,count( * ) as cnt,fl.fl_ADDED FROM friendslist fl LEFT JOIN users u on fl.fl_ADDED=u.userid GROUP BY fl.fl_ADDED ORDER BY cnt DESC LIMIT 5") or die(((is_object($c)) ? mysqli_error($c) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     $r = 0;
-    while ($r2r = mysql_fetch_array($q2r))
+    while ($r2r = mysqli_fetch_array($q2r))
     {
         $r++;
         if ($r > 1)
@@ -98,10 +97,9 @@ Most liked: [";
             "]<br />
 <table width=90%><tr style='background:gray'> <th>ID</th> <th>Name</th> <th>Mail</th> <th>Send Cash</th> <th>Remove</th> <th>Comment</th> <th>Change Comment</th> <th>Online?</th></tr>";
     $q =
-            mysql_query(
-                    "SELECT fl.*,u.* FROM friendslist fl LEFT JOIN users u ON fl.fl_ADDED=u.userid WHERE fl.fl_ADDER=$userid ORDER BY u.username ASC",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+            mysqli_query($c,
+                    "SELECT fl.*,u.* FROM friendslist fl LEFT JOIN users u ON fl.fl_ADDED=u.userid WHERE fl.fl_ADDER=$userid ORDER BY u.username ASC");
+    while ($r = mysqli_fetch_array($q))
     {
         if ($r['laston'] >= time() - 15 * 60)
         {
@@ -132,21 +130,20 @@ function add_friend()
     global $ir, $c, $userid;
     $_POST['ID'] = abs((int) $_POST['ID']);
     $_POST['comment'] =
-            mysql_real_escape_string(
+            mysqli_real_escape_string($c,
                     nl2br(
                             htmlentities(stripslashes($_POST['comment']),
-                                    ENT_QUOTES, 'ISO-8859-1')), $c);
+                                    ENT_QUOTES, 'ISO-8859-1')));
 
     if ($_POST['ID'])
     {
         $qc =
-                mysql_query(
-                        "SELECT * FROM friendslist WHERE fl_ADDER=$userid AND fl_ADDED={$_POST['ID']}",
-                        $c);
+                mysqli_query($c,
+                        "SELECT * FROM friendslist WHERE fl_ADDER=$userid AND fl_ADDED={$_POST['ID']}");
         $q =
-                mysql_query(
-                        "SELECT * FROM users WHERE userid={$_POST['ID']}", $c);
-        if (mysql_num_rows($qc))
+                mysqli_query($c,
+                        "SELECT * FROM users WHERE userid={$_POST['ID']}");
+        if (mysqli_num_rows($qc))
         {
             print "You cannot add the same person twice.";
         }
@@ -155,16 +152,15 @@ function add_friend()
             print
                     "You cannot be so lonely that you have to try and add yourself.";
         }
-        else if (mysql_num_rows($q) == 0)
+        else if (mysqli_num_rows($q) == 0)
         {
             print "Oh no, you're trying to add a ghost.";
         }
         else
         {
-            mysql_query(
-                    "INSERT INTO friendslist VALUES(NULL, $userid, {$_POST['ID']}, '{$_POST['comment']}')",
-                    $c) or die(mysql_error());
-            $r = mysql_fetch_array($q);
+            mysqli_query($c,
+                    "INSERT INTO friendslist VALUES(NULL, $userid, {$_POST['ID']}, '{$_POST['comment']}')") or die(((is_object($c)) ? mysqli_error($c) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+            $r = mysqli_fetch_array($q);
             print
                     "{$r['username']} was added to your friends list.<br />
 <a href='friendslist.php'>&gt; Back</a>";
@@ -188,9 +184,8 @@ Comment (optional): <br />
 function remove_friend()
 {
     global $ir, $c, $userid;
-    mysql_query(
-            "DELETE FROM friendslist WHERE fl_ID={$_GET['f']} AND fl_ADDER=$userid",
-            $c);
+    mysqli_query($c,
+            "DELETE FROM friendslist WHERE fl_ID={$_GET['f']} AND fl_ADDER=$userid");
     print
             "Friends list entry removed!<br />
 <a href='friendslist.php'>&gt; Back</a>";
@@ -201,15 +196,14 @@ function change_comment()
     global $ir, $c, $userid;
     $_POST['f'] = abs((int) $_POST['f']);
     $_POST['comment'] =
-            mysql_real_escape_string(
+            mysqli_real_escape_string($c,
                     nl2br(
                             htmlentities(stripslashes($_POST['comment']),
-                                    ENT_QUOTES, 'ISO-8859-1')), $c);
+                                    ENT_QUOTES, 'ISO-8859-1')));
     if ($_POST['comment'])
     {
-        mysql_query(
-                "UPDATE friendslist SET fl_COMMENT='{$_POST['comment']}' WHERE fl_ID={$_POST['f']} AND fl_ADDER=$userid",
-                $c);
+        mysqli_query($c,
+                "UPDATE friendslist SET fl_COMMENT='{$_POST['comment']}' WHERE fl_ID={$_POST['f']} AND fl_ADDER=$userid");
         print
                 "Comment for friend changed!<br />
 <a href='friendslist.php'>&gt; Back</a>";
@@ -218,12 +212,11 @@ function change_comment()
     {
         $_GET['f'] = abs((int) $_GET['f']);
         $q =
-                mysql_query(
-                        "SELECT * FROM friendslist WHERE fl_ID={$_GET['f']} AND fl_ADDER=$userid",
-                        $c);
-        if (mysql_num_rows($q))
+                mysqli_query($c,
+                        "SELECT * FROM friendslist WHERE fl_ID={$_GET['f']} AND fl_ADDER=$userid");
+        if (mysqli_num_rows($q))
         {
-            $r = mysql_fetch_array($q);
+            $r = mysqli_fetch_array($q);
             $comment = str_replace('<br />', "\n", $r['fl_COMMENT']);
             print
                     "Changing a comment.<form action='friendslist.php?action=ccomment' method='post'>

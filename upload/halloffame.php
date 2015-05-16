@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-halloffame.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -85,11 +84,10 @@ function hof_level()
             "Showing the 20 users with the highest levels<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> <th>Level</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT u.* FROM users u WHERE u.user_level != 0 ORDER BY level DESC,userid ASC LIMIT 20",
-                    $c);
+            mysqli_query($c,
+                    "SELECT u.* FROM users u WHERE u.user_level != 0 ORDER BY level DESC,userid ASC LIMIT 20");
     $p = 0;
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $p++;
         if ($r['userid'] == $userid)
@@ -115,11 +113,10 @@ function hof_money()
             "Showing the 20 users with the highest amount of money<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> <th>Money</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT u.* FROM users u WHERE u.user_level != 0 ORDER BY money DESC,userid ASC LIMIT 20",
-                    $c);
+            mysqli_query($c,
+                    "SELECT u.* FROM users u WHERE u.user_level != 0 ORDER BY money DESC,userid ASC LIMIT 20");
     $p = 0;
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $p++;
         if ($r['userid'] == $userid)
@@ -146,11 +143,10 @@ function hof_crystals()
             "Showing the 20 users with the highest amount of crystals<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> <th>Crystals</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT u.* FROM users u WHERE u.user_level != 0 ORDER BY crystals DESC,userid ASC LIMIT 20",
-                    $c);
+            mysqli_query($c,
+                    "SELECT u.* FROM users u WHERE u.user_level != 0 ORDER BY crystals DESC,userid ASC LIMIT 20");
     $p = 0;
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $p++;
         if ($r['userid'] == $userid)
@@ -178,11 +174,10 @@ function hof_total()
             "Showing the 20 users with the highest total stats<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY (us.strength+us.agility+us.guard+us.labour+us.IQ) DESC,u.userid ASC LIMIT 20",
-                    $c);
+            mysqli_query($c,
+                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY (us.strength+us.agility+us.guard+us.labour+us.IQ) DESC,u.userid ASC LIMIT 20");
     $p = 0;
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $p++;
         if ($r['userid'] == $ir['userid'])
@@ -208,11 +203,10 @@ function hof_strength()
             "Showing the 20 users with the highest strength<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.strength DESC,u.userid ASC LIMIT 20",
-                    $c);
+            mysqli_query($c,
+                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.strength DESC,u.userid ASC LIMIT 20");
     $p = 0;
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $p++;
         if ($r['userid'] == $ir['userid'])
@@ -238,11 +232,10 @@ function hof_agility()
             "Showing the 20 users with the highest agility<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.agility DESC,u.userid ASC LIMIT 20",
-                    $c);
+            mysqli_query($c,
+                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.agility DESC,u.userid ASC LIMIT 20");
     $p = 0;
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $p++;
         if ($r['userid'] == $ir['userid'])
@@ -268,11 +261,10 @@ function hof_guard()
             "Showing the 20 users with the highest guard<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.guard DESC,u.userid ASC LIMIT 20",
-                    $c);
+            mysqli_query($c,
+                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.guard DESC,u.userid ASC LIMIT 20");
     $p = 0;
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $p++;
         if ($r['userid'] == $ir['userid'])
@@ -298,11 +290,10 @@ function hof_labour()
             "Showing the 20 users with the highest labour<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.labour DESC,u.userid ASC LIMIT 20",
-                    $c);
+            mysqli_query($c,
+                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.labour DESC,u.userid ASC LIMIT 20");
     $p = 0;
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $p++;
         if ($r['userid'] == $ir['userid'])
@@ -328,11 +319,10 @@ function hof_iq()
             "Showing the 20 users with the highest IQ<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.IQ DESC,u.userid ASC LIMIT 20",
-                    $c);
+            mysqli_query($c,
+                    "SELECT u.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.user_level != 0 ORDER BY us.IQ DESC,u.userid ASC LIMIT 20");
     $p = 0;
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $p++;
         if ($r['userid'] == $ir['userid'])

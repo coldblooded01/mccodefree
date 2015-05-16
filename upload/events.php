@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-events.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
 $ir['exp_needed'] = ($ir['level'] + 1) * ($ir['level'] + 1) * ($ir['level']
                         + 1);
 check_level();
@@ -48,19 +48,18 @@ $h->menuarea();
 $_GET['delete'] = abs((int) $_GET['delete']);
 if ($_GET['delete'])
 {
-    mysql_query(
-            "DELETE FROM events WHERE evID={$_GET['delete']} AND evUSER=$userid",
-            $c);
+    mysqli_query(
+            $c, 
+            "DELETE FROM events WHERE evID={$_GET['delete']} AND evUSER=$userid");
     print "<b>Event Deleted</b><br />";
 }
 print "<b>Latest 10 events</b><br />";
 $q =
-        mysql_query(
-                "SELECT * FROM events WHERE evUSER=$userid ORDER BY evTIME DESC LIMIT 10;",
-                $c);
+        mysqli_query($c,
+                "SELECT * FROM events WHERE evUSER=$userid ORDER BY evTIME DESC LIMIT 10;");
 print
         "<table width=75% border=2> <tr style='background:gray;'> <th>Time</th> <th>Event</th><th>Links</th> </tr>";
-while ($r = mysql_fetch_array($q))
+while ($r = mysqli_fetch_array($q))
 {
     print "<tr><td>" . date('F j Y, g:i:s a', $r['evTIME']);
     if (!$r['evREAD'])
@@ -71,5 +70,5 @@ while ($r = mysql_fetch_array($q))
             "</td><td>{$r['evTEXT']}</td><td><a href='events.php?delete={$r['evID']}'>Delete</a></td></tr>";
 }
 print "</table>";
-mysql_query("UPDATE events SET evREAD=1 WHERE evUSER=$userid", $c);
+mysqli_query($c,"UPDATE events SET evREAD=1 WHERE evUSER=$userid");
 $h->endpage();

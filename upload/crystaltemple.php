@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-crystaltemple.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($c)) ? mysqli_error($c) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -68,9 +68,8 @@ else
         }
         else
         {
-            mysql_query(
-                    "UPDATE users SET energy=maxenergy,crystals=crystals-12 WHERE userid=$userid",
-                    $c);
+            mysqli_query($c,
+                    "UPDATE users SET energy=maxenergy,crystals=crystals-12 WHERE userid=$userid");
             print "You have paid 12 crystals to refill your energy bar.";
         }
     }
@@ -93,12 +92,10 @@ One crystal = 5 IQ.<form action='crystaltemple.php?spend=IQ2' method='post'><inp
         else
         {
             $iqgain = $_POST['crystals'] * 5;
-            mysql_query(
-                    "UPDATE users SET crystals=crystals-{$_POST['crystals']} WHERE userid=$userid",
-                    $c);
-            mysql_query(
-                    "UPDATE userstats SET IQ=IQ+$iqgain WHERE userid=$userid",
-                    $c);
+            mysqli_query($c,
+                    "UPDATE users SET crystals=crystals-{$_POST['crystals']} WHERE userid=$userid");
+            mysqli_query($c,
+                    "UPDATE userstats SET IQ=IQ+$iqgain WHERE userid=$userid");
             print "You traded {$_POST['crystals']} crystals for $iqgain IQ.";
         }
     }
@@ -121,9 +118,8 @@ One crystal = \$200.<form action='crystaltemple.php?spend=money2' method='post'>
         else
         {
             $iqgain = $_POST['crystals'] * 200;
-            mysql_query(
-                    "UPDATE users SET crystals=crystals-{$_POST['crystals']},money=money+$iqgain WHERE userid=$userid",
-                    $c);
+            mysqli_query($c,
+                    "UPDATE users SET crystals=crystals-{$_POST['crystals']},money=money+$iqgain WHERE userid=$userid");
             print "You traded {$_POST['crystals']} crystals for \$$iqgain.";
         }
     }

@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-stats.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,13 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -45,56 +45,56 @@ $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 // Basic Stats (all users)
 $q =
-        mysql_query(
+        mysqli_query( $c, 
                 "SELECT COUNT(`userid`) AS `c_users`,
 				 SUM(`money`) AS `s_money`,
 				 SUM(`crystals`) AS `s_crystals`
-                 FROM `users`", $c);
-$mem_info = mysql_fetch_assoc($q);
+                 FROM `users`");
+$mem_info = mysqli_fetch_assoc($q);
 $membs = $mem_info['c_users'];
 $total = $mem_info['s_money'];
 $avg = (int) ($total / ($membs > 1 ? $membs : 1));
 $totalc = $mem_info['s_crystals'];
 $avgc = (int) ($totalc / ($membs > 1 ? $membs : 1));
-mysql_free_result($q);
+((mysqli_free_result($q) || (is_object($q) && (get_class($q) == "mysqli_result"))) ? true : false);
 $q =
-        mysql_query(
+        mysqli_query( $c, 
                 "SELECT COUNT(`userid`) AS `c_users`,
                  SUM(`bankmoney`) AS `s_bank`
                  FROM `users`
-                 WHERE `bankmoney` > -1", $c);
-$bank_info = mysql_fetch_assoc($q);
+                 WHERE `bankmoney` > -1");
+$bank_info = mysqli_fetch_assoc($q);
 $banks = $bank_info['c_users'];
 $totalb = $bank_info['s_bank'];
 $avgb = (int) ($totalb / ($banks > 0 ? $banks : 1));
-mysql_free_result($q);
+((mysqli_free_result($q) || (is_object($q) && (get_class($q) == "mysqli_result"))) ? true : false);
 $q =
-        mysql_query(
+        mysqli_query( $c, 
                 "SELECT COUNT(`userid`)
                  FROM `users`
-                 WHERE `gender` = 'Male'", $c);
-$male = mysql_result($q, 0, 0);
-mysql_free_result($q);
+                 WHERE `gender` = 'Male'");
+$male = mysqli_free_result($q);
+((mysqli_free_result($q) || (is_object($q) && (get_class($q) == "mysqli_result"))) ? true : false);
 $q =
-        mysql_query(
+        mysqli_query( $c, 
                 "SELECT COUNT(`userid`)
                  FROM `users`
-                 WHERE `gender` = 'Female'", $c);
-$fem = mysql_result($q, 0, 0);
-mysql_free_result($q);
+                 WHERE `gender` = 'Female'");
+$fem = mysqli_free_result($q);
+((mysqli_free_result($q) || (is_object($q) && (get_class($q) == "mysqli_result"))) ? true : false);
 
-$q = mysql_query("SELECT SUM(`inv_qty`)
-				 FROM `inventory`", $c);
-$totali =(int) mysql_result($q, 0, 0);
-mysql_free_result($q);
-$q = mysql_query("SELECT COUNT(`mail_id`)
-				 FROM `mail`", $c);
-$mail = mysql_result($q, 0, 0);
-mysql_free_result($q);
-$q = mysql_query("SELECT COUNT(`evID`)
-				 FROM `events`", $c);
-$events = mysql_result($q, 0, 0);
-mysql_free_result($q);
+$q = mysqli_query( $c, "SELECT SUM(`inv_qty`)
+				 FROM `inventory`");
+$totali =(int) mysqli_free_result($q);
+((mysqli_free_result($q) || (is_object($q) && (get_class($q) == "mysqli_result"))) ? true : false);
+$q = mysqli_query( $c, "SELECT COUNT(`mail_id`)
+				 FROM `mail`");
+$mail = mysqli_free_result($q);
+((mysqli_free_result($q) || (is_object($q) && (get_class($q) == "mysqli_result"))) ? true : false);
+$q = mysqli_query( $c, "SELECT COUNT(`evID`)
+				 FROM `events`");
+$events = mysqli_free_result($q);
+((mysqli_free_result($q) || (is_object($q) && (get_class($q) == "mysqli_result"))) ? true : false);
 echo "<h3>Country Statistics</h3>
 You step into the Statistics Department and login to the service. You see some stats that interest you.<br />
 <table width='75%' cellspacing='1' class='table'>

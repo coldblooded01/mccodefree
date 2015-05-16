@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-gamerules.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($c)) ? mysqli_error($c) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -45,7 +45,7 @@ $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 print
         <<<EOF
-<h1>{GAME_NAME} Rules and Regulations</h1>
+<h1>test game Rules and Regulations</h1>
 <ol>
 <li>Players are only allowed to have one account, owning two or more accounts will result in all accounts being jailed,
 if you are on the same IP as another player, mail staff and let them know.</li>
@@ -60,7 +60,7 @@ manner, but do not mail them repeatedly, or mail multiple staff members.</li>
 <li>Do not harrass other players, use common sense on this one, if you don't know when your crossing the line from fantasy into
 harrassment, assume that you are harrassing the other player. This will not be tolerated and will result in a stiff punishment.</li>
 <li>Scamming will not be tolerated in any manner. Any attempt to scam anyone will result in being jailed for a long long time.</li>
-<li>If a member of staff is bothering you for any unfair or just plain, weird reason, mail {ID1_NAME} [1]</li>
+<li>If a member of staff is bothering you for any unfair or just plain, weird reason, mail admin [1]</li>
 <li>Common sense rules are not posted here, if you can't determine the difference between what is ok, and what is not, you should
 consider not interacting with other people until you do understand.</li>
 <li>These rules are subject to change without notice, check them from time to time, as ignorance will not be accepted as an excuse.</li>

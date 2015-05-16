@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-viewuser.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,13 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -51,17 +51,17 @@ if (!$_GET['u'])
 else
 {
     $q =
-            mysql_query(
-                    "SELECT u.*,us.*,c.*,h.*,f.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid LEFT JOIN cities c ON u.location=c.cityid LEFT JOIN houses h ON u.maxwill=h.hWILL LEFT JOIN fedjail f ON f.fed_userid=u.userid WHERE u.userid={$_GET['u']}",
-                    $c);
-    if (mysql_num_rows($q) == 0)
+            mysqli_query(
+                    $c, 
+                    "SELECT u.*,us.*,c.*,h.*,f.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid LEFT JOIN cities c ON u.location=c.cityid LEFT JOIN houses h ON u.maxwill=h.hWILL LEFT JOIN fedjail f ON f.fed_userid=u.userid WHERE u.userid={$_GET['u']}");
+    if (mysqli_num_rows($q) == 0)
     {
         print 
                 "Sorry, we could not find a user with that ID, check your source.";
     }
     else
     {
-        $r = mysql_fetch_array($q);
+        $r = mysqli_fetch_array($q);
         if ($r['user_level'] == 1)
         {
             $userl = "Member";
@@ -141,22 +141,22 @@ Crystals: {$r['crystals']}<br />
 Property: {$r['hNAME']}<br />
 Referals: ";
         $rr =
-                mysql_query(
-                        "SELECT * FROM referals WHERE refREFER={$r['userid']}",
-                        $c);
-        print mysql_num_rows($rr);
+                mysqli_query(
+                        $c, 
+                        "SELECT * FROM referals WHERE refREFER={$r['userid']}");
+        print mysqli_num_rows($rr);
         $q_y =
-                mysql_query(
-                        "SELECT * FROM friendslist WHERE fl_ADDED={$r['userid']}",
-                        $c);
+                mysqli_query(
+                        $c, 
+                        "SELECT * FROM friendslist WHERE fl_ADDED={$r['userid']}");
         $q_z =
-                mysql_query(
-                        "SELECT * FROM blacklist WHERE bl_ADDED={$r['userid']}",
-                        $c);
+                mysqli_query(
+                        $c, 
+                        "SELECT * FROM blacklist WHERE bl_ADDED={$r['userid']}");
         print 
                 "<br />
-Friends: " . mysql_num_rows($q_y) . "<br />
-Enemies: " . mysql_num_rows($q_z) . "
+Friends: " . mysqli_num_rows($q_y) . "<br />
+Enemies: " . mysqli_num_rows($q_z) . "
 </td> <td rowspan='2'>";
         if ($r['display_pic'])
         {

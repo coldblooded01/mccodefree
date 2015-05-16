@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-itembuy.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,13 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -56,14 +57,14 @@ else if ($_POST['qty'] <= 0)
 }
 else
 {
-    $q = mysql_query("SELECT * FROM items WHERE itmid={$_GET['ID']}", $c);
-    if (mysql_num_rows($q) == 0)
+    $q = mysqli_query( $c, "SELECT * FROM items WHERE itmid={$_GET['ID']}");
+    if (mysqli_num_rows($q) == 0)
     {
         print "Invalid item ID";
     }
     else
     {
-        $itemd = mysql_fetch_array($q);
+        $itemd = mysqli_fetch_array($q);
         if ($ir['money'] < $itemd['itmbuyprice'] * $_POST['qty'])
         {
             print "You don't have enough money to buy this item!";
@@ -77,17 +78,17 @@ else
             exit;
         }
         $price = ($itemd['itmbuyprice'] * $_POST['qty']);
-        mysql_query(
-                "INSERT INTO inventory VALUES(NULL,{$_GET['ID']},$userid,{$_POST['qty']});",
-                $c);
-        mysql_query(
-                "UPDATE users SET money=money-$price WHERE userid=$userid",
-                $c);
-        mysql_query(
+        mysqli_query(
+                $c, 
+                "INSERT INTO inventory VALUES(NULL,{$_GET['ID']},$userid,{$_POST['qty']});");
+        mysqli_query(
+                $c, 
+                "UPDATE users SET money=money-$price WHERE userid=$userid");
+        mysqli_query(
+                $c, 
                 "INSERT INTO itembuylogs VALUES (NULL, $userid, {$_GET['ID']}, $price, {$_POST['qty']}, "
                         . time()
-                        . ", '{$ir['username']} bought {$_POST['qty']} {$itemd['itmname']}(s) for {$price}')",
-                $c);
+                        . ", '{$ir['username']} bought {$_POST['qty']} {$itemd['itmname']}(s) for {$price}')");
         print "You bought {$_POST['qty']} {$itemd['itmname']}(s) for \$$price";
     }
 }

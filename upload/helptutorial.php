@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-helptutorial.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -48,10 +47,10 @@ print
 <h1>Monocountry Tutorial</h1>
 <br />
 <br />
-<p>Welcome to the {GAME_NAME} Tutorial, we hope that this guide will help you to better
+<p>Welcome to the test game Tutorial, we hope that this guide will help you to better
 understand the game.<p>
 <br />
-<p>In {GAME_NAME}, you are free to choose your own path. You can protect the weak, or
+<p>In test game, you are free to choose your own path. You can protect the weak, or
 exploit their weakness. Spend your money to help your friends, or horde it, they can take
 care of themselves.</p>
 
@@ -81,7 +80,7 @@ so be careful not to try them to soon.
 5)Health shows how much health you have remaining. You lose this if you're hit in a fight.
 <br />
 <p><u>Stats:</u></p>
-<p>There are 5 types of stats used on {GAME_NAME}: Strength, Agility, Guard, Labor, and IQ.
+<p>There are 5 types of stats used on test game: Strength, Agility, Guard, Labor, and IQ.
 1)Strength determines how much damage you do in battle,
 2)Agiligty is used to determine your hit rate in battle,
 3)Guard reduces the amount of damage done to you when you are hit,
@@ -89,18 +88,18 @@ so be careful not to try them to soon.
 <br />
 
 <p><u>Sidebar</u></p>
-<p>The sidebar shows much of the things you are able to do in {GAME_NAME}.</p>
+<p>The sidebar shows much of the things you are able to do in test game.</p>
 <ol>
 <li>The Home link will bring you to your homepage.</li>
 <li>Items will bring you to your item page.</li>
-<li>Explore brings up a list of places that you can go on {GAME_NAME}.</li>
+<li>Explore brings up a list of places that you can go on test game.</li>
 <li>Events displays the number of new events, and when clicked tells you what they are.</li>
 <li>Mailbox will display any new messages you have received.</li>
 <li>Gym is where you go to train your fighting stats.</li>
 <li>Crimes will let you select which crime you want to do.</li>
 <li>Local School will let you take education classes.</li>
 <li>MonoPaper displays recent updates to the game.</li>
-<li>Forums will bring you to the official {GAME_NAME} Forums.</li>
+<li>Forums will bring you to the official test game Forums.</li>
 <li>Search allows you to find other players by their name or their ID.</li>
 <li>Preferences will bring you the the Preferences page.</li>
 <li>Player Report is used to report players that have broken the rules of the game.</li>
@@ -119,7 +118,7 @@ so be careful not to try them to soon.
 <li>Federal Jail: Where all the suspected cheaters on the game go. If you're in here without cheating, mail fedjail@monocountry.com</li>
 <li>Slot Machines: Go here to make your fortune, or lose your shirt.</li>
 <li>User List: Shows a list of all the players on the game.</li>
-<li>{GAME_NAME} Staff: A list of all the staff on {GAME_NAME}.</li>
+<li>test game Staff: A list of all the staff on test game.</li>
 <li>Hall of Fame: Shows the top players in various fields.</li>
 <li>Country Stats: A list of various statistics about the game.</li>
 <li>Users Online: Shows which players have acted last.</li>

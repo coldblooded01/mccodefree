@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-docrime.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($c)) ? mysqli_error($c) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -50,14 +50,14 @@ if (!$_GET['c'])
 }
 else
 {
-    $q = mysql_query("SELECT * FROM crimes WHERE crimeID={$_GET['c']}", $c);
-    if (mysql_num_rows($q) == 0)
+    $q = mysqli_query($c,"SELECT * FROM crimes WHERE crimeID={$_GET['c']}");
+    if (mysqli_num_rows($q) == 0)
     {
         echo 'Invalid crime.';
         $h->endpage();
         exit;
     }
-    $r = mysql_fetch_array($q);
+    $r = mysqli_fetch_array($q);
     if ($ir['brave'] < $r['crimeBRAVE'])
     {
         print "You do not have enough Brave to perform this crime.";
@@ -72,9 +72,8 @@ else
         eval($ec);
         print $r['crimeITEXT'];
         $ir['brave'] -= $r['crimeBRAVE'];
-        mysql_query(
-                "UPDATE users SET brave={$ir['brave']} WHERE userid=$userid",
-                $c);
+        mysqli_query($c,
+                "UPDATE users SET brave={$ir['brave']} WHERE userid=$userid");
         if (rand(1, 100) <= $sucrate)
         {
             print
@@ -82,9 +81,8 @@ else
                             $r['crimeSTEXT']);
             $ir['money'] += $r['crimeSUCCESSMUNY'];
             $ir['exp'] += (int) ($r['crimeSUCCESSMUNY'] / 8);
-            mysql_query(
-                    "UPDATE users SET money={$ir['money']},exp={$ir['exp']} WHERE userid=$userid",
-                    $c);
+            mysqli_query($c,
+                    "UPDATE users SET money={$ir['money']},exp={$ir['exp']} WHERE userid=$userid");
         }
         else
         {

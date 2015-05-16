@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-itemmarket.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,13 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -74,11 +75,11 @@ function imarket_index()
             "Viewing all listings...
 <table width=75%> <tr style='background:gray'> <th>Adder</th> <th>Item</th> <th>Price</th> <th>Links</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT im.*, i.*, u.*,it.* FROM itemmarket im LEFT JOIN items i ON im.imITEM=i.itmid LEFT JOIN users u ON u.userid=im.imADDER LEFT JOIN itemtypes it ON i.itmtype=it.itmtypeid ORDER BY i.itmtype, i.itmname ASC",
-                    $c);
+            mysqli_query(
+                    $c, 
+                    "SELECT im.*, i.*, u.*,it.* FROM itemmarket im LEFT JOIN items i ON im.imITEM=i.itmid LEFT JOIN users u ON u.userid=im.imADDER LEFT JOIN itemtypes it ON i.itmtype=it.itmtypeid ORDER BY i.itmtype, i.itmname ASC");
     $lt = "";
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         if ($lt != $r['itmtypename'])
         {
@@ -108,10 +109,10 @@ function item_remove()
 {
     global $ir, $c, $userid, $h;
     $q =
-            mysql_query(
-                    "SELECT im.*,i.* FROM itemmarket im LEFT JOIN items i ON im.imITEM=i.itmid WHERE imID={$_GET['ID']} AND imADDER=$userid",
-                    $c);
-    if (!mysql_num_rows($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT im.*,i.* FROM itemmarket im LEFT JOIN items i ON im.imITEM=i.itmid WHERE imID={$_GET['ID']} AND imADDER=$userid");
+    if (!mysqli_num_rows($q))
     {
         print
                 "Error, either this item does not exist, or you are not the owner.<br />
@@ -119,16 +120,16 @@ function item_remove()
         $h->endpage();
         exit;
     }
-    $r = mysql_fetch_array($q);
-    mysql_query("INSERT INTO inventory VALUES(NULL,{$r['imITEM']},$userid,1)",
-            $c) or die(mysql_error());
-    $i = mysql_insert_id($c);
-    mysql_query("DELETE FROM itemmarket WHERE imID={$_GET['ID']}", $c);
-    mysql_query(
+    $r = mysqli_fetch_array($q);
+    mysqli_query(
+            $c, "INSERT INTO inventory VALUES(NULL,{$r['imITEM']},$userid,1)") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+    $i = ((is_null($___mysqli_res = mysqli_insert_id($c))) ? false : $___mysqli_res);
+    mysqli_query( $c, "DELETE FROM itemmarket WHERE imID={$_GET['ID']}");
+    mysqli_query(
+            $c, 
             "INSERT INTO imremovelogs VALUES(NULL, {$r['imITEM']}, {$r['imADDER']}, $userid, {$r['imID']}, $i, "
                     . time()
-                    . ", '{$ir['username']} removed a {$r['itmname']} from the item market.')",
-            $c);
+                    . ", '{$ir['username']} removed a {$r['itmname']} from the item market.')");
     print
             "Item removed from market!<br />
 <a href='itemmarket.php'>&gt; Back</a>";
@@ -138,10 +139,10 @@ function item_buy()
 {
     global $ir, $c, $userid, $h;
     $q =
-            mysql_query(
-                    "SELECT * FROM itemmarket im LEFT JOIN items i ON i.itmid=im.imITEM WHERE imID={$_GET['ID']}",
-                    $c);
-    if (!mysql_num_rows($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM itemmarket im LEFT JOIN items i ON i.itmid=im.imITEM WHERE imID={$_GET['ID']}");
+    if (!mysqli_num_rows($q))
     {
         print
                 "Error, either this item does not exist, or it has already been bought.<br />
@@ -149,7 +150,7 @@ function item_buy()
         $h->endpage();
         exit;
     }
-    $r = mysql_fetch_array($q);
+    $r = mysqli_fetch_array($q);
     if ($r['imPRICE'] > $ir['money'])
     {
         print
@@ -158,24 +159,24 @@ function item_buy()
         $h->endpage();
         exit;
     }
-    mysql_query("INSERT INTO inventory VALUES(NULL,{$r['imITEM']},$userid,1)",
-            $c) or die(mysql_error());
-    $i = mysql_insert_id($c);
-    mysql_query("DELETE FROM itemmarket WHERE imID={$_GET['ID']}", $c);
-    mysql_query(
-            "UPDATE users SET money=money-{$r['imPRICE']} where userid=$userid",
-            $c);
-    mysql_query(
-            "UPDATE users SET money=money+{$r['imPRICE']} where userid={$r['imADDER']}",
-            $c);
+    mysqli_query(
+            $c, "INSERT INTO inventory VALUES(NULL,{$r['imITEM']},$userid,1)") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+    $i = ((is_null($___mysqli_res = mysqli_insert_id($c))) ? false : $___mysqli_res);
+    mysqli_query( $c, "DELETE FROM itemmarket WHERE imID={$_GET['ID']}");
+    mysqli_query(
+            $c, 
+            "UPDATE users SET money=money-{$r['imPRICE']} where userid=$userid");
+    mysqli_query(
+            $c, 
+            "UPDATE users SET money=money+{$r['imPRICE']} where userid={$r['imADDER']}");
     event_add($r['imADDER'],
             "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> bought your {$r['itmname']} item from the market for \$"
                     . number_format($r['imPRICE']) . ".", $c);
-    mysql_query(
+    mysqli_query(
+            $c, 
             "INSERT INTO imbuylogs VALUES(NULL, {$r['imITEM']}, {$r['imADDER']}, $userid,  {$r['imPRICE']}, {$r['imID']}, $i, "
                     . time()
-                    . ", '{$ir['username']} bought a {$r['itmname']} from the item market for \${$r['imPRICE']} from user ID {$r['imADDER']}')",
-            $c);
+                    . ", '{$ir['username']} bought a {$r['itmname']} from the item market for \${$r['imPRICE']} from user ID {$r['imADDER']}')");
     print
             "You bought the {$r['itmname']} from the market for \$"
                     . number_format($r['imPRICE']) . ".";
@@ -186,10 +187,10 @@ function item_gift1()
 {
     global $ir, $c, $userid, $h;
     $q =
-            mysql_query(
-                    "SELECT * FROM itemmarket im LEFT JOIN items i ON i.itmid=im.imITEM WHERE imID={$_GET['ID']}",
-                    $c);
-    if (!mysql_num_rows($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM itemmarket im LEFT JOIN items i ON i.itmid=im.imITEM WHERE imID={$_GET['ID']}");
+    if (!mysqli_num_rows($q))
     {
         print
                 "Error, either this item does not exist, or it has already been bought.<br />
@@ -197,7 +198,7 @@ function item_gift1()
         $h->endpage();
         exit;
     }
-    $r = mysql_fetch_array($q);
+    $r = mysqli_fetch_array($q);
     if ($r['imPRICE'] > $ir['money'])
     {
         print
@@ -221,10 +222,10 @@ function item_gift2()
 {
     global $ir, $c, $userid, $h;
     $q =
-            mysql_query(
-                    "SELECT * FROM itemmarket im LEFT JOIN items i ON i.itmid=im.imITEM WHERE imID={$_POST['ID']}",
-                    $c);
-    if (!mysql_num_rows($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM itemmarket im LEFT JOIN items i ON i.itmid=im.imITEM WHERE imID={$_POST['ID']}");
+    if (!mysqli_num_rows($q))
     {
         print
                 "Error, either this item does not exist, or it has already been bought.<br />
@@ -232,7 +233,7 @@ function item_gift2()
         $h->endpage();
         exit;
     }
-    $r = mysql_fetch_array($q);
+    $r = mysqli_fetch_array($q);
     if ($r['imPRICE'] > $ir['money'])
     {
         print
@@ -241,17 +242,17 @@ function item_gift2()
         $h->endpage();
         exit;
     }
-    mysql_query(
-            "INSERT INTO inventory VALUES(NULL,{$r['imITEM']},{$_POST['user']},1)",
-            $c) or die(mysql_error());
-    $i = mysql_insert_id($c);
-    mysql_query("DELETE FROM itemmarket WHERE imID={$_POST['ID']}", $c);
-    mysql_query(
-            "UPDATE users SET money=money-{$r['imPRICE']} where userid=$userid",
-            $c);
-    mysql_query(
-            "UPDATE users SET money=money+{$r['imPRICE']} where userid={$r['imADDER']}",
-            $c);
+    mysqli_query(
+            $c, 
+            "INSERT INTO inventory VALUES(NULL,{$r['imITEM']},{$_POST['user']},1)") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+    $i = ((is_null($___mysqli_res = mysqli_insert_id($c))) ? false : $___mysqli_res);
+    mysqli_query( $c, "DELETE FROM itemmarket WHERE imID={$_POST['ID']}");
+    mysqli_query(
+            $c, 
+            "UPDATE users SET money=money-{$r['imPRICE']} where userid=$userid");
+    mysqli_query(
+            $c, 
+            "UPDATE users SET money=money+{$r['imPRICE']} where userid={$r['imADDER']}");
     event_add($r['imADDER'],
             "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> bought your {$r['itmname']} item from the market for \$"
                     . number_format($r['imPRICE']) . ".", $c);
@@ -259,13 +260,13 @@ function item_gift2()
     event_add($_POST['user'],
             "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> bought you a {$r['itmname']} from the item market as a gift.",
             $c);
-    $u = mysql_query("SELECT * FROM users WHERE userid={$_POST['user']}", $c);
-    $uname = mysql_result($u, 0, 1);
-    mysql_query(
+    $u = mysqli_query( $c, "SELECT * FROM users WHERE userid={$_POST['user']}");
+    $uname = mysqli_free_result($u);
+    mysqli_query(
+            $c, 
             "INSERT INTO imbuylogs VALUES(NULL, {$r['imITEM']}, {$r['imADDER']}, $userid,  {$r['imPRICE']}, {$r['imID']}, $i, "
                     . time()
-                    . ", '{$ir['username']} bought a {$r['itmname']} from the item market for \${$r['imPRICE']} from user ID {$r['imADDER']} as a gift for $uname [{$_POST['user']}]')",
-            $c);
+                    . ", '{$ir['username']} bought a {$r['itmname']} from the item market for \${$r['imPRICE']} from user ID {$r['imADDER']} as a gift for $uname [{$_POST['user']}]')");
     print
             "You bought the {$r['itmname']} from the market for \$"
                     . number_format($r['imPRICE'])

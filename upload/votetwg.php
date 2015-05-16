@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-votetwg.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,21 +30,21 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 //$h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
 $lv = date('F j, Y, g:i a', $ir['laston']);
 $q =
-        mysql_query(
-                "SELECT * FROM votes WHERE userid=$userid AND list='twg'", $c);
-if (mysql_num_rows($q))
+        mysqli_query( $c, 
+                "SELECT * FROM votes WHERE userid=$userid AND list='twg'");
+if (mysqli_num_rows($q))
 {
     $h->startheaders();
     $h->userdata($ir, $lv, $fm, $cm);
@@ -54,11 +54,11 @@ if (mysql_num_rows($q))
 }
 else
 {
-    mysql_query("INSERT INTO votes values ($userid,'twg')", $c);
-    mysql_query(
-            "UPDATE users SET energy=energy+maxenergy/5 WHERE userid=$userid",
-            $c);
-    mysql_query("UPDATE users SET energy=maxenergy WHERE energy>maxenergy", $c);
+    mysqli_query( $c, "INSERT INTO votes values ($userid,'twg')");
+    mysqli_query(
+            $c, 
+            "UPDATE users SET energy=energy+maxenergy/5 WHERE userid=$userid");
+    mysqli_query( $c, "UPDATE users SET energy=maxenergy WHERE energy>maxenergy");
     header("Location:http://www.topwebgames.com/in.asp?id=3341");
     exit;
 }

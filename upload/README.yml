@@ -1,0 +1,4 @@
+MCCode engine v1 opensource. Make your Web Browser MMORPG today! This is an update to the open source MCCode engine 1. Version 1.1.1
+
+Whats change?
+I have converted all php mysql queries to php mysqli. PHP Mysql is being phased out. 

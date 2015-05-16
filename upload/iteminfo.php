@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-iteminfo.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,13 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -53,16 +53,16 @@ if (!$itmid)
 else
 {
     $q =
-            mysql_query(
-                    "SELECT i.*,it.* FROM items i LEFT JOIN itemtypes it ON i.itmtype=itmtypeid WHERE i.itmid=$itmid LIMIT 1",
-                    $c);
-    if (!mysql_num_rows($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT i.*,it.* FROM items i LEFT JOIN itemtypes it ON i.itmtype=itmtypeid WHERE i.itmid=$itmid LIMIT 1");
+    if (!mysqli_num_rows($q))
     {
         print "Invalid item ID";
     }
     else
     {
-        $id = mysql_fetch_array($q);
+        $id = mysqli_fetch_array($q);
         print
                 "<table width=75%><tr style='background: gray;'><th colspan=2><b>Looking up info on {$id['itmname']}</b></th></table>
 <table width=75%><tr bgcolor=#dfdfdf><th colspan=2>The <b>{$id['itmname']}</b> is a/an {$id['itmtypename']} Item - <b>{$id['itmdesc']}</b></th></table><br />

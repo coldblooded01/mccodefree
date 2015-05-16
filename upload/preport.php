@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-preport.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,13 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -47,10 +48,10 @@ if ($_POST['report'])
 {
     $_POST['player'] = abs((int) $_POST['player']);
     $ins_report =
-            mysql_real_escape_string(stripslashes($_POST['report']), $c);
-    mysql_query(
-            "INSERT INTO preports VALUES(NULL,$userid,{$_POST['player']},'{$ins_report}')",
-            $c)
+            mysqli_real_escape_string( $c, stripslashes($_POST['report']));
+    mysqli_query(
+            $c, 
+            "INSERT INTO preports VALUES(NULL,$userid,{$_POST['player']},'{$ins_report}')")
             or die(
                     "Your report could not be processed, make sure you have filled out the form entirely.");
     print "Report processed!";

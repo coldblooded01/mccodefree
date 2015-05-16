@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-jailuser.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,7 +24,7 @@ if (!isset($_GET['userid']) || !is_numeric($_GET['userid']))
 {
     exit;
 }
-require "global_func.php";
+require "includes/global_func.php";
 $location =
         'http://' . determine_game_urlbase()
                 . '/new_staff.php?action=fedform&XID=' . $_GET['userid'];

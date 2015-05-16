@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-logout.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -26,9 +27,9 @@ $atk = $_SESSION['attacking'];
 if ($_SESSION['attacking'])
 {
     print "You lost all your EXP for running from the fight.<br />";
-    require "mysql.php";
+    require "includes/mysql.php";
     global $c;
-    mysql_query("UPDATE users SET exp=0 WHERE userid=$sessid", $c);
+    mysqli_query($c,"UPDATE users SET exp=0 WHERE userid=$sessid");
     $_SESSION['attacking'] == 0;
     session_unset();
     session_destroy();

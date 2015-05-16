@@ -1,4 +1,24 @@
 <?php
+/*
+MCCodes FREE
+Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 if (!defined('IN_STAFF'))
 {
     header('HTTP/1.1 400 Bad Request');
@@ -27,15 +47,15 @@ function fed_user_submit()
     $ins_user = abs((int) $_POST['user']);
     $ins_days = abs((int) $_POST['days']);
     $ins_reason =
-            mysql_real_escape_string(
+            mysqli_real_escape_string( $c, 
                     htmlentities(stripslashes($_POST['reason']), ENT_QUOTES,
-                            'ISO-8859-1'), $c);
-    $q = mysql_query("SELECT * FROM users WHERE userid={$ins_user}", $c);
-    if (mysql_num_rows($q) == 0)
+                            'ISO-8859-1'));
+    $q = mysqli_query( $c, "SELECT * FROM users WHERE userid={$ins_user}");
+    if (mysqli_num_rows($q) == 0)
     {
         return;
     }
-    $r = mysql_fetch_array($q);
+    $r = mysqli_fetch_array($q);
     if (($ir['user_level'] != 2)
             && ($r['user_level'] == 2 || $r['user_level'] == 3))
     {
@@ -44,18 +64,18 @@ function fed_user_submit()
     else
     {
         $re =
-                mysql_query(
-                        "UPDATE users SET fedjail=1 WHERE userid={$ins_user}",
-                        $c);
-        if (mysql_affected_rows($c))
+                mysqli_query(
+                        $c, 
+                        "UPDATE users SET fedjail=1 WHERE userid={$ins_user}");
+        if (mysqli_affected_rows($c))
         {
-            mysql_query(
-                    "INSERT INTO fedjail VALUES(NULL,{$ins_user},{$ins_days},$userid,'{$ins_reason}')",
-                    $c);
+            mysqli_query(
+                    $c, 
+                    "INSERT INTO fedjail VALUES(NULL,{$ins_user},{$ins_days},$userid,'{$ins_reason}')");
         }
-        mysql_query(
+        mysqli_query( $c, 
                 "INSERT INTO jaillogs VALUES(NULL,$userid, {$ins_user}, {$ins_days}, '{$ins_reason}',"
-                        . time() . ")", $c);
+                        . time() . ")");
         print "User jailed.";
     }
 }
@@ -76,11 +96,11 @@ function unfed_user_submit()
 {
     global $ir, $c, $h, $userid;
     $ins_user = abs((int) $_POST['user']);
-    mysql_query("UPDATE users SET fedjail=0 WHERE userid={$ins_user}", $c);
-    mysql_query("DELETE FROM fedjail WHERE fed_userid={$ins_user}", $c);
-    mysql_query(
+    mysqli_query( $c, "UPDATE users SET fedjail=0 WHERE userid={$ins_user}");
+    mysqli_query( $c, "DELETE FROM fedjail WHERE fed_userid={$ins_user}");
+    mysqli_query( $c, 
             "INSERT INTO unjaillogs VALUES(NULL,$userid, {$ins_user}, "
-                    . time() . ")", $c);
+                    . time() . ")");
     print "User unjailed.";
 }
 
@@ -90,8 +110,8 @@ function view_attack_logs()
     print 
             "<h3>Attack Logs</h3>
 <table width=75%><tr style='background:gray'><th>Time</th><th>Detail</th></tr>";
-    $q = mysql_query("SELECT * FROM attacklogs ORDER BY time DESC", $c);
-    while ($r = mysql_fetch_array($q))
+    $q = mysqli_query( $c, "SELECT * FROM attacklogs ORDER BY time DESC");
+    while ($r = mysqli_fetch_array($q))
     {
         print 
                 "<tr><td>" . date('F j, Y, g:i:s a', $r['time'])
@@ -115,13 +135,13 @@ function ip_search_submit()
     global $ir, $c, $h, $userid;
     $disp_ip =
             htmlentities(stripslashes($_POST['ip']), ENT_QUOTES, 'ISO-8859-1');
-    $mysql_ip = mysql_real_escape_string(stripslashes($_POST['ip']), $c);
+    $mysql_ip = mysqli_real_escape_string( $c, stripslashes($_POST['ip']));
     print 
             "Searching for users with the IP: <b>{$disp_ip}</b><br />
 <table width=75%><tr style='background:gray'> <th>User</th> <th>Level</th> <th>Money</th> </tr>";
-    $q = mysql_query("SELECT * FROM users WHERE lastip='{$mysql_ip}'", $c);
+    $q = mysqli_query( $c, "SELECT * FROM users WHERE lastip='{$mysql_ip}'");
     $ids = array();
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $ids[] = $r['userid'];
         print 
@@ -143,19 +163,19 @@ function mass_jail()
     $ids = explode(",", $_POST['ids']);
     $ins_days = abs((int) $_POST['days']);
     $ins_reason =
-            mysql_real_escape_string(
+            mysqli_real_escape_string( $c, 
                     htmlentities(stripslashes($_POST['reason']), ENT_QUOTES,
-                            'ISO-8859-1'), $c);
+                            'ISO-8859-1'));
     foreach ($ids as $id)
     {
         if (ctype_digit($id))
         {
-            $q = mysql_query("SELECT * FROM users WHERE userid=$id", $c);
-            if (mysql_num_rows($q) == 0)
+            $q = mysqli_query( $c, "SELECT * FROM users WHERE userid=$id");
+            if (mysqli_num_rows($q) == 0)
             {
                 continue;
             }
-            $r = mysql_fetch_array($q);
+            $r = mysqli_fetch_array($q);
             if (($ir['user_level'] != 2)
                     && ($r['user_level'] == 2 || $r['user_level'] == 3))
             {
@@ -164,18 +184,18 @@ function mass_jail()
             else
             {
                 $re =
-                        mysql_query(
-                                "UPDATE users SET fedjail=1 WHERE userid={$id}",
-                                $c);
-                if (mysql_affected_rows($c))
+                        mysqli_query(
+                                $c, 
+                                "UPDATE users SET fedjail=1 WHERE userid={$id}");
+                if (mysqli_affected_rows($c))
                 {
-                    mysql_query(
-                            "INSERT INTO fedjail VALUES(NULL,{$id},{$ins_days},$userid,'{$ins_reason}')",
-                            $c);
+                    mysqli_query(
+                            $c, 
+                            "INSERT INTO fedjail VALUES(NULL,{$id},{$ins_days},$userid,'{$ins_reason}')");
                 }
-                mysql_query(
+                mysqli_query( $c, 
                         "INSERT INTO jaillogs VALUES(NULL,$userid, {$id}, {$ins_days}, '{$ins_reason}',"
-                                . time() . ")", $c);
+                                . time() . ")");
                 print "User jailed : $id.";
 
             }
@@ -190,14 +210,14 @@ function view_itm_logs()
             "<h3>Item Xfer Logs</h3>
 <table width=75%><tr style='background:gray'><th>Time</th><th>Detail</th></tr>";
     $q =
-            mysql_query(
+            mysqli_query( $c, 
                     "SELECT ix.*,u1.username as sender, u2.username as sent,i.itmname as item
                     FROM itemxferlogs ix
                     LEFT JOIN users u1 ON ix.ixFROM=u1.userid
                     LEFT JOIN users u2 ON ix.ixTO=u2.userid
                     LEFT JOIN items i ON i.itmid=ix.ixITEM
-                    ORDER BY ix.ixTIME DESC", $c);
-    while ($r = mysql_fetch_array($q))
+                    ORDER BY ix.ixTIME DESC");
+    while ($r = mysqli_fetch_array($q))
     {
         print 
                 "<tr><td>" . date("F j, Y, g:i:s a", $r['ixTIME'])
@@ -213,13 +233,13 @@ function view_cash_logs()
             "<h3>Cash Xfer Logs</h3>
 <table width=75% border=1> <tr style='background:gray'> <th>ID</th> <th>Time</th> <th>User From</th> <th>User To</th> <th>Multi?</th> <th>Amount</th> <th>&nbsp;</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT cx.*,u1.username as sender, u2.username as sent FROM cashxferlogs cx LEFT JOIN users u1 ON cx.cxFROM=u1.userid LEFT JOIN users u2 ON cx.cxTO=u2.userid ORDER BY cx.cxTIME DESC",
-                    $c)
+            mysqli_query(
+                    $c, 
+                    "SELECT cx.*,u1.username as sender, u2.username as sent FROM cashxferlogs cx LEFT JOIN users u1 ON cx.cxFROM=u1.userid LEFT JOIN users u2 ON cx.cxTO=u2.userid ORDER BY cx.cxTIME DESC")
             or die(
-                    mysql_error() . "<br />"
+                    ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)) . "<br />"
                             . "SELECT cx.*,u1.username as sender, u2.username as sent FROM cashxferlogs cx LEFT JOIN users u1 ON cx.cxFROM=u1.userid LEFT JOIN users u2 ON cx.cxTO=u2.userid ORDER BY cx.cxTIME DESC");
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         if ($r['cxFROMIP'] == $r['cxTOIP'])
         {
@@ -259,17 +279,17 @@ function give_item_submit()
     $_POST['user'] = abs(@intval($_POST['user']));
     $_POST['qty'] = abs(@intval($_POST['qty']));
     $d =
-            mysql_query(
-                    "SELECT COUNT(itmid) FROM items WHERE itmid={$_POST['item']}",
-                    $c);
-    if (mysql_result($d, 0, 0) == 0)
+            mysqli_query(
+                    $c, 
+                    "SELECT COUNT(itmid) FROM items WHERE itmid={$_POST['item']}");
+    if (mysqli_free_result($d) == 0)
     {
         print "There is no such item.";
         return;
     }
-    mysql_query(
-            "INSERT INTO inventory VALUES(NULL,{$_POST['item']},{$_POST['user']},{$_POST['qty']})",
-            $c) or die(mysql_error());
+    mysqli_query(
+            $c, 
+            "INSERT INTO inventory VALUES(NULL,{$_POST['item']},{$_POST['user']},{$_POST['qty']})") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     print 
             "You gave {$_POST['qty']} of item ID {$_POST['item']} to user ID {$_POST['user']}";
 }
@@ -294,14 +314,14 @@ function mail_user_submit()
     $ins_user = abs((int) $_POST['user']);
     $ins_days = abs((int) $_POST['days']);
     $ins_reason =
-            mysql_real_escape_string(
+            mysqli_real_escape_string( $c, 
                     htmlentities(stripslashes($_POST['reason']), ENT_QUOTES,
-                            'ISO-8859-1'), $c);
+                            'ISO-8859-1'));
     $log_reason = stripslashes($_POST['reason']);
     $re =
-            mysql_query(
-                    "UPDATE users SET mailban={$ins_days},mb_reason='{$ins_reason}' WHERE userid={$ins_user}",
-                    $c);
+            mysqli_query(
+                    $c, 
+                    "UPDATE users SET mailban={$ins_days},mb_reason='{$ins_reason}' WHERE userid={$ins_user}");
     event_add($ins_user,
             "You were banned from mail for {$ins_days} day(s) for the following reason: {$log_reason}",
             $c);
@@ -326,12 +346,12 @@ function inv_user_view()
     global $ir, $c, $h, $userid;
     $test_user = abs((int) $_POST['user']);
     $inv =
-            mysql_query(
+            mysqli_query( $c, 
                     "SELECT iv.*,i.*,it.* FROM inventory iv
                     LEFT JOIN items i ON iv.inv_itemid=i.itmid
                     LEFT JOIN itemtypes it ON i.itmtype=it.itmtypeid
-                    WHERE iv.inv_userid={$test_user}", $c);
-    if (mysql_num_rows($inv) == 0)
+                    WHERE iv.inv_userid={$test_user}");
+    if (mysqli_num_rows($inv) == 0)
     {
         print "<b>This person has no items!</b>";
     }
@@ -340,7 +360,7 @@ function inv_user_view()
         print 
                 "<b>Their items are listed below.</b><br />
 <table width=100%><tr style='background-color:gray;'><th>Item</th><th>Sell Value</th><th>Total Sell Value</th><th>Links</th></tr>";
-        while ($i = mysql_fetch_array($inv))
+        while ($i = mysqli_fetch_array($inv))
         {
             print "<tr><td>{$i['itmname']}";
             if ($i['inv_qty'] > 1)
@@ -361,7 +381,7 @@ function inv_delete()
 {
     global $ir, $c, $h, $userid;
     $del_id = abs((int) $_GET['ID']);
-    mysql_query("DELETE FROM inventory WHERE inv_id={$del_id}", $c);
+    mysqli_query( $c, "DELETE FROM inventory WHERE inv_id={$del_id}");
     print "Item deleted from inventory.";
 }
 
@@ -384,9 +404,9 @@ function credit_user_submit()
     $_POST['money'] = (int) $_POST['money'];
     $_POST['crystals'] = (int) $_POST['crystals'];
     $cred_user = abs((int) $_POST['user']);
-    mysql_query(
-            "UPDATE users u SET money=money+{$_POST['money']}, crystals=crystals+{$_POST['crystals']} WHERE u.userid={$cred_user}",
-            $c);
+    mysqli_query(
+            $c, 
+            "UPDATE users u SET money=money+{$_POST['money']}, crystals=crystals+{$_POST['crystals']} WHERE u.userid={$cred_user}");
     print "User credited.";
 }
 
@@ -400,13 +420,13 @@ function view_mail_logs()
             "<h3>Mail Logs</h3>
 <table width=75% border=2> \n<tr style='background:gray'> <th>ID</th> <th>Time</th> <th>User From</th> <th>User To</th> <th width>Subj</th> <th width=30%>Msg</th> <th>&nbsp;</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT m.*,u1.username as sender, u2.username as sent FROM mail m LEFT JOIN users u1 ON m.mail_from=u1.userid LEFT JOIN users u2 ON m.mail_to=u2.userid WHERE m.mail_from != 0 ORDER BY m.mail_time DESC LIMIT {$_GET['st']},$rpp",
-                    $c)
+            mysqli_query(
+                    $c, 
+                    "SELECT m.*,u1.username as sender, u2.username as sent FROM mail m LEFT JOIN users u1 ON m.mail_from=u1.userid LEFT JOIN users u2 ON m.mail_to=u2.userid WHERE m.mail_from != 0 ORDER BY m.mail_time DESC LIMIT {$_GET['st']},$rpp")
             or die(
-                    mysql_error() . "<br />"
+                    ((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)) . "<br />"
                             . "SELECT cx.*,u1.username as sender, u2.username as sent FROM cashxferlogs cx LEFT JOIN users u1 ON cx.cxFROM=u1.userid LEFT JOIN users u2 ON cx.cxTO=u2.userid ORDER BY cx.cxTIME DESC LIMIT {$_GET['st']},$rpp");
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         print 
                 "\n<tr><td>{$r['mail_id']}</td> <td>"
@@ -415,8 +435,8 @@ function view_mail_logs()
     }
     print "</table><br />
 ";
-    $q2 = mysql_query("SELECT mail_id FROM mail WHERE mail_from != 0", $c);
-    $rs = mysql_num_rows($q2);
+    $q2 = mysqli_query( $c, "SELECT mail_id FROM mail WHERE mail_from != 0");
+    $rs = mysqli_num_rows($q2);
     $pages = ceil($rs / 20);
     print "Pages: ";
     for ($i = 1; $i <= $pages; $i++)
@@ -437,10 +457,10 @@ function reports_view()
             "<h3>Player Reports</h3>
 <table width=80%><tr style='background:gray'><th>Reporter</th> <th>Offender</th> <th>What they did</th> <th>&nbsp;</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT pr.*,u1.username as reporter, u2.username as offender FROM preports pr LEFT JOIN users u1 ON u1.userid=pr.prREPORTER LEFT JOIN users u2 ON u2.userid=pr.prREPORTED ORDER BY pr.prID DESC",
-                    $c) or die(mysql_error());
-    while ($r = mysql_fetch_array($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT pr.*,u1.username as reporter, u2.username as offender FROM preports pr LEFT JOIN users u1 ON u1.userid=pr.prREPORTER LEFT JOIN users u2 ON u2.userid=pr.prREPORTED ORDER BY pr.prID DESC") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+    while ($r = mysqli_fetch_array($q))
     {
         $report =
                 nl2br(htmlentities($r['prTEXT'], ENT_QUOTES, 'ISO-8859-1'));
@@ -459,7 +479,7 @@ function report_clear()
 {
     global $ir, $c, $h, $userid;
     $_GET['ID'] = abs((int) $_GET['ID']);
-    mysql_query("DELETE FROM preports WHERE prID={$_GET['ID']}", $c);
+    mysqli_query( $c, "DELETE FROM preports WHERE prID={$_GET['ID']}");
     print 
             "Report cleared and deleted!<br />
 <a href='new_staff.php?action=reportsview'>&gt; Back</a>";
@@ -520,35 +540,35 @@ function new_user_submit()
     $brave = 3 + $level * 2;
     $hp = 50 + $level * 50;
     $username =
-            mysql_real_escape_string(
-                    strip_tags(stripslashes($_POST['username'])), $c);
+            mysqli_real_escape_string( $c, 
+                    strip_tags(stripslashes($_POST['username'])));
     $loginname =
-            mysql_real_escape_string(
-                    strip_tags(stripslashes($_POST['login_name'])), $c);
+            mysqli_real_escape_string( $c, 
+                    strip_tags(stripslashes($_POST['login_name'])));
     $password = stripslashes($_POST['userpass']);
     $salt = generate_pass_salt();
     $enc_psw = encode_password($password, $salt, false);
-    $i_salt = mysql_real_escape_string($salt, $c);
-    $i_encpsw = mysql_real_escape_string($enc_psw, $c);
+    $i_salt = mysqli_real_escape_string( $c, $salt);
+    $i_encpsw = mysqli_real_escape_string( $c, $enc_psw);
     $email =
-            mysql_real_escape_string(
-                    strip_tags(stripslashes($_POST['email'])), $c);
+            mysqli_real_escape_string( $c, 
+                    strip_tags(stripslashes($_POST['email'])));
     $gender =
             (isset($_POST['gender'])
                     && in_array($_POST['gender'], array('Male', 'Female')))
                     ? $_POST['gender'] : 'Male';
-    mysql_query(
+    mysqli_query(
+            $c, 
             "INSERT INTO users (username, login_name, userpass, level, money, crystals, donatordays,
              user_level, energy, maxenergy, will, maxwill, brave, maxbrave, hp, maxhp, location, gender,
               signedup, email, bankmoney, pass_salt)
               VALUES( '{$username}', '{$loginname}', '{$i_encpsw}', $level,
                $money, $crystals, $donator, $ulevel, $energy, $energy, 100, 100, $brave, $brave, $hp, $hp, 1,
-                '{$gender}', " . time() . ", '{$email}', -1, '{$i_salt}')",
-            $c);
-    $i = mysql_insert_id($c);
-    mysql_query(
-            "INSERT INTO userstats VALUES($i, $strength, $agility, $guard, $labour, $iq)",
-            $c);
+                '{$gender}', " . time() . ", '{$email}', -1, '{$i_salt}')");
+    $i = ((is_null($___mysqli_res = mysqli_insert_id($c))) ? false : $___mysqli_res);
+    mysqli_query(
+            $c, 
+            "INSERT INTO userstats VALUES($i, $strength, $agility, $guard, $labour, $iq)");
     print "User created!";
 }
 
@@ -586,11 +606,11 @@ function new_item_submit()
         exit;
     }
     $itmname =
-            mysql_real_escape_string(
-                    strip_tags(stripslashes($_POST['itmname'])), $c);
+            mysqli_real_escape_string( $c, 
+                    strip_tags(stripslashes($_POST['itmname'])));
     $itmdesc =
-            mysql_real_escape_string(
-                    strip_tags(stripslashes($_POST['itmdesc'])), $c);
+            mysqli_real_escape_string( $c, 
+                    strip_tags(stripslashes($_POST['itmdesc'])));
     if ($_POST['itmbuyable'] == 'on')
     {
         $itmbuy = 1;
@@ -602,9 +622,9 @@ function new_item_submit()
     // verify item type
     $itmtype = abs(@intval($_POST['itmtype']));
     $itq =
-            mysql_query(
+            mysqli_query($GLOBALS["___mysqli_ston"], 
                     "SELECT COUNT(`itmtypeid`) FROM itemtypes WHERE `itmtypeid` = {$itmtype}");
-    if (mysql_result($itq, 0, 0) == 0)
+    if (mysqli_free_result($itq) == 0)
     {
         print 
                 "That item type doesn't exist.<br />
@@ -615,36 +635,36 @@ function new_item_submit()
     $itmbuyp = abs(@intval($_POST['itmbuyprice']));
     $itmsellp = abs(@intval($_POST['itmsellprice']));
     $m =
-            mysql_query(
+            mysqli_query( $c, 
                     "INSERT INTO items VALUES(NULL,{$itmtype},'$itmname','$itmdesc',
-    {$itmbuyp},{$itmsellp},$itmbuy)", $c) or die(mysql_error());
+    {$itmbuyp},{$itmsellp},$itmbuy)") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     if ($_POST['itmtype'] == 1)
     {
         $stat = abs(@intval($_POST['energy']));
-        $i = mysql_insert_id();
-        mysql_query("INSERT INTO food VALUES($i,{$stat})", $c)
-                or die(mysql_error());
+        $i = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
+        mysqli_query( $c, "INSERT INTO food VALUES($i,{$stat})")
+                or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     }
     if ($_POST['itmtype'] == 3 || $_POST['itmtype'] == 4)
     {
         $stat = abs(@intval($_POST['damage']));
-        $i = mysql_insert_id();
-        mysql_query("INSERT INTO weapons VALUES($i,{$stat})", $c)
-                or die(mysql_error());
+        $i = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
+        mysqli_query( $c, "INSERT INTO weapons VALUES($i,{$stat})")
+                or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     }
     if ($_POST['itmtype'] == 5)
     {
         $stat = abs(@intval($_POST['health']));
-        $i = mysql_insert_id();
-        mysql_query("INSERT INTO medical VALUES($i,{$stat})", $c)
-                or die(mysql_error());
+        $i = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
+        mysqli_query( $c, "INSERT INTO medical VALUES($i,{$stat})")
+                or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     }
     if ($_POST['itmtype'] == 7)
     {
         $stat = abs(@intval($_POST['Defence']));
-        $i = mysql_insert_id();
-        mysql_query("INSERT INTO armour VALUES($i,{$stat})", $c)
-                or die(mysql_error());
+        $i = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
+        mysqli_query( $c, "INSERT INTO armour VALUES($i,{$stat})")
+                or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     }
     print "The {$_POST['itmname']} Item was added to the game.";
 }
@@ -666,21 +686,21 @@ function kill_item_submit()
 {
     global $ir, $c, $h, $userid;
     $_POST['item'] = abs(@intval($_POST['item']));
-    $d = mysql_query("SELECT * FROM items WHERE itmid={$_POST['item']}", $c);
-    if (mysql_num_rows($d) == 0)
+    $d = mysqli_query( $c, "SELECT * FROM items WHERE itmid={$_POST['item']}");
+    if (mysqli_num_rows($d) == 0)
     {
         print "There is no such item.";
         return;
     }
-    $itemi = mysql_fetch_array($d);
-    mysql_query("DELETE FROM items WHERE itmid={$_POST['item']}", $c);
-    mysql_query("DELETE FROM shopitems WHERE sitemITEMID={$_POST['item']}", $c);
-    mysql_query("DELETE FROM inventory WHERE inv_itemid={$_POST['item']}", $c);
-    mysql_query("DELETE FROM food WHERE item_id={$_POST['item']}", $c);
-    mysql_query("DELETE FROM weapons WHERE item_id={$_POST['item']}", $c);
-    mysql_query("DELETE FROM medical WHERE item_id={$_POST['item']}", $c);
-    mysql_query("DELETE FROM armour WHERE item_ID={$_POST['item']}", $c);
-    mysql_query("DELETE FROM itemmarket WHERE imITEM={$_POST['item']}", $c);
+    $itemi = mysqli_fetch_array($d);
+    mysqli_query( $c, "DELETE FROM items WHERE itmid={$_POST['item']}");
+    mysqli_query( $c, "DELETE FROM shopitems WHERE sitemITEMID={$_POST['item']}");
+    mysqli_query( $c, "DELETE FROM inventory WHERE inv_itemid={$_POST['item']}");
+    mysqli_query( $c, "DELETE FROM food WHERE item_id={$_POST['item']}");
+    mysqli_query( $c, "DELETE FROM weapons WHERE item_id={$_POST['item']}");
+    mysqli_query( $c, "DELETE FROM medical WHERE item_id={$_POST['item']}");
+    mysqli_query( $c, "DELETE FROM armour WHERE item_ID={$_POST['item']}");
+    mysqli_query( $c, "DELETE FROM itemmarket WHERE imITEM={$_POST['item']}");
     print "The {$itemi['itmname']} Item was removed from the game.";
 }
 
@@ -700,19 +720,19 @@ function edit_item_form()
 {
     global $ir, $c, $h;
     $_POST['item'] = abs(@intval($_POST['item']));
-    $d = mysql_query("SELECT * FROM items WHERE itmid={$_POST['item']}", $c);
-    if (mysql_num_rows($d) == 0)
+    $d = mysqli_query( $c, "SELECT * FROM items WHERE itmid={$_POST['item']}");
+    if (mysqli_num_rows($d) == 0)
     {
         print "There is no such item.";
         return;
     }
-    $itemi = mysql_fetch_array($d);
+    $itemi = mysqli_fetch_array($d);
     $f =
-            mysql_query("SELECT * FROM food WHERE item_id={$_POST['item']}",
-                    $c);
-    if (mysql_num_rows($f) > 0)
+            mysqli_query(
+                    $c, "SELECT * FROM food WHERE item_id={$_POST['item']}");
+    if (mysqli_num_rows($f) > 0)
     {
-        $a = mysql_fetch_array($f);
+        $a = mysqli_fetch_array($f);
         $energy = $a['energy'];
     }
     else
@@ -720,12 +740,12 @@ function edit_item_form()
         $energy = 1;
     }
     $f =
-            mysql_query(
-                    "SELECT * FROM medical WHERE item_id={$_POST['item']}",
-                    $c);
-    if (mysql_num_rows($f) > 0)
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM medical WHERE item_id={$_POST['item']}");
+    if (mysqli_num_rows($f) > 0)
     {
-        $a = mysql_fetch_array($f);
+        $a = mysqli_fetch_array($f);
         $health = $a['health'];
     }
     else
@@ -733,12 +753,12 @@ function edit_item_form()
         $health = 10;
     }
     $f =
-            mysql_query(
-                    "SELECT * FROM weapons WHERE item_id={$_POST['item']}",
-                    $c);
-    if (mysql_num_rows($f) > 0)
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM weapons WHERE item_id={$_POST['item']}");
+    if (mysqli_num_rows($f) > 0)
     {
-        $a = mysql_fetch_array($f);
+        $a = mysqli_fetch_array($f);
         $damage = $a['damage'];
     }
     else
@@ -746,11 +766,11 @@ function edit_item_form()
         $damage = 1;
     }
     $f =
-            mysql_query(
-                    "SELECT * FROM armour WHERE item_ID={$_POST['item']}", $c);
-    if (mysql_num_rows($f) > 0)
+            mysqli_query( $c, 
+                    "SELECT * FROM armour WHERE item_ID={$_POST['item']}");
+    if (mysqli_num_rows($f) > 0)
     {
-        $a = mysql_fetch_array($f);
+        $a = mysqli_fetch_array($f);
         $def = $a['Defence'];
     }
     else
@@ -798,9 +818,9 @@ function edit_item_sub()
     }
     $itmid = abs(@intval($_POST['itmid']));
     $iq =
-            mysql_query(
+            mysqli_query($GLOBALS["___mysqli_ston"], 
                     "SELECT COUNT(`itmid`) FROM items WHERE `itmid` = {$itmid}");
-    if (mysql_result($iq, 0, 0) == 0)
+    if (mysqli_free_result($iq) == 0)
     {
         print 
                 "That item doesn't exist.<br />
@@ -809,11 +829,11 @@ function edit_item_sub()
         exit;
     }
     $itmname =
-            mysql_real_escape_string(
-                    strip_tags(stripslashes($_POST['itmname'])), $c);
+            mysqli_real_escape_string( $c, 
+                    strip_tags(stripslashes($_POST['itmname'])));
     $itmdesc =
-            mysql_real_escape_string(
-                    strip_tags(stripslashes($_POST['itmdesc'])), $c);
+            mysqli_real_escape_string( $c, 
+                    strip_tags(stripslashes($_POST['itmdesc'])));
     if ($_POST['itmbuyable'] == 'on')
     {
         $itmbuy = 1;
@@ -825,9 +845,9 @@ function edit_item_sub()
     // verify item type
     $itmtype = abs(@intval($_POST['itmtype']));
     $itq =
-            mysql_query(
+            mysqli_query($GLOBALS["___mysqli_ston"], 
                     "SELECT COUNT(`itmtypeid`) FROM itemtypes WHERE `itmtypeid` = {$itmtype}");
-    if (mysql_result($itq, 0, 0) == 0)
+    if (mysqli_free_result($itq) == 0)
     {
         print 
                 "That item type doesn't exist.<br />
@@ -837,40 +857,40 @@ function edit_item_sub()
     }
     $itmbuyp = abs(@intval($_POST['itmbuyprice']));
     $itmsellp = abs(@intval($_POST['itmsellprice']));
-    mysql_query("DELETE FROM items WHERE itmid={$itmid}", $c);
-    mysql_query("DELETE FROM food WHERE item_id={$itmid}", $c);
-    mysql_query("DELETE FROM weapons WHERE item_id={$itmid}", $c);
-    mysql_query("DELETE FROM medical WHERE item_id={$itmid}", $c);
-    mysql_query("DELETE FROM armour WHERE item_ID={$itmid}", $c);
+    mysqli_query( $c, "DELETE FROM items WHERE itmid={$itmid}");
+    mysqli_query( $c, "DELETE FROM food WHERE item_id={$itmid}");
+    mysqli_query( $c, "DELETE FROM weapons WHERE item_id={$itmid}");
+    mysqli_query( $c, "DELETE FROM medical WHERE item_id={$itmid}");
+    mysqli_query( $c, "DELETE FROM armour WHERE item_ID={$itmid}");
     $m =
-            mysql_query(
+            mysqli_query( $c, 
                     "INSERT INTO items VALUES('{$itmid}',{$itmtype},'$itmname',
-            '$itmdesc',{$itmbuyp},{$itmsellp},$itmbuy)", $c)
-            or die(mysql_error());
+            '$itmdesc',{$itmbuyp},{$itmsellp},$itmbuy)")
+            or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     if ($_POST['itmtype'] == 1)
     {
         $stat = abs(@intval($_POST['energy']));
-        mysql_query("INSERT INTO food VALUES({$itmid},{$stat})", $c)
-                or die(mysql_error());
+        mysqli_query( $c, "INSERT INTO food VALUES({$itmid},{$stat})")
+                or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     }
     if ($_POST['itmtype'] == 5)
     {
         $stat = abs(@intval($_POST['health']));
-        mysql_query("INSERT INTO medical VALUES({$itmid},{$stat})", $c)
-                or die(mysql_error());
+        mysqli_query( $c, "INSERT INTO medical VALUES({$itmid},{$stat})")
+                or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     }
     if ($_POST['itmtype'] == 3 || $_POST['itmtype'] == 4)
     {
         $stat = abs(@intval($_POST['damage']));
-        mysql_query("INSERT INTO weapons VALUES({$itmid},{$stat})", $c)
-                or die(mysql_error());
+        mysqli_query( $c, "INSERT INTO weapons VALUES({$itmid},{$stat})")
+                or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     }
     if ($_POST['itmtype'] == 7)
     {
         $stat = abs(@intval($_POST['Defence']));
-        $i = mysql_insert_id();
-        mysql_query("INSERT INTO armour VALUES({$itmid},{$stat})", $c)
-                or die(mysql_error());
+        $i = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["___mysqli_ston"]))) ? false : $___mysqli_res);
+        mysqli_query( $c, "INSERT INTO armour VALUES({$itmid},{$stat})")
+                or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
     }
     print "The {$_POST['itmname']} Item was edited successfully.";
 }
@@ -900,17 +920,17 @@ function new_shop_submit()
     else
     {
         $sn =
-                mysql_real_escape_string(
-                        strip_tags(stripslashes($_POST['sn'])), $c);
+                mysqli_real_escape_string( $c, 
+                        strip_tags(stripslashes($_POST['sn'])));
         $sd =
-                mysql_real_escape_string(
-                        strip_tags(stripslashes($_POST['sd'])), $c);
+                mysqli_real_escape_string( $c, 
+                        strip_tags(stripslashes($_POST['sd'])));
         $location = abs(@intval($_POST['sl']));
         // Verify location
         $locq =
-                mysql_query(
+                mysqli_query($GLOBALS["___mysqli_ston"], 
                         "SELECT COUNT(`cityid`) FROM cities WHERE `cityid` = {$location}");
-        if (mysql_result($locq, 0, 0) == 0)
+        if (mysqli_free_result($locq) == 0)
         {
             print 
                     "That location doesn't exist.<br />
@@ -918,8 +938,8 @@ function new_shop_submit()
             $h->endpage();
             exit;
         }
-        mysql_query("INSERT INTO shops VALUES(NULL,{$location},'$sn','$sd')",
-                $c);
+        mysqli_query(
+                $c, "INSERT INTO shops VALUES(NULL,{$location},'$sn','$sd')");
         print "The $sn Shop was successfully added to the game.";
     }
 }
@@ -943,10 +963,10 @@ function new_stock_submit()
     $item = abs(@intval($_POST['item']));
     // Verify details
     $shopq =
-            mysql_query(
-                    "SELECT COUNT(`shopID`) FROM shops WHERE `shopID` = {$shop}",
-                    $c);
-    if (mysql_result($shopq, 0, 0) == 0)
+            mysqli_query(
+                    $c, 
+                    "SELECT COUNT(`shopID`) FROM shops WHERE `shopID` = {$shop}");
+    if (mysqli_free_result($shopq) == 0)
     {
         print 
                 "That shop doesn't exist.<br />
@@ -955,10 +975,10 @@ function new_stock_submit()
         exit;
     }
     $itemq =
-            mysql_query(
-                    "SELECT COUNT(`itmid`) FROM items WHERE `itmid` = {$item}",
-                    $c);
-    if (mysql_result($itemq, 0, 0) == 0)
+            mysqli_query(
+                    $c, 
+                    "SELECT COUNT(`itmid`) FROM items WHERE `itmid` = {$item}");
+    if (mysqli_free_result($itemq) == 0)
     {
         print 
                 "That item doesn't exist.<br />
@@ -966,7 +986,7 @@ function new_stock_submit()
         $h->endpage();
         exit;
     }
-    mysql_query("INSERT INTO shopitems VALUES(NULL,{$shop},{$item})", $c);
+    mysqli_query( $c, "INSERT INTO shopitems VALUES(NULL,{$shop},{$item})");
     print "Item ID {$item} was successfully added to shop ID {$shop}";
 }
 
@@ -991,17 +1011,17 @@ function edit_user_form()
     global $ir, $c, $h, $userid;
     $user = abs(@intval($_POST['user']));
     $d =
-            mysql_query(
-                    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us on u.userid=us.userid WHERE u.userid={$user}",
-                    $c);
-    if (mysql_num_rows($d) == 0)
+            mysqli_query(
+                    $c, 
+                    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us on u.userid=us.userid WHERE u.userid={$user}");
+    if (mysqli_num_rows($d) == 0)
     {
         print 
                 "That user doesn't exist.<br />
                 &gt; <a href='new_staff.php?action=edituser'>Try again</a>";
         return;
     }
-    $itemi = mysql_fetch_array($d);
+    $itemi = mysqli_fetch_array($d);
     $snbit = htmlentities($itemi['staffnotes'], ENT_QUOTES, 'ISO-8859-1');
     print 
             "<h3>Editing User</h3>
@@ -1101,29 +1121,29 @@ function edit_user_sub()
         $_POST['mailban'] = (int) $_POST['mailban'];
         $_POST['hospital'] = abs((int) $_POST['hospital']);
         $username =
-                mysql_real_escape_string(
-                        strip_tags(stripslashes($_POST['username'])), $c);
+                mysqli_real_escape_string( $c, 
+                        strip_tags(stripslashes($_POST['username'])));
         $loginname =
-                mysql_real_escape_string(
-                        strip_tags(stripslashes($_POST['login_name'])), $c);
+                mysqli_real_escape_string( $c, 
+                        strip_tags(stripslashes($_POST['login_name'])));
         $duties =
-                mysql_real_escape_string(
-                        strip_tags(stripslashes($_POST['duties'])), $c);
+                mysqli_real_escape_string( $c, 
+                        strip_tags(stripslashes($_POST['duties'])));
         $staffnotes =
-                mysql_real_escape_string(
-                        strip_tags(stripslashes($_POST['staffnotes'])), $c);
+                mysqli_real_escape_string( $c, 
+                        strip_tags(stripslashes($_POST['staffnotes'])));
         $mb_reason =
-                mysql_real_escape_string(
-                        strip_tags(stripslashes($_POST['mb_reason'])), $c);
+                mysqli_real_escape_string( $c, 
+                        strip_tags(stripslashes($_POST['mb_reason'])));
         $hospreason =
-                mysql_real_escape_string(
-                        strip_tags(stripslashes($_POST['hospreason'])), $c);
+                mysqli_real_escape_string( $c, 
+                        strip_tags(stripslashes($_POST['hospreason'])));
         //check for username usage
         $u =
-                mysql_query(
-                        "SELECT * FROM users WHERE username='{$username}' and userid != {$userid}",
-                        $c);
-        if (mysql_num_rows($u) != 0)
+                mysqli_query(
+                        $c, 
+                        "SELECT * FROM users WHERE username='{$username}' and userid != {$userid}");
+        if (mysqli_num_rows($u) != 0)
         {
             print "That username is in use, choose another.";
             print 
@@ -1131,8 +1151,8 @@ function edit_user_sub()
             $h->endpage();
             exit;
         }
-        $oq = mysql_query("SELECT * FROM users WHERE userid={$userid}", $c);
-        if (mysql_num_rows($oq) == 0)
+        $oq = mysqli_query( $c, "SELECT * FROM users WHERE userid={$userid}");
+        if (mysqli_num_rows($oq) == 0)
         {
             print 'That user doesn\'t exist.';
             print 
@@ -1140,21 +1160,21 @@ function edit_user_sub()
             $h->endpage();
             exit;
         }
-        $rm = mysql_fetch_array($oq);
+        $rm = mysqli_fetch_array($oq);
         $energy = 10 + $_POST['level'] * 2;
         $nerve = 3 + $_POST['level'] * 2;
         $hp = 50 + $_POST['level'] * 50;
-        mysql_query(
+        mysqli_query( $c, 
                 "UPDATE users SET username='{$username}', level={$_POST['level']},
                 money={$_POST['money']}, crystals={$_POST['crystals']}, energy=$energy, brave=$nerve,
                 maxbrave=$nerve, maxenergy=$energy, hp=$hp, maxhp=$hp, hospital={$_POST['hospital']},
                 duties='{$duties}', staffnotes='{$staffnotes}', mailban={$_POST['mailban']},
                 mb_reason='{$mb_reason}', hospreason='{$hospreason}',
-                login_name='{$loginname}' WHERE userid={$userid}", $c);
-        mysql_query(
+                login_name='{$loginname}' WHERE userid={$userid}");
+        mysqli_query(
+                $c, 
                 "UPDATE userstats SET strength={$_POST['strength']}, agility={$_POST['agility']},
-                guard={$_POST['guard']}, labour={$_POST['labour']}, IQ={$_POST['IQ']} WHERE userid={$userid}",
-                $c);
+                guard={$_POST['guard']}, labour={$_POST['labour']}, IQ={$_POST['IQ']} WHERE userid={$userid}");
 
         print "User edited....";
 
@@ -1181,35 +1201,35 @@ function fed_edit_submit()
     $ins_user = abs((int) $_POST['user']);
     $ins_days = abs((int) $_POST['days']);
     $ins_reason =
-            mysql_real_escape_string(
+            mysqli_real_escape_string( $c, 
                     htmlentities(stripslashes($_POST['reason']), ENT_QUOTES,
-                            'ISO-8859-1'), $c);
-    mysql_query("DELETE FROM fedjail WHERE fed_userid={$ins_user}", $c);
+                            'ISO-8859-1'));
+    mysqli_query( $c, "DELETE FROM fedjail WHERE fed_userid={$ins_user}");
 
-    mysql_query(
-            "INSERT INTO fedjail VALUES(NULL,{$ins_user},{$ins_days},$userid,'{$ins_reason}')",
-            $c);
-    mysql_query(
+    mysqli_query(
+            $c, 
+            "INSERT INTO fedjail VALUES(NULL,{$ins_user},{$ins_days},$userid,'{$ins_reason}')");
+    mysqli_query( $c, 
             "INSERT INTO jaillogs VALUES(NULL,$userid, {$ins_user}, {$ins_days}, '{$ins_reason}',"
-                    . time() . ")", $c);
+                    . time() . ")");
     print "User's sentence edited.";
 }
 
 function newspaper_form()
 {
     global $ir, $c, $h, $userid;
-    $q = mysql_query("SELECT * FROM papercontent LIMIT 1", $c);
-    $news = htmlentities(mysql_result($q, 0, 0), ENT_QUOTES, 'ISO-8859-1');
+    $q = mysqli_query( $c, "SELECT `content` FROM papercontent");
+    $news = mysqli_fetch_assoc($q);
     print 
             "<h3>Editing Newspaper</h3><form action='new_staff.php?action=subnews' method='post'>
-<textarea rows='7' cols='35' name='newspaper'>$news</textarea><br /><input type='submit' value='Change' /></form>";
+<textarea class='ckeditor'rows='10' cols='80' name='newspaper'>".$news['content']."</textarea><br /><input type='submit' value='Change' /></form>";
 }
 
 function newspaper_submit()
 {
     global $ir, $c, $h, $userid;
-    $news = mysql_real_escape_string(stripslashes($_POST['newspaper']), $c);
-    mysql_query("UPDATE papercontent SET content='$news'", $c);
+    $news = mysqli_real_escape_string( $c, stripslashes($_POST['newspaper']));
+    mysqli_query( $c, "UPDATE papercontent SET content='$news'");
     print "Newspaper updated!";
 }
 
@@ -1222,10 +1242,10 @@ function donators_list()
 This lists the donations that need to be checked with our records and processed.<br />
 <table width=75%><tr style='background:gray'><th>ID</th><th>Donator</th><th>Time</th><th>&nbsp;</th></tr>";
     $q =
-            mysql_query(
-                    "SELECT u.*,d.* FROM dps_process d LEFT JOIN users u ON u.userid=d.dp_userid",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT u.*,d.* FROM dps_process d LEFT JOIN users u ON u.userid=d.dp_userid");
+    while ($r = mysqli_fetch_array($q))
     {
         print 
                 "<tr><td>{$r['dp_id']}</td><td><a href='viewuser.php?u={$r['userid']}'>{$r['username']}</td><td>"
@@ -1238,46 +1258,46 @@ function accept_dp()
 {
     global $ir, $c, $h, $userid;
     $acc_id = abs((int) $_GET['ID']);
-    $q = mysql_query("SELECT * FROM dps_process WHERE dp_id={$acc_id}", $c);
-    $r = mysql_fetch_array($q);
+    $q = mysqli_query( $c, "SELECT * FROM dps_process WHERE dp_id={$acc_id}");
+    $r = mysqli_fetch_array($q);
     if ($r['dp_type'] == 'standard')
     {
-        mysql_query(
+        mysqli_query(
+                $c, 
                 "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET u.money=u.money+5000,u.crystals=u.crystals+50,
-us.IQ=us.IQ+50,u.donatordays=u.donatordays+30 WHERE u.userid={$r['dp_userid']}",
-                $c);
+us.IQ=us.IQ+50,u.donatordays=u.donatordays+30 WHERE u.userid={$r['dp_userid']}");
     }
     else if ($r['dp_type'] == 'crystals')
     {
-        mysql_query(
-                "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET u.crystals=u.crystals+100,u.donatordays=u.donatordays+30 WHERE u.userid={$r['dp_userid']}",
-                $c);
+        mysqli_query(
+                $c, 
+                "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET u.crystals=u.crystals+100,u.donatordays=u.donatordays+30 WHERE u.userid={$r['dp_userid']}");
     }
     else if ($r['dp_type'] == 'iq')
     {
-        mysql_query(
+        mysqli_query(
+                $c, 
                 "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET
-us.IQ=us.IQ+120,u.donatordays=u.donatordays+30 WHERE u.userid={$r['dp_userid']}",
-                $c);
+us.IQ=us.IQ+120,u.donatordays=u.donatordays+30 WHERE u.userid={$r['dp_userid']}");
     }
     else if ($r['dp_type'] == 'fivedollars')
     {
-        mysql_query(
+        mysqli_query(
+                $c, 
                 "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET u.money=u.money+15000,u.crystals=u.crystals+75,
-us.IQ=us.IQ+80,u.donatordays=u.donatordays+55 WHERE u.userid={$r['dp_userid']}",
-                $c);
+us.IQ=us.IQ+80,u.donatordays=u.donatordays+55 WHERE u.userid={$r['dp_userid']}");
     }
     else if ($r['dp_type'] == 'tendollars')
     {
-        mysql_query(
+        mysqli_query(
+                $c, 
                 "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET u.money=u.money+35000,u.crystals=u.crystals+160,
-us.IQ=us.IQ+180,u.donatordays=u.donatordays+115 WHERE u.userid={$r['dp_userid']}",
-                $c);
-        mysql_query(
-                "INSERT INTO inventory VALUES(NULL,12,{$r['dp_userid']},1)",
-                $c);
+us.IQ=us.IQ+180,u.donatordays=u.donatordays+115 WHERE u.userid={$r['dp_userid']}");
+        mysqli_query(
+                $c, 
+                "INSERT INTO inventory VALUES(NULL,12,{$r['dp_userid']},1)");
     }
-    mysql_query("DELETE FROM dps_process WHERE dp_id={$_GET['ID']}", $c);
+    mysqli_query( $c, "DELETE FROM dps_process WHERE dp_id={$_GET['ID']}");
     event_add($r['dp_userid'],
             "Your Donation has been accepted and credited.", $c);
     print "Donation accepted and credited to user.";
@@ -1287,9 +1307,9 @@ function decline_dp()
 {
     global $ir, $c, $h, $userid;
     $del_id = abs((int) $_GET['ID']);
-    $q = mysql_query("SELECT * FROM dps_process WHERE dp_id={$del_id}", $c);
-    $r = mysql_fetch_array($q);
-    mysql_query("DELETE FROM dps_process WHERE dp_id={$del_id}", $c);
+    $q = mysqli_query( $c, "SELECT * FROM dps_process WHERE dp_id={$del_id}");
+    $r = mysqli_fetch_array($q);
+    mysqli_query( $c, "DELETE FROM dps_process WHERE dp_id={$del_id}");
     event_add($r['dp_userid'], "Your Donation has been rejected.", $c);
     print "Donation rejected.";
 }
@@ -1317,39 +1337,39 @@ function give_dp_submit()
     $dp_user = abs((int) $_POST['user']);
     if ($_POST['type'] == 1)
     {
-        mysql_query(
+        mysqli_query( $c, 
                 "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET u.money=u.money+5000,u.crystals=u.crystals+50,
-us.IQ=us.IQ+50,u.donatordays=u.donatordays+30 WHERE u.userid={$dp_user}", $c);
+us.IQ=us.IQ+50,u.donatordays=u.donatordays+30 WHERE u.userid={$dp_user}");
         $d = 30;
     }
     else if ($_POST['type'] == 2)
     {
-        mysql_query(
+        mysqli_query( $c, 
                 "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET u.crystals=u.crystals+100,
-                u.donatordays=u.donatordays+30 WHERE u.userid={$dp_user}", $c);
+                u.donatordays=u.donatordays+30 WHERE u.userid={$dp_user}");
         $d = 30;
     }
     else if ($_POST['type'] == 3)
     {
-        mysql_query(
+        mysqli_query( $c, 
                 "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET
-us.IQ=us.IQ+120,u.donatordays=u.donatordays+30 WHERE u.userid={$dp_user}", $c);
+us.IQ=us.IQ+120,u.donatordays=u.donatordays+30 WHERE u.userid={$dp_user}");
         $d = 30;
     }
     else if ($_POST['type'] == 4)
     {
-        mysql_query(
+        mysqli_query( $c, 
                 "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET u.money=u.money+15000,u.crystals=u.crystals+75,
-us.IQ=us.IQ+80,u.donatordays=u.donatordays+55 WHERE u.userid={$dp_user}", $c);
+us.IQ=us.IQ+80,u.donatordays=u.donatordays+55 WHERE u.userid={$dp_user}");
         $d = 55;
     }
     else if ($_POST['type'] == 5)
     {
-        mysql_query(
+        mysqli_query(
+                $c, 
                 "UPDATE users u LEFT JOIN userstats us ON u.userid=us.userid SET u.money=u.money+35000,u.crystals=u.crystals+160,
-us.IQ=us.IQ+180,u.donatordays=u.donatordays+115 WHERE u.userid={$dp_user}",
-                $c);
-        mysql_query("INSERT INTO inventory VALUES(NULL,12,{$dp_user},1)", $c);
+us.IQ=us.IQ+180,u.donatordays=u.donatordays+115 WHERE u.userid={$dp_user}");
+        mysqli_query( $c, "INSERT INTO inventory VALUES(NULL,12,{$dp_user},1)");
         $d = 115;
     }
     $esc_type =
@@ -1370,10 +1390,10 @@ function staff_list()
             "<b>Admins</b><br />
 <table width=80%><tr style='background:gray'> <th>User</th> <th>Online?</th> <th>Links</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT * FROM users WHERE user_level=2 ORDER BY userid ASC",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM users WHERE user_level=2 ORDER BY userid ASC");
+    while ($r = mysqli_fetch_array($q))
     {
         if ($r['laston'] >= time() - 15 * 60)
         {
@@ -1391,10 +1411,10 @@ function staff_list()
             "<b>Secretaries</b><br />
 <table width=80%><tr style='background:gray'> <th>User</th> <th>Online?</th> <th>Links</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT * FROM users WHERE user_level=3 ORDER BY userid ASC",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM users WHERE user_level=3 ORDER BY userid ASC");
+    while ($r = mysqli_fetch_array($q))
     {
         if ($r['laston'] >= time() - 15 * 60)
         {
@@ -1412,10 +1432,10 @@ function staff_list()
             "<b>IRC Ops</b><br />
 <table width=80%><tr style='background:gray'> <th>User</th> <th>Online?</th> <th>Links</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT * FROM users WHERE user_level=4 ORDER BY userid ASC",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM users WHERE user_level=4 ORDER BY userid ASC");
+    while ($r = mysqli_fetch_array($q))
     {
         if ($r['laston'] >= time() - 15 * 60)
         {
@@ -1433,10 +1453,10 @@ function staff_list()
             "<b>Assistants</b><br />
 <table width=80%><tr style='background:gray'> <th>User</th> <th>Online?</th> <th>Links</th> </tr>";
     $q =
-            mysql_query(
-                    "SELECT * FROM users WHERE user_level=5 ORDER BY userid ASC",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM users WHERE user_level=5 ORDER BY userid ASC");
+    while ($r = mysqli_fetch_array($q))
     {
         if ($r['laston'] >= time() - 15 * 60)
         {
@@ -1458,9 +1478,9 @@ function userlevel()
 
     $_GET['level'] = abs((int) $_GET['level']);
     $_GET['ID'] = abs((int) $_GET['ID']);
-    mysql_query(
-            "UPDATE users SET user_level={$_GET['level']} WHERE userid={$_GET['ID']}",
-            $c);
+    mysqli_query(
+            $c, 
+            "UPDATE users SET user_level={$_GET['level']} WHERE userid={$_GET['ID']}");
     print "User's level adjusted.";
 }
 
@@ -1489,25 +1509,25 @@ function massmailer()
     if ($_POST['text'])
     {
         $_POST['text'] =
-                mysql_real_escape_string(
-                        nl2br(strip_tags(stripslashes($_POST['text']))), $c);
+                mysqli_real_escape_string( $c, 
+                        nl2br(strip_tags(stripslashes($_POST['text']))));
         $subj = "This is a mass mail from the administration";
         if ($_POST['cat'] == 1)
-            $q = mysql_query("SELECT * FROM users ", $c);
+            $q = mysqli_query( $c, "SELECT * FROM users ");
         else if ($_POST['cat'] == 2)
-            $q = mysql_query("SELECT * FROM users WHERE user_level > 1", $c);
+            $q = mysqli_query( $c, "SELECT * FROM users WHERE user_level > 1");
         else if ($_POST['cat'] == 3)
-            $q = mysql_query("SELECT * FROM users WHERE user_level=2", $c);
+            $q = mysqli_query( $c, "SELECT * FROM users WHERE user_level=2");
         else
             $q =
-                    mysql_query(
-                            "SELECT * FROM users WHERE user_level={$_POST['level']}",
-                            $c);
-        while ($r = mysql_fetch_array($q))
+                    mysqli_query(
+                            $c, 
+                            "SELECT * FROM users WHERE user_level={$_POST['level']}");
+        while ($r = mysqli_fetch_array($q))
         {
-            mysql_query(
+            mysqli_query( $c, 
                     "INSERT INTO mail VALUES(NULL, 0, 0, {$r['userid']}, "
-                            . time() . ",'$subj','{$_POST['text']}')", $c);
+                            . time() . ",'$subj','{$_POST['text']}')");
             print "Mass mail sent to {$r['username']}.<br />";
         }
         print 
@@ -1560,22 +1580,22 @@ function admin_user_record()
     if ($user)
     {
         $q =
-                mysql_query(
+                mysqli_query( $c, 
                         "SELECT u.*, us.*, h.*, c.*, f.*
                         FROM users u
                         LEFT JOIN userstats us ON u.userid=us.userid
                         LEFT JOIN houses h ON u.maxwill=h.hWILL
                         LEFT JOIN courses c ON u.course=c.crID
                         LEFT JOIN fedjail f ON u.userid = f.fed_userid
-                        WHERE u.userid=$user", $c) or die(mysql_error());
-        if (!mysql_num_rows($q))
+                        WHERE u.userid=$user") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+        if (!mysqli_num_rows($q))
         {
             $_GET['user'] = 0;
             admin_user_record();
         }
         else
         {
-            $r = mysql_fetch_array($q);
+            $r = mysqli_fetch_array($q);
             print 
                     "<table width='100%' border='2'><tr style='background: gray'>
 <th>User</th> <th>Stats</th> <th>Restrictions</th> </tr>
@@ -1656,150 +1676,150 @@ function admin_user_changeid()
     $new_id = abs((int) $_POST['newid']);
     if ($submit && $user && $new_id)
     {
-        mysql_query("UPDATE users SET userid=$new_id WHERE userid = $user", $c);
-        mysql_query(
-                "UPDATE userstats SET userid=$new_id WHERE userid = $user",
-                $c);
-        mysql_query(
-                "UPDATE adminlogs SET adUSER=$new_id WHERE adUSER = $user",
-                $c);
-        mysql_query(
-                "UPDATE applications SET appUSER=$new_id WHERE appUSER = $user",
-                $c);
-        mysql_query(
-                "UPDATE attacklogs SET attacker=$new_id WHERE attacker = $user",
-                $c);
-        mysql_query(
-                "UPDATE attacklogs SET attacked=$new_id WHERE attacked = $user",
-                $c);
-        mysql_query(
-                "UPDATE blacklist SET bl_ADDED=$new_id WHERE bl_ADDED = $user",
-                $c);
-        mysql_query(
-                "UPDATE blacklist SET bl_ADDER=$new_id WHERE bl_ADDER = $user",
-                $c);
-        mysql_query(
-                "UPDATE cashxferlogs SET cxFROM=$new_id WHERE cxFROM = $user",
-                $c);
-        mysql_query(
-                "UPDATE cashxferlogs SET cxTO=$new_id WHERE cxTO = $user", $c);
-        mysql_query(
-                "UPDATE challengesbeaten SET userid=$new_id WHERE userid = $user",
-                $c);
-        mysql_query(
-                "UPDATE challengesbeaten SET npcid=$new_id WHERE npcid = $user",
-                $c);
-        mysql_query(
-                "UPDATE coursesdone SET userid=$new_id WHERE userid = $user",
-                $c);
-        mysql_query(
-                "UPDATE crystalmarket SET cmADDER=$new_id WHERE cmADDER = $user",
-                $c);
-        mysql_query(
-                "UPDATE dps_process SET dp_userid=$new_id WHERE dp_userid = $user",
-                $c);
-        mysql_query("UPDATE events SET evUSER=$new_id WHERE evUSER = $user",
-                $c);
-        mysql_query(
-                "UPDATE fedjail SET fed_userid=$new_id WHERE fed_userid = $user",
-                $c);
-        mysql_query(
-                "UPDATE fedjail SET fed_jailedby=$new_id WHERE fed_jailedby = $user",
-                $c);
-        mysql_query(
-                "UPDATE friendslist SET fl_ADDER=$new_id WHERE fl_ADDER = $user",
-                $c);
-        mysql_query(
-                "UPDATE friendslist SET fl_ADDED=$new_id WHERE fl_ADDED = $user",
-                $c);
-        mysql_query(
-                "UPDATE imarketaddlogs SET imaADDER=$new_id WHERE imaADDER = $user",
-                $c);
-        mysql_query(
-                "UPDATE imbuylogs SET imbADDER=$new_id WHERE imbADDER = $user",
-                $c);
-        mysql_query(
-                "UPDATE imbuylogs SET imbBUYER=$new_id WHERE imbBUYER = $user",
-                $c);
-        mysql_query(
-                "UPDATE imremovelogs SET imrADDER=$new_id WHERE imrADDER = $user",
-                $c);
-        mysql_query(
-                "UPDATE imremovelogs SET imrREMOVER=$new_id WHERE imrREMOVER = $user",
-                $c);
-        mysql_query(
-                "UPDATE inventory SET inv_userid=$new_id WHERE inv_userid = $user",
-                $c);
-        mysql_query(
-                "UPDATE itembuylogs SET ibUSER=$new_id WHERE ibUSER = $user",
-                $c);
-        mysql_query(
-                "UPDATE itemmarket SET imADDER=$new_id WHERE imADDER = $user",
-                $c);
-        mysql_query(
-                "UPDATE itemselllogs SET isUSER=$new_id WHERE isUSER = $user",
-                $c);
-        mysql_query(
-                "UPDATE itemxferlogs SET ixFROM=$new_id WHERE ixFROM = $user",
-                $c);
-        mysql_query(
-                "UPDATE itemxferlogs SET ixTO=$new_id WHERE ixTO = $user", $c);
-        mysql_query(
-                "UPDATE jaillogs SET jaJAILER=$new_id WHERE jaJAILER = $user",
-                $c);
-        mysql_query(
-                "UPDATE jaillogs SET jaJAILED=$new_id WHERE jaJAILED = $user",
-                $c);
-        mysql_query(
-                "UPDATE mail SET mail_from=$new_id WHERE mail_from = $user",
-                $c);
-        mysql_query("UPDATE mail SET mail_to=$new_id WHERE mail_to = $user",
-                $c);
-        mysql_query(
-                "UPDATE mail SET mail_from=$new_id WHERE mail_from = $user",
-                $c);
-        mysql_query(
-                "UPDATE preports SET prREPORTED=$new_id WHERE prREPORTED = $user",
-                $c);
-        mysql_query(
-                "UPDATE preports SET prREPORTER=$new_id WHERE prREPORTER = $user",
-                $c);
-        mysql_query(
-                "UPDATE referals SET refREFER=$new_id WHERE refREFER = $user",
-                $c);
-        mysql_query(
-                "UPDATE referals SET refREFED=$new_id WHERE refREFED = $user",
-                $c);
-        mysql_query(
-                "UPDATE seclogs SET secUSER=$new_id WHERE secUSER = $user",
-                $c);
-        mysql_query(
-                "UPDATE staffnotelogs SET snCHANGER=$new_id WHERE snCHANGER = $user",
-                $c);
-        mysql_query(
-                "UPDATE staffnotelogs SET snCHANGED=$new_id WHERE snCHANGED = $user",
-                $c);
-        mysql_query(
-                "UPDATE unjaillogs SET ujaJAILER=$new_id WHERE ujaJAILER = $user",
-                $c);
-        mysql_query(
-                "UPDATE unjaillogs SET ujaJAILED=$new_id WHERE ujaJAILED = $user",
-                $c);
-        mysql_query("UPDATE votes SET userid=$new_id WHERE userid = $user", $c);
-        mysql_query(
-                "UPDATE willplogs SET wp_userid=$new_id WHERE wp_userid = $user",
-                $c);
+        mysqli_query( $c, "UPDATE users SET userid=$new_id WHERE userid = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE userstats SET userid=$new_id WHERE userid = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE adminlogs SET adUSER=$new_id WHERE adUSER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE applications SET appUSER=$new_id WHERE appUSER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE attacklogs SET attacker=$new_id WHERE attacker = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE attacklogs SET attacked=$new_id WHERE attacked = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE blacklist SET bl_ADDED=$new_id WHERE bl_ADDED = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE blacklist SET bl_ADDER=$new_id WHERE bl_ADDER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE cashxferlogs SET cxFROM=$new_id WHERE cxFROM = $user");
+        mysqli_query( $c, 
+                "UPDATE cashxferlogs SET cxTO=$new_id WHERE cxTO = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE challengesbeaten SET userid=$new_id WHERE userid = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE challengesbeaten SET npcid=$new_id WHERE npcid = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE coursesdone SET userid=$new_id WHERE userid = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE crystalmarket SET cmADDER=$new_id WHERE cmADDER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE dps_process SET dp_userid=$new_id WHERE dp_userid = $user");
+        mysqli_query(
+                $c, "UPDATE events SET evUSER=$new_id WHERE evUSER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE fedjail SET fed_userid=$new_id WHERE fed_userid = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE fedjail SET fed_jailedby=$new_id WHERE fed_jailedby = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE friendslist SET fl_ADDER=$new_id WHERE fl_ADDER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE friendslist SET fl_ADDED=$new_id WHERE fl_ADDED = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE imarketaddlogs SET imaADDER=$new_id WHERE imaADDER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE imbuylogs SET imbADDER=$new_id WHERE imbADDER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE imbuylogs SET imbBUYER=$new_id WHERE imbBUYER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE imremovelogs SET imrADDER=$new_id WHERE imrADDER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE imremovelogs SET imrREMOVER=$new_id WHERE imrREMOVER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE inventory SET inv_userid=$new_id WHERE inv_userid = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE itembuylogs SET ibUSER=$new_id WHERE ibUSER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE itemmarket SET imADDER=$new_id WHERE imADDER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE itemselllogs SET isUSER=$new_id WHERE isUSER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE itemxferlogs SET ixFROM=$new_id WHERE ixFROM = $user");
+        mysqli_query( $c, 
+                "UPDATE itemxferlogs SET ixTO=$new_id WHERE ixTO = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE jaillogs SET jaJAILER=$new_id WHERE jaJAILER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE jaillogs SET jaJAILED=$new_id WHERE jaJAILED = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE mail SET mail_from=$new_id WHERE mail_from = $user");
+        mysqli_query(
+                $c, "UPDATE mail SET mail_to=$new_id WHERE mail_to = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE mail SET mail_from=$new_id WHERE mail_from = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE preports SET prREPORTED=$new_id WHERE prREPORTED = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE preports SET prREPORTER=$new_id WHERE prREPORTER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE referals SET refREFER=$new_id WHERE refREFER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE referals SET refREFED=$new_id WHERE refREFED = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE seclogs SET secUSER=$new_id WHERE secUSER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE staffnotelogs SET snCHANGER=$new_id WHERE snCHANGER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE staffnotelogs SET snCHANGED=$new_id WHERE snCHANGED = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE unjaillogs SET ujaJAILER=$new_id WHERE ujaJAILER = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE unjaillogs SET ujaJAILED=$new_id WHERE ujaJAILED = $user");
+        mysqli_query( $c, "UPDATE votes SET userid=$new_id WHERE userid = $user");
+        mysqli_query(
+                $c, 
+                "UPDATE willplogs SET wp_userid=$new_id WHERE wp_userid = $user");
         print "User's ID changed! They will have to re-login.";
     }
     else if ($user && $new_id)
     {
         $q =
-                mysql_query(
-                        "SELECT username FROM users WHERE userid = $user", $c);
+                mysqli_query( $c, 
+                        "SELECT username FROM users WHERE userid = $user");
         $q2 =
-                mysql_query(
-                        "SELECT userid FROM users WHERE userid = $new_id", $c);
-        if (mysql_num_rows($q2))
+                mysqli_query( $c, 
+                        "SELECT userid FROM users WHERE userid = $new_id");
+        if (mysqli_num_rows($q2))
         {
             print 
                     "<font color='red'><b>That User ID is already in Use.</b></font><br />\n";
@@ -1809,7 +1829,7 @@ function admin_user_changeid()
         else
         {
             print 
-                    "You are changing " . mysql_result($q, 0, 0)
+                    "You are changing " . mysqli_free_result($q)
                             . "'s user ID to $new_id<br />
 <form action='new_staff.php?action=change_id' method='post'>
 <input type='hidden' name='user' value='$user' />

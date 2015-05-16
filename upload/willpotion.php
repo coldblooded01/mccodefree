@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,13 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -52,7 +52,7 @@ Buy will potions today! They restore 100% will.<br />
 <b>Buy One:</b> (\$1)<br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
+<input type="hidden" name="business" value="comingsoon@game.com">
 <input type="hidden" name="item_name" value="Will Potion for ($userid) (1)">
 <input type="hidden" name="amount" value="1.00">
 <input type="hidden" name="no_shipping" value="1">
@@ -66,7 +66,7 @@ Buy will potions today! They restore 100% will.<br />
 <b>Buy Five:</b> (\$4.50)<br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
+<input type="hidden" name="business" value="comingsoon@game.com">
 <input type="hidden" name="item_name" value="Will Potion for ($userid) (5)">
 <input type="hidden" name="amount" value="4.50">
 <input type="hidden" name="no_shipping" value="1">
