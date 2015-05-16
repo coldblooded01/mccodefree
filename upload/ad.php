@@ -1,8 +1,10 @@
 <?php
 /*
 MCCodes FREE
-ad.php Rev 1.1.0
+index.php Rev 1.1.1
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,14 +21,13 @@ along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-require "mysql.php";
+require "includes/mysql.php";
 $_GET['ad'] = abs(@intval($_GET['ad']));
-mysql_query("UPDATE ads SET adCLICKS=adCLICKS+1 WHERE adID='{$_GET['ad']}'",
-        $c);
-$q = mysql_query("SELECT adURL FROM ads WHERE adID='{$_GET['ad']}'", $c);
-if (mysql_num_rows($q) > 0)
+mysqli_query($c,"UPDATE ads SET adCLICKS=adCLICKS+1 WHERE adID='{$_GET['ad']}'");
+$q = mysqli_query($c,"SELECT adURL FROM ads WHERE adID='{$_GET['ad']}'");
+if (mysqli_num_rows($q) > 0)
 {
-    header("Location: " . mysql_result($q, 0, 0));
+    header("Location: " . mysqli_free_result($q));
 }
 else
 {

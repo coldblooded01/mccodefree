@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-dlarchive.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "mysql.php";
+require "includes/mysql.php";
 global $c;
 if (!$_SESSION['userid'])
 {
@@ -40,10 +41,9 @@ if ($_GET['a'] == 'inbox')
     print
             "<table width=75% border=2><tr style='background:gray'><th>From</th><th>Subject/Message</th></tr>";
     $q =
-            mysql_query(
-                    "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_from=u.userid WHERE m.mail_to=$userid ORDER BY mail_time DESC ",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+            mysqli_query($c,
+                    "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_from=u.userid WHERE m.mail_to=$userid ORDER BY mail_time DESC ");
+    while ($r = mysqli_fetch_array($q))
     {
         $sent = date('F j, Y, g:i:s a', $r['mail_time']);
         print "<tr><td>";
@@ -72,10 +72,9 @@ else if ($_GET['a'] == 'outbox')
     print
             "<table width=75% border=2><tr style='background:gray'><th>To</th><th>Subject/Message</th></tr>";
     $q =
-            mysql_query(
-                    "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_to=u.userid WHERE m.mail_from=$userid ORDER BY mail_time DESC",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+            mysqli_query($c,
+                    "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_to=u.userid WHERE m.mail_from=$userid ORDER BY mail_time DESC");
+    while ($r = mysqli_fetch_array($q))
     {
         $sent = date('F j, Y, g:i:s a', $r['mail_time']);
         print

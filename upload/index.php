@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-index.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.*,h.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid LEFT JOIN houses h ON h.hWILL=u.maxwill WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.*,h.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid LEFT JOIN houses h ON h.hWILL=u.maxwill WHERE u.userid=$userid") or die(mysqli_error());
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -45,10 +45,12 @@ $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 print "<h3>General Info:</h2>";
 $exp = (int) ($ir['exp'] / $ir['exp_needed'] * 100);
+$expneeded = (int) $ir['exp_needed'];
+$exp1= (int) $ir['exp'];
 print
         "<table><tr><td><b>Name:</b> {$ir['username']}</td><td><b>Crystals:</b> {$cm}</td></tr><tr>
 <td><b>Level:</b> {$ir['level']}</td>
-<td><b>Exp:</b> {$exp}%</td></tr><tr>
+<td><b>Exp:</b> {$exp}% ({$exp1}/{$expneeded}) </td></tr><tr>
 <td><b>Money:</b> $fm</td>
 <td><b>HP:</b> {$ir['hp']}/{$ir['maxhp']}</td></tr>
 <tr><td><b>Property:</b> {$ir['hNAME']}</td></tr></table>";

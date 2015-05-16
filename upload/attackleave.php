@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-attackleave.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($c)) ? mysqli_error($c) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -46,14 +45,14 @@ $h->menuarea();
 
 $_GET['ID'] = abs((int) $_GET['ID']);
 $_SESSION['attacking'] = 0;
-$od = mysql_query("SELECT * FROM users WHERE userid={$_GET['ID']}", $c);
+$od = mysqli_query($c,"SELECT * FROM users WHERE userid={$_GET['ID']}");
 if ($_SESSION['attackwon'] != $_GET['ID'])
 {
     die("Cheaters don't get anywhere.");
 }
-if (mysql_num_rows($od))
+if (mysqli_num_rows($od))
 {
-    $r = mysql_fetch_array($od);
+    $r = mysqli_fetch_array($od);
     if ($r['hp'] == 1)
     {
         print "What a cheater u are.";
@@ -65,20 +64,17 @@ if (mysql_num_rows($od))
         $expgain = rand($qe / 4, $qe / 2);
         $expperc = (int) ($expgain / $ir['exp_needed'] * 100);
         print " and gained $expperc% EXP!";
-        mysql_query("UPDATE users SET exp=exp+$expgain WHERE userid=$userid",
-                $c);
-        mysql_query("UPDATE users SET hp=1 WHERE userid={$r['userid']}", $c);
+        mysqli_query($c,"UPDATE users SET exp=exp+$expgain WHERE userid=$userid");
+        mysqli_query($c,"UPDATE users SET hp=1 WHERE userid={$r['userid']}");
         event_add($r['userid'],
-                "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> attacked you and left you lying on the street.",
-                $c);
+                "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> attacked you and left you lying on the street.");
 
-        mysql_query(
-                "UPDATE users SET hp=1,hospital=hospital+20+(rand()*20),hospreason='Attacked by <a href=\'viewuser.php?u={$userid}\'>{$ir['username']}</a>' WHERE userid={$r['userid']}",
-                $c);
-        $atklog = mysql_escape_string($_SESSION['attacklog']);
-        mysql_query(
+        mysqli_query($c,
+                "UPDATE users SET hp=1,hospital=hospital+20+(rand()*20),hospreason='Attacked by <a href=\'viewuser.php?u={$userid}\'>{$ir['username']}</a>' WHERE userid={$r['userid']}");
+        $atklog = mysqli_escape_string($c,$_SESSION['attacklog']);
+        mysqli_query($c,
                 "INSERT INTO attacklogs VALUES(NULL,$userid,{$_GET['ID']},'won',"
-                        . time() . ",$stole,'$atklog');", $c);
+                        . time() . ",$stole,'$atklog');");
         $_SESSION['attackwon'] = 0;
         $bots = array(2477, 2479, 2480, 2481, 263, 264, 265);
         $moneys =
@@ -90,18 +86,15 @@ if (mysql_num_rows($od))
         if (in_array($r['userid'], $bots))
         {
             $qk =
-                    mysql_query(
-                            "SELECT * FROM challengesbeaten WHERE userid=$userid AND npcid={$r['userid']}",
-                            $c);
-            if (!mysql_num_rows($qk))
+                    mysqli_query($c,
+                            "SELECT * FROM challengesbeaten WHERE userid=$userid AND npcid={$r['userid']}");
+            if (!mysqli_num_rows($qk))
             {
                 $gain = $moneys[$r['userid']];
-                mysql_query(
-                        "UPDATE users SET money=money+$gain WHERE userid=$userid",
-                        $c);
-                mysql_query(
-                        "INSERT INTO challengesbeaten VALUES ($userid,{$r['userid']})",
-                        $c);
+                mysqli_query(
+                        "UPDATE users SET money=money+$gain WHERE userid=$userid", $c);
+                mysqli_query(
+                        "INSERT INTO challengesbeaten VALUES ($userid,{$r['userid']})", $c);
                 print
                         "<br /><br />Congrats, for beating the Challenge Bot {$r['username']}, you have earnt \$$gain!";
             }

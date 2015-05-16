@@ -19,9 +19,9 @@ along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-require_once(dirname(__FILE__) . "/../mysql.php");
-require_once(dirname(__FILE__) . "/../global_func.php");
-$cron_code = '{CRON_CODE}';
+require_once(dirname(__FILE__) . "/../includes/mysql.php");
+require_once(dirname(__FILE__) . "/../includes/global_func.php");
+$cron_code = '023c36285d4f518c15b1f23aab76d50a';
 if ($argc == 2)
 {
     if ($argv[1] != $cron_code)

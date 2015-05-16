@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-register.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,10 +19,9 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "mysql.php";
-require "global_func.php";
+require "includes/mysql.php";
+require "includes/global_func.php";
 print 
         <<<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -29,7 +29,7 @@ print
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <link href="css/game.css" type="text/css" rel="stylesheet" />
-<title>{GAME_NAME}</title>
+<title>test game</title>
 </head>
 <body onload="getme();" bgcolor="#C3C3C3">
 <img src="logo.png" alt="Your Game Logo" />
@@ -53,11 +53,11 @@ if ($_POST['username'])
     }
     $username = $_POST['username'];
     $username =
-            mysql_real_escape_string(
+            mysqli_real_escape_string( $c, 
                     htmlentities(stripslashes($username), ENT_QUOTES,
-                            'ISO-8859-1'), $c);
-    $q = mysql_query("SELECT * FROM users WHERE username='{$username}'", $c);
-    if (mysql_num_rows($q))
+                            'ISO-8859-1'));
+    $q = mysqli_query( $c, "SELECT * FROM users WHERE username='{$username}'");
+    if (mysqli_num_rows($q))
     {
         print "Username already in use. Choose another.";
     }
@@ -72,19 +72,19 @@ if ($_POST['username'])
         if ($_POST['ref'])
         {
             $q =
-                    mysql_query(
+                    mysqli_query( $c, 
                             "SELECT `lastip`
                              FROM `users`
-                             WHERE `userid` = {$_POST['ref']}", $c);
-            if (mysql_num_rows($q) == 0)
+                             WHERE `userid` = {$_POST['ref']}");
+            if (mysqli_num_rows($q) == 0)
             {
-                mysql_free_result($q);
+                ((mysqli_free_result($q) || (is_object($q) && (get_class($q) == "mysqli_result"))) ? true : false);
                 echo "Referrer does not exist.<br />
 				&gt; <a href='register.php'>Back</a>";
                 die('</body></html>');
             }
-            $rem_IP = mysql_result($q, 0, 0);
-            mysql_free_result($q);
+            $rem_IP = mysqli_free_result($q);
+            ((mysqli_free_result($q) || (is_object($q) && (get_class($q) == "mysqli_result"))) ? true : false);
             if ($rem_IP == $ip)
             {
                 echo "No creating referral multies.<br />
@@ -92,27 +92,27 @@ if ($_POST['username'])
                 die('</body></html>');
             }
         }
-        mysql_query(
+        mysqli_query( $c, 
                 "INSERT INTO users (username, login_name, userpass, level, money, crystals, donatordays, user_level, energy, maxenergy, will, maxwill, brave, maxbrave, hp, maxhp, location, gender, signedup, email, bankmoney, lastip) VALUES( '{$username}', '{$username}', md5('{$_POST['password']}'), 1, $sm, 0, 0, 1, 12, 12, 100, 100, 5, 5, 100, 100, 1, 'Male', "
-                        . time() . ", '{$_POST['email']}', -1, '$ip')", $c);
-        $i = mysql_insert_id($c);
-        mysql_query("INSERT INTO userstats VALUES($i, 10, 10, 10, 10, 10)", $c);
+                        . time() . ", '{$_POST['email']}', -1, '$ip')");
+        $i = ((is_null($___mysqli_res = mysqli_insert_id($c))) ? false : $___mysqli_res);
+        mysqli_query( $c, "INSERT INTO userstats VALUES($i, 10, 10, 10, 10, 10)");
 
         if ($_POST['ref'])
         {
-            mysql_query(
+            mysqli_query($GLOBALS["___mysqli_ston"], 
                     "UPDATE `users`
                     SET `crystals` = `crystals` + 2
                     WHERE `userid` = {$_POST['ref']}");
             event_add($_POST['ref'],
                     "For refering $username to the game, you have earnt 2 valuable crystals!",
                     $c);
-            $e_rip = mysql_real_escape_string($rem_IP, $c);
-            $e_oip = mysql_real_escape_string($ip, $c);
-            mysql_query(
+            $e_rip = mysqli_real_escape_string( $c, $rem_IP);
+            $e_oip = mysqli_real_escape_string( $c, $ip);
+            mysqli_query( $c, 
                     "INSERT INTO `referals`
                     VALUES(NULL, {$_POST['ref']}, $i, " . time()
-                            . ", '{$e_rip}', '$e_oip')", $c);
+                            . ", '{$e_rip}', '$e_oip')");
         }
         print 
                 "You have signed up, enjoy the game.<br />
@@ -125,7 +125,7 @@ else
     $fref = $gref ? $gref : '';
     echo <<<EOF
     <h3>
-      {GAME_NAME} Registration
+      test game Registration
     </h3>
     <form action="register.php" method="post">
       Username: <input type="text" name="username" /><br />

@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-explore.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -80,7 +80,7 @@ print
         "</td><td valign=top>
 <u>Statistics Dept</u><br />
 <a href='userlist.php'>User List</a><br />
-<a href='stafflist.php'>{GAME_NAME} Staff</a><br />
+<a href='stafflist.php'>test game Staff</a><br />
 <a href='halloffame.php'>Hall of Fame</a><br />
 <a href='stats.php'>Game Stats</a><br />
 <a href='usersonline.php'>Users Online</a></td><td valign=top>&nbsp;</td><td valign=top>

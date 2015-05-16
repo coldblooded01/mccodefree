@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-gym.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -60,7 +59,7 @@ if (isset($_GET['train']))
             $gain =
                     rand(1, 3) / rand(800, 1000) * rand(800, 1000)
                             * (($ir['will'] + 20) / 150);
-            $tgain += $gain;
+            $tgain +=(int) $gain;
             if ($_GET['train'] == "IQ")
             {
                 $gain /= 100;
@@ -70,26 +69,24 @@ if (isset($_GET['train']))
             $ts = $ir[$_GET['train']];
             $st = $_GET['train'];
 
-            mysql_query(
+            mysqli_query($c,
                     "UPDATE userstats SET $st=$st+" . $gain
-                            . " WHERE userid=$userid", $c)
+                            . " WHERE userid=$userid")
                     or die(
                             "UPDATE userstats SET $st=$st+$gain,energy=energy-1,exp=exp+$egain WHERE userid=$userid<br />"
-                                    . mysql_error());
+                                    . ((is_object($c)) ? mysqli_error($c) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
             $wu = (int) (rand(1, 3));
             if ($ir['will'] >= $wu)
             {
                 $ir['will'] -= $wu;
-                mysql_query(
-                        "UPDATE users SET energy=energy-1,exp=exp+$egain,will=will-$wu WHERE userid=$userid",
-                        $c);
+                mysqli_query($c,
+                        "UPDATE users SET energy=energy-1,exp=exp+$egain,will=will-$wu WHERE userid=$userid");
             }
             else
             {
                 $ir['will'] = 0;
-                mysql_query(
-                        "UPDATE users SET energy=energy-1,exp=exp+$egain,will=0 WHERE userid=$userid",
-                        $c);
+                mysqli_query($c,
+                        "UPDATE users SET energy=energy-1,exp=exp+$egain,will=0 WHERE userid=$userid");
             }
             $ir['energy'] -= 1;
             $ir['exp'] += $egain;
@@ -100,7 +97,7 @@ if (isset($_GET['train']))
             $out = "You do not have enough energy to train.";
         }
     }
-    $stat = $ir[$st];
+    $stat = (int)$ir[$st];
     $i--;
     $out =
             "You begin training your $st.<br />

@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-hospital.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($c)) ? mysqli_error($c) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -47,10 +46,9 @@ print
         "<h3>Hospital</h3>
 <table width='75%' border='2'><tr bgcolor=gray><th>ID</th><th>Name</th <th>Level</th> <th>Time</th><th>Reason</th></tr>";
 $q =
-        mysql_query(
-                "SELECT u.*,c.* FROM users u WHERE u.hospital > 0 ORDER BY u.hospital DESC",
-                $c);
-while ($r = mysql_fetch_array($q))
+        mysqli_query($c,
+                "SELECT u.*,c.* FROM users u WHERE u.hospital > 0 ORDER BY u.hospital DESC");
+while ($r = mysqli_fetch_array($q))
 {
     print
             "\n<tr><td>{$r['userid']}</td><td><a href='viewuser.php?u={$r['userid']}'>{$r['username']}</a> [{$r['userid']}]</td><td>

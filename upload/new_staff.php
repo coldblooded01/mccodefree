@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-new_staff.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,13 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -49,11 +50,11 @@ if ($ir['user_level'] != 2 && $ir['user_level'] != 3 && $ir['user_level'] != 5)
     $h->endpage();
     exit;
 }
-$posta = mysql_real_escape_string(print_r($_POST, 1), $c);
-$geta = mysql_real_escape_string(print_r($_GET, 1), $c);
-mysql_query(
+$posta = mysqli_real_escape_string( $c, print_r($_POST, 1));
+$geta = mysqli_real_escape_string( $c, print_r($_GET, 1));
+mysqli_query( $c, 
         "INSERT INTO seclogs VALUES(NULL, $userid, '$posta', '$geta', "
-                . time() . " )", $c);
+                . time() . " )");
 
 // Stuff that all staff can do
 $actions = array();
@@ -150,7 +151,7 @@ function admin_index()
 {
     global $ir, $c, $userid;
     print 
-            "Welcome to the {GAME_NAME} admin panel, <b>{$ir['username']}!</b><br />";
+            "Welcome to the test game admin panel, <b>{$ir['username']}!</b><br />";
     echo <<<EOF
     <table width='90%' border='1' cellspacing='1' cellpadding='2'>
     	<tr style='background-color: black; color: white;'>
@@ -177,16 +178,14 @@ function admin_index()
 			</td>
 			<td rowspan='3'>
 EOF;
-    include 'admin.news';
-    $versq = mysql_query("SELECT VERSION()");
-    $mv = mysql_result($versq, 0, 0);
-    mysql_free_result($versq);
-    $versionno = intval('11000');
-    $version = '1.1.0';
+    include 'includes/admin.news';
+    $versq = mysqli_get_server_info($c);
+    $versionno = intval('11100');
+    $version = '1.1.1';
     $phpv = phpversion();
     $critical_files =
-            array('installer.php', 'installer_head.php', 'installer_foot.php',
-                    'dbdata.sql');
+            array('installer/installer.php', 'installer/installer_head.php', 'installer/installer_foot.php',
+                    'includes/dbdata.sql');
     $have_files = array();
     foreach ($critical_files as $test_file)
     {
@@ -248,17 +247,17 @@ EOF;
                 		</tr>
                 		<tr>
                 			<th>MySQL Version:</th>
-                			<td>{$mv}</td>
+                			<td>{$versq}</td>
                 		</tr>
                 		<tr>
                 			<th>Codes Version:</th>
-                			<td>{$version} (Build: {$versionno})</td>
+                			<td>{$version}</td>
                 		</tr>
                 		<tr>
                 			<th>Update Status:</th>
                 			<td>
                 				<iframe
-                					src='http://www.mccodes.com/update_check.php?version={$versionno}&amp;type=free'
+                					src=''
                 					width='250' height='30'></iframe>
                 			</td>
                 		</tr>
@@ -291,7 +290,7 @@ function sec_index()
 {
     global $ir, $c;
     print 
-            "Welcome to the {GAME_NAME} secretary panel, {$ir['username']}!<br />
+            "Welcome to the test game secretary panel, {$ir['username']}!<br />
 <h3><font color=red>Secretary Warning: Any sec who uses their powers without reason will be fired. No second chances.</font></h3><br />
 <b>News from the Admins:</b> <br />";
     include "admin.news";
@@ -320,7 +319,7 @@ function ass_index()
 {
     global $ir, $c;
     print 
-            "Welcome to the {GAME_NAME} assistant panel, {$ir['username']}!<br />
+            "Welcome to the test game assistant panel, {$ir['username']}!<br />
 <h3><font color=red>Assistant Warning: Any assistant who uses their powers without reason will be fired. No second chances.</font></h3><br />
 <b>News from the Admins:</b> <br />";
     include "admin.news";

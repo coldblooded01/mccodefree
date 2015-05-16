@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once(dirname(__FILE__) . "/../mysql.php");
 require_once(dirname(__FILE__) . "/../global_func.php");
-$cron_code = '{CRON_CODE}';
+$cron_code = '023c36285d4f518c15b1f23aab76d50a';
 if ($argc == 2)
 {
     if ($argv[1] != $cron_code)
@@ -33,21 +33,21 @@ else if (!isset($_GET['code']) || $_GET['code'] !== $cron_code)
 {
     exit;
 }
-mysql_query("UPDATE `fedjail` SET `fed_days` = `fed_days` - 1", $c);
-$q = mysql_query("SELECT * FROM `fedjail` WHERE `fed_days` <= 0", $c);
+mysqli_query($c,"UPDATE `fedjail` SET `fed_days` = `fed_days` - 1");
+$q = mysqli_query($c,"SELECT * FROM `fedjail` WHERE `fed_days` <= 0");
 $ids = array();
-while ($r = mysql_fetch_assoc($q))
+while ($r = mysqli_fetch_assoc($q))
 {
     $ids[] = $r['fed_userid'];
 }
-mysql_free_result($q);
+mysqli_free_result($q);
 if (count($ids) > 0)
 {
-    mysql_query(
+    mysqli_query(
             "UPDATE `users` SET `fedjail` = 0 WHERE `userid` IN("
                     . implode(",", $ids) . ")", $c);
 }
-mysql_query("DELETE FROM `fedjail` WHERE `fed_days` <= 0", $c);
+mysqli_query($c,"DELETE FROM `fedjail` WHERE `fed_days` <= 0");
 $user_update_query =
         "UPDATE `users` SET 
          `daysold` = `daysold` + 1,
@@ -56,23 +56,22 @@ $user_update_query =
          `cdays` = `cdays` - IF(`course` > 0, 1, 0),
          `bankmoney` = `bankmoney` + IF(`bankmoney` > 0, `bankmoney` / 50, 0),
          `cybermoney` = `cybermoney` + IF(`cybermoney` > 0, `cybermoney` / 100 * 7, 0)";
-mysql_query($user_update_query, $c);
+mysqli_query($c,$user_update_query);
 $q =
-        mysql_query(
-                "SELECT `userid`, `course` FROM `users` WHERE `cdays` <= 0 AND `course` > 0",
-                $c);
+        mysqli_query($c,
+                "SELECT `userid`, `course` FROM `users` WHERE `cdays` <= 0 AND `course` > 0");
 $course_cache = array();
-while ($r = mysql_fetch_assoc($q))
+while ($r = mysqli_fetch_assoc($q))
 {
     if (!array_key_exists($r['course'], $course_cache))
     {
         $cd =
-                mysql_query(
+                mysqli_query($c,
                         "SELECT `crSTR`, `crGUARD`, `crLABOUR`, `crAGIL`, `crIQ`, `crNAME`
      				     FROM `courses`
-                         WHERE `crID` = {$r['course']}", $c);
-        $coud = mysql_fetch_assoc($cd);
-        mysql_free_result($cd);
+                         WHERE `crID` = {$r['course']}");
+        $coud = mysqli_fetch_assoc($cd);
+        mysqli_free_result($cd);
         $course_cache[$r['course']] = $coud;
     }
     else
@@ -80,9 +79,8 @@ while ($r = mysql_fetch_assoc($q))
         $coud = $course_cache[$r['course']];
     }
     $userid = $r['userid'];
-    mysql_query(
-            "INSERT INTO `coursesdone` VALUES({$r['userid']}, {$r['course']})",
-            $c);
+    mysqli_query($c,
+            "INSERT INTO `coursesdone` VALUES({$r['userid']}, {$r['course']})");
     $upd = "";
     $ev = "";
     if ($coud['crSTR'] > 0)
@@ -111,14 +109,13 @@ while ($r = mysql_fetch_assoc($q))
         $ev .= ", {$coud['crIQ']} IQ";
     }
     $ev = substr($ev, 1);
-    mysql_query(
+    mysqli_query($c,
             "UPDATE `users` AS `u`
                 INNER JOIN `userstats` AS `us` ON `u`.`userid` = `us`.`userid`
                 SET `u`.`course` = 0{$upd}
-                WHERE `u`.`userid` = {$userid}", $c);
-    event_add($userid,
-            "Congratulations, you completed the {$coud['crNAME']} and gained {$ev}!",
-            $c);
+                WHERE `u`.`userid` = {$userid}");
+    event_add($c,$userid,
+            "Congratulations, you completed the {$coud['crNAME']} and gained {$ev}!");
 }
-mysql_free_result($q);
-mysql_query("TRUNCATE TABLE `votes`", $c);
+mysqli_free_result($q);
+mysqli_query($c,"TRUNCATE TABLE `votes`");

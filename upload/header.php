@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-header.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -36,7 +37,7 @@ class headers
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <link href="css/game.css" type="text/css" rel="stylesheet" />
-<title>{GAME_NAME}</title>
+<title>test game</title>
 </head>
 <body style='background-color: #C3C3C3;'>
 
@@ -46,10 +47,10 @@ EOF;
     function userdata($ir, $lv, $fm, $cm, $dosessh = 1)
     {
         global $c, $userid;
-        $ip = mysql_real_escape_string($_SERVER['REMOTE_ADDR']);
-        mysql_query(
+        $ip = mysqli_real_escape_string($c, $_SERVER['REMOTE_ADDR']);
+        mysqli_query($c,
                 "UPDATE users SET laston=" . time()
-                        . ",lastip='$ip' WHERE userid=$userid", $c);
+                        . ",lastip='$ip' WHERE userid=$userid");
         if (!$ir['email'])
         {
             die(
@@ -60,7 +61,7 @@ EOF;
             if ($_SESSION['attacking'] > 0)
             {
                 print "You lost all your EXP for running from the fight.";
-                mysql_query("UPDATE users SET exp=0 WHERE userid=$userid", $c);
+                mysqli_query("UPDATE users SET exp=0 WHERE userid=$userid", $c);
                 $_SESSION['attacking'] = 0;
             }
         }
@@ -80,35 +81,35 @@ EOF;
         {
             $u = "<font color=red>{$ir['username']}</font>";
             $d =
-                    "<img src='donator.gif' alt='Donator: {$ir['donatordays']} Days Left' title='Donator: {$ir['donatordays']} Days Left' />";
+                    "<img src='images/donator.gif' alt='Donator: {$ir['donatordays']} Days Left' title='Donator: {$ir['donatordays']} Days Left' />";
         }
         print
                 "
-<table width=100%><tr><td><img src='logo.png'></td>
+<table width=100%><tr><td><img src='images/logo.png'></td>
 <td><b>Name:</b> {$u} [{$ir['userid']}] $d<br />
 <b>Money:</b> {$fm}<br />
 <b>Level:</b> {$ir['level']}<br />
 <b>Crystals:</b> {$ir['crystals']}<br />
 [<a href='logout.php'>Emergency Logout</a>]</td><td>
 <b>Energy:</b> {$enperc}%<br />
-<img src=bargreen.gif width=$enperc height=10><img src=barred.gif width=$enopp height=10><br />
+<img src=images/bargreen.gif width=$enperc height=10><img src=images/barred.gif width=$enopp height=10><br />
 <b>Will:</b> {$wiperc}%<br />
-<img src=bargreen.gif width=$wiperc height=10><img src=barred.gif width=$wiopp height=10><br />
+<img src=images/bargreen.gif width=$wiperc height=10><img src=images/barred.gif width=$wiopp height=10><br />
 <b>Brave:</b> {$ir['brave']}/{$ir['maxbrave']}<br />
-<img src=bargreen.gif width=$brperc height=10><img src=barred.gif width=$bropp height=10><br />
+<img src=images/bargreen.gif width=$brperc height=10><img src=images/barred.gif width=$bropp height=10><br />
 <b>EXP:</b> {$experc}%<br />
-<img src=bargreen.gif width=$experc height=10><img src=barred.gif width=$exopp height=10><br />
+<img src=images/bargreen.gif width=$experc height=10><img src=images/barred.gif width=$exopp height=10><br />
 <b>Health:</b> {$hpperc}%<br />
-<img src=bargreen.gif width=$hpperc height=10><img src=barred.gif width=$hpopp height=10></td></tr></table></div><center><b><u><a href='voting.php'>Vote for {GAME_NAME} on various gaming sites and be rewarded!</a></u></b></center><br />
-<center><b><u><a href='donator.php'>Donate to {GAME_NAME}, it's only \$3 and gets you a lot of benefits!</a></u></b></center><br />
+<img src=images/bargreen.gif width=$hpperc height=10><img src=images/barred.gif width=$hpopp height=10></td></tr></table></div><center><b><u><a href='voting.php'>Vote for test game on various gaming sites and be rewarded!</a></u></b></center><br />
+<center><b><u><a href='donator.php'>Donate to test game, it's only \$3 and gets you a lot of benefits!</a></u></b></center><br />
                 ";
-        $q = mysql_query("SELECT * FROM ads ORDER BY rand() LIMIT 1", $c);
-        if (mysql_num_rows($q))
+        $q = mysqli_query($c, "SELECT * FROM ads ORDER BY rand() LIMIT 1");
+        if (mysqli_num_rows($q))
         {
-            $r = mysql_fetch_array($q);
+            $r = mysqli_fetch_array($q);
             print
                     "<center><a href='ad.php?ad={$r['adID']}'><img src='{$r['adIMG']}' alt='Paid Advertisement' /></a></center><br />";
-            mysql_query(
+            mysqli_query(
                     "UPDATE ads SET adVIEWS=adVIEWS+1 WHERE adID={$r['adID']}",
                     $c);
         }
@@ -117,12 +118,12 @@ EOF;
         if ($ir['fedjail'])
         {
             $q =
-                    mysql_query(
+                    mysqli_query(
                             "SELECT * FROM fedjail WHERE fed_userid=$userid",
                             $c);
-            $r = mysql_fetch_array($q);
+            $r = mysqli_fetch_array($q);
             die(
-                    "<b><font color=red size=+1>You have been put in the {GAME_NAME} Federal Jail for {$r['fed_days']} day(s).<br />
+                    "<b><font color=red size=+1>You have been put in the test game Federal Jail for {$r['fed_days']} day(s).<br />
 Reason: {$r['fed_reason']}</font></b></body></html>");
         }
         if (file_exists('ipbans/' . $ip))
@@ -146,7 +147,7 @@ Reason: {$r['fed_reason']}</font></b></body></html>");
         print
                 "</td></tr></table>
         <div style='font-style: italic; text-align: center'>
-      		Powered by codes made by Dabomstew. Copyright &copy; {$year} {GAME_OWNER}.
+      		Powered by codes made by Dabomstew. Copyright &copy; {$year} coming soon.
     	</div>
         </body>
 		</html>";

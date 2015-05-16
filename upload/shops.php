@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-shops.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,9 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +30,13 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query(
+                $c, 
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -48,12 +48,12 @@ if (!$_GET['shop'])
 {
     print "You begin looking through town and you see a few shops.<br />";
     $q =
-            mysql_query(
-                    "SELECT * FROM shops WHERE shopLOCATION={$ir['location']}",
-                    $c);
+            mysqli_query(
+                    $c, 
+                    "SELECT * FROM shops WHERE shopLOCATION={$ir['location']}");
     print
             "<table width=85%><tr style='background: gray;'><th>Shop</th><th>Description</th></tr>";
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         print
                 "<tr><td><a href='shops.php?shop={$r['shopID']}'>{$r['shopNAME']}</a></td><td>{$r['shopDESCRIPTION']}</td></tr>";
@@ -62,21 +62,21 @@ if (!$_GET['shop'])
 }
 else
 {
-    $sd = mysql_query("SELECT * FROM shops WHERE shopID={$_GET['shop']}", $c);
-    if (mysql_num_rows($sd))
+    $sd = mysqli_query( $c, "SELECT * FROM shops WHERE shopID={$_GET['shop']}");
+    if (mysqli_num_rows($sd))
     {
-        $shopdata = mysql_fetch_array($sd);
+        $shopdata = mysqli_fetch_array($sd);
         if ($shopdata['shopLOCATION'] == $ir['location'])
         {
             print
                     "Browsing items at <b>{$shopdata['shopNAME']}...</b><br />
 <table><tr style='background: gray;'><th>Item</th><th>Description</th><th>Price</th><th>Sell Price</th><th>Buy</th></tr>";
             $qtwo =
-                    mysql_query(
-                            "SELECT si.*,i.*,it.* FROM shopitems si LEFT JOIN items i ON si.sitemITEMID=i.itmid LEFT JOIN itemtypes it ON i.itmtype=it.itmtypeid WHERE si.sitemSHOP={$_GET['shop']} ORDER BY i.itmtype ASC, i.itmbuyprice ASC, i.itmname ASC",
-                            $c) or die(mysql_error());
+                    mysqli_query(
+                            $c, 
+                            "SELECT si.*,i.*,it.* FROM shopitems si LEFT JOIN items i ON si.sitemITEMID=i.itmid LEFT JOIN itemtypes it ON i.itmtype=it.itmtypeid WHERE si.sitemSHOP={$_GET['shop']} ORDER BY i.itmtype ASC, i.itmbuyprice ASC, i.itmname ASC") or die(((is_object($GLOBALS["___mysqli_ston"])) ? mysqli_error($GLOBALS["___mysqli_ston"]) : (($___mysqli_res = mysqli_connect_error()) ? $___mysqli_res : false)));
             $lt = "";
-            while ($r = mysql_fetch_array($qtwo))
+            while ($r = mysqli_fetch_array($qtwo))
             {
                 if ($lt != $r['itmtypename'])
                 {

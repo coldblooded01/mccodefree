@@ -1,8 +1,9 @@
 <?php
 /*
 MCCodes FREE
-donator.php Rev 1.1.0
 Copyright (C) 2005-2012 Dabomstew
+Changes made by John West
+updated all the mysql to mysqli. 
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "global_func.php";
+require "includes/global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,13 +31,12 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+include "includes/mysql.php";
 global $c;
 $is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+        mysqli_query($c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid") or die(mysql_error());
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -48,7 +48,7 @@ print
         <<<EOF
 <h3>Donations</h3>
 <b>[<a href='willpotion.php'>Buy Will Potions</a>]</b><br />
-If you become a donator to {GAME_NAME}, you will receive (each time you donate):<br />
+If you become a donator to test game, you will receive (each time you donate):<br />
 <b>1st Offer:</b><ul>
 <li>\$5,000 game money</li>
 <li>50 crystals</li>
@@ -58,8 +58,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type=hidden name=cmd value=_xclick>
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 1)">
+<input type="hidden" name="business" value="comingsoon@game.com">
+<input type="hidden" name="item_name" value="test game Donation for ($userid) (Pack 1)">
 <input type="hidden" name="amount" value="3.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=standard">
@@ -76,8 +76,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 2)">
+<input type="hidden" name="business" value="comingsoon@game.com">
+<input type="hidden" name="item_name" value="test game Donation for ($userid) (Pack 2)">
 <input type="hidden" name="amount" value="3.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=crystals">
@@ -94,8 +94,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 3)">
+<input type="hidden" name="business" value="comingsoon@game.com">
+<input type="hidden" name="item_name" value="test game Donation for ($userid) (Pack 3)">
 <input type="hidden" name="amount" value="3.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=iq">
@@ -114,8 +114,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 4)">
+<input type="hidden" name="business" value="comingsoon@game.com">
+<input type="hidden" name="item_name" value="test game Donation for ($userid) (Pack 4)">
 <input type="hidden" name="amount" value="5.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=fivedollars">
@@ -135,8 +135,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 5)">
+<input type="hidden" name="business" value="comingsoon@game.com">
+<input type="hidden" name="item_name" value="test game Donation for ($userid) (Pack 5)">
 <input type="hidden" name="amount" value="10.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=tendollars">
