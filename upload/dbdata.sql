@@ -886,6 +886,11 @@ CREATE TABLE `seclogs` (
 -- Dumping data for table `seclogs`
 -- 
 
+CREATE TABLE `settings` (
+  `settingID` int(11) NOT NULL auto_increment,
+  `settingVALUE` longtext NOT NULL,
+  PRMIARY KEY (`settingID`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
@@ -1113,7 +1118,7 @@ CREATE TABLE `txsused` (
 CREATE TABLE `unjaillogs` (
   `ujaID` int(11) NOT NULL auto_increment,
   `ujaJAILER` int(11) NOT NULL default '0',
-  `ujaJAILED` int(11) NOT NULL default '0',
+  `ujaJAILED` int(11) NOT NULL default SET'0',
   `ujaTIME` int(11) NOT NULL default '0',
   PRIMARY KEY  (`ujaID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
