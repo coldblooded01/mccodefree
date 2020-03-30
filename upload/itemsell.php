@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -48,17 +49,17 @@ $_GET['qty'] = abs((int) $_GET['qty']);
 //itemsend
 if ($_GET['qty'])
 {
-    $id =
-            mysql_query(
-                    "SELECT iv.*,it.* FROM inventory iv LEFT JOIN items it ON iv.inv_itemid=it.itmid WHERE iv.inv_id={$_GET['ID']} AND iv.inv_userid=$userid LIMIT 1",
-                    $c);
-    if (mysql_num_rows($id) == 0)
+    $id = mysqli_query(
+        $c,
+        "SELECT iv.*,it.* FROM inventory iv LEFT JOIN items it ON iv.inv_itemid=it.itmid WHERE iv.inv_id={$_GET['ID']} AND iv.inv_userid=$userid LIMIT 1"
+    );
+    if (mysqli_num_rows($id) == 0)
     {
         print "Invalid item ID";
     }
     else
     {
-        $r = mysql_fetch_array($id);
+        $r = mysqli_fetch_array($id);
         if ($_GET['qty'] > $r['inv_qty'])
         {
             print "You are trying to send more than you have!";
@@ -70,43 +71,47 @@ if ($_GET['qty'])
             if ($_GET['qty'] == $r['inv_qty'])
             {
                 //just give them possession of the item
-                mysql_query(
-                        "DELETE FROM inventory WHERE inv_id={$_GET['ID']}",
-                        $c);
+                mysqli_query(
+                    $c,
+                    "DELETE FROM inventory WHERE inv_id={$_GET['ID']}"
+                );
             }
             else
             {
                 //create seperate
-                mysql_query(
-                        "UPDATE inventory SET inv_qty=inv_qty-{$_GET['qty']} WHERE inv_id={$_GET['ID']} LIMIT 1;",
-                        $c);
+                mysqli_query(
+                    $c,
+                    "UPDATE inventory SET inv_qty=inv_qty-{$_GET['qty']} WHERE inv_id={$_GET['ID']} LIMIT 1;"
+                );
             }
-            mysql_query(
-                    "UPDATE users SET money=money+{$price} WHERE userid=$userid",
-                    $c);
+            mysqli_query(
+                $c,
+                "UPDATE users SET money=money+{$price} WHERE userid=$userid"
+            );
             $priceh = "$" . ($price);
             print "You sold {$_GET['qty']} {$r['itmname']}(s) for {$priceh}";
-            mysql_query(
-                    "INSERT INTO itemselllogs VALUES(NULL, $userid, {$r['itmid']}, $price, {$_GET['qty']}, "
-                            . time()
-                            . ", '{$ir['username']} sold {$_GET['qty']} {$r['itmname']}(s) for {$priceh}')",
-                    $c);
+            mysqli_query(
+                $c,
+                "INSERT INTO itemselllogs VALUES(NULL, $userid, {$r['itmid']}, $price, {$_GET['qty']}, "
+                        . time()
+                        . ", '{$ir['username']} sold {$_GET['qty']} {$r['itmname']}(s) for {$priceh}')"
+            );
         }
     }
 }
 else if ($_GET['ID'])
 {
-    $id =
-            mysql_query(
-                    "SELECT iv.*,it.* FROM inventory iv LEFT JOIN items it ON iv.inv_itemid=it.itmid WHERE iv.inv_id={$_GET['ID']} and iv.inv_userid=$userid LIMIT 1",
-                    $c);
-    if (mysql_num_rows($id) == 0)
+    $id = mysqli_query(
+        $c,
+        "SELECT iv.*,it.* FROM inventory iv LEFT JOIN items it ON iv.inv_itemid=it.itmid WHERE iv.inv_id={$_GET['ID']} and iv.inv_userid=$userid LIMIT 1"
+    );
+    if (mysqli_num_rows($id) == 0)
     {
         print "Invalid item ID";
     }
     else
     {
-        $r = mysql_fetch_array($id);
+        $r = mysqli_fetch_array($id);
         print
                 "<b>Enter how many {$r['itmname']} you want to sell. You have {$r['inv_qty']} to sell.</b><br />
 <form action='itemsell.php' method='get'>

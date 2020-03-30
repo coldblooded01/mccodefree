@@ -52,12 +52,16 @@ if ($_POST['username'])
         $sm += 100;
     }
     $username = $_POST['username'];
-    $username =
-            mysql_real_escape_string(
-                    htmlentities(stripslashes($username), ENT_QUOTES,
-                            'ISO-8859-1'), $c);
-    $q = mysql_query("SELECT * FROM users WHERE username='{$username}'", $c);
-    if (mysql_num_rows($q))
+    $username = mysqli_real_escape_string(
+        $c,
+        htmlentities(
+            stripslashes($username),
+            ENT_QUOTES,
+            'ISO-8859-1'
+        )
+    );
+    $q = mysqli_query($c, "SELECT * FROM users WHERE username='{$username}'");
+    if (mysqli_num_rows($q))
     {
         print "Username already in use. Choose another.";
     }
@@ -71,20 +75,21 @@ if ($_POST['username'])
         $ip = $_SERVER['REMOTE_ADDR'];
         if ($_POST['ref'])
         {
-            $q =
-                    mysql_query(
-                            "SELECT `lastip`
-                             FROM `users`
-                             WHERE `userid` = {$_POST['ref']}", $c);
-            if (mysql_num_rows($q) == 0)
+            $q = mysqli_query(
+                $c,
+                "SELECT `lastip`
+                    FROM `users`
+                    WHERE `userid` = {$_POST['ref']}"
+            );
+            if (mysqli_num_rows($q) == 0)
             {
-                mysql_free_result($q);
+                mysqli_free_result($q);
                 echo "Referrer does not exist.<br />
 				&gt; <a href='register.php'>Back</a>";
                 die('</body></html>');
             }
-            $rem_IP = mysql_result($q, 0, 0);
-            mysql_free_result($q);
+            $rem_IP = mysqli_data_seek($q, 0, 0);
+            mysqli_free_result($q);
             if ($rem_IP == $ip)
             {
                 echo "No creating referral multies.<br />
@@ -92,27 +97,35 @@ if ($_POST['username'])
                 die('</body></html>');
             }
         }
-        mysql_query(
-                "INSERT INTO users (username, login_name, userpass, level, money, crystals, donatordays, user_level, energy, maxenergy, will, maxwill, brave, maxbrave, hp, maxhp, location, gender, signedup, email, bankmoney, lastip) VALUES( '{$username}', '{$username}', md5('{$_POST['password']}'), 1, $sm, 0, 0, 1, 12, 12, 100, 100, 5, 5, 100, 100, 1, 'Male', "
-                        . time() . ", '{$_POST['email']}', -1, '$ip')", $c);
-        $i = mysql_insert_id($c);
-        mysql_query("INSERT INTO userstats VALUES($i, 10, 10, 10, 10, 10)", $c);
+        mysqli_query(
+            $c,
+            "INSERT INTO users (username, login_name, userpass, level, money, crystals, donatordays, user_level, energy, maxenergy, will, maxwill, brave, maxbrave, hp, maxhp, location, gender, signedup, email, bankmoney, lastip) VALUES( '{$username}', '{$username}', md5('{$_POST['password']}'), 1, $sm, 0, 0, 1, 12, 12, 100, 100, 5, 5, 100, 100, 1, 'Male', "
+                . time() . ", '{$_POST['email']}', -1, '$ip')"
+        );
+        $i = mysqli_insert_id($c);
+        mysqli_query(
+            $c,
+            "INSERT INTO userstats mysqli_insert_id($i, 10, 10, 10, 10, 10)"
+        );
 
         if ($_POST['ref'])
         {
-            mysql_query(
-                    "UPDATE `users`
+            mysqli_query(
+                $c,
+                "UPDATE `users`
                     SET `crystals` = `crystals` + 2
                     WHERE `userid` = {$_POST['ref']}");
             event_add($_POST['ref'],
                     "For refering $username to the game, you have earnt 2 valuable crystals!",
                     $c);
-            $e_rip = mysql_real_escape_string($rem_IP, $c);
-            $e_oip = mysql_real_escape_string($ip, $c);
-            mysql_query(
-                    "INSERT INTO `referals`
+            $e_rip = mysqli_real_escape_string($c, $rem_IP);
+            $e_oip = mysqli_real_escape_string($c, $ip);
+            mysqli_query(
+                $c,
+                "INSERT INTO `referals`
                     VALUES(NULL, {$_POST['ref']}, $i, " . time()
-                            . ", '{$e_rip}', '$e_oip')", $c);
+                    . ", '{$e_rip}', '$e_oip')"
+            );
         }
         print 
                 "You have signed up, enjoy the game.<br />

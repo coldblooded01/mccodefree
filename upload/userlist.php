@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -50,8 +51,8 @@ $by = (in_array($_GET['by'], $allowed_by)) ? $_GET['by'] : 'userid';
 $allowed_ord = array('asc', 'desc', 'ASC', 'DESC');
 $ord = (in_array($_GET['ord'], $allowed_ord)) ? $_GET['ord'] : 'ASC';
 print "<h3>Userlist</h3>";
-$cnt = mysql_query("SELECT userid FROM users", $c);
-$membs = mysql_num_rows($cnt);
+$cnt = mysqli_query($c, "SELECT userid FROM users");
+$membs = mysqli_num_rows($cnt);
 $pages = (int) ($membs / 100) + 1;
 if ($membs % 100 == 0)
 {
@@ -67,16 +68,16 @@ print
         "<br />
 Order By: <a href='userlist.php?st=$st&by=userid&ord=$ord'>User ID</a>&nbsp;| <a href='userlist.php?st=$st&by=username&ord=$ord'>Username</a>&nbsp;| <a href='userlist.php?st=$st&by=level&ord=$ord'>Level</a>&nbsp;| <a href='userlist.php?st=$st&by=money&ord=$ord'>Money</a><br />
 <a href='userlist.php?st=$st&by=$by&ord=asc'>Ascending</a>&nbsp;| <a href='userlist.php?st=$st&by=$by&ord=desc'>Descending</a><br /><br />";
-$q =
-        mysql_query(
-                "SELECT u.* FROM users u ORDER BY $by $ord LIMIT $st,100",
-                $c);
+$q = mysqli_query(
+    $c,
+    "SELECT u.* FROM users u ORDER BY $by $ord LIMIT $st,100"
+);
 $no1 = $st + 1;
 $no2 = $st + 100;
 print
         "Showing users $no1 to $no2 by order of $by $ord.
 <table width=75% border=2><tr style='background:gray'><th>ID</th><th>Name</th><th>Money</th><th>Level</th><th>Gender</th><th>Online</th></tr>";
-while ($r = mysql_fetch_array($q))
+while ($r = mysqli_fetch_array($q))
 {
     $d = "";
     if ($r['donatordays'])

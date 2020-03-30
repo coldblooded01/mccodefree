@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -70,33 +71,32 @@ if (isset($_GET['train']))
             $ts = $ir[$_GET['train']];
             $st = $_GET['train'];
 
-            mysql_query(
-                    "UPDATE userstats SET $st=$st+" . $gain
-                            . " WHERE userid=$userid", $c)
-                    or die(
-                            "UPDATE userstats SET $st=$st+$gain,energy=energy-1,exp=exp+$egain WHERE userid=$userid<br />"
-                                    . mysql_error());
+            mysqli_query(
+                $c,
+                "UPDATE userstats SET $st=$st+" . $gain
+                    . " WHERE userid=$userid"
+                ) or die(
+                    "UPDATE userstats SET $st=$st+$gain,energy=energy-1,exp=exp+$egain WHERE userid=$userid<br />"
+                        . mysqli_error($c)
+                );
             $wu = (int) (rand(1, 3));
-            if ($ir['will'] >= $wu)
-            {
+            if ($ir['will'] >= $wu) {
                 $ir['will'] -= $wu;
-                mysql_query(
-                        "UPDATE users SET energy=energy-1,exp=exp+$egain,will=will-$wu WHERE userid=$userid",
-                        $c);
-            }
-            else
-            {
+                mysqli_query(
+                    $c,
+                    "UPDATE users SET energy=energy-1,exp=exp+$egain,will=will-$wu WHERE userid=$userid"
+                );
+            } else {
                 $ir['will'] = 0;
-                mysql_query(
-                        "UPDATE users SET energy=energy-1,exp=exp+$egain,will=0 WHERE userid=$userid",
-                        $c);
+                mysqli_query(
+                    $c,
+                    "UPDATE users SET energy=energy-1,exp=exp+$egain,will=0 WHERE userid=$userid"
+                );
             }
             $ir['energy'] -= 1;
             $ir['exp'] += $egain;
 
-        }
-        else
-        {
+        } else {
             $out = "You do not have enough energy to train.";
         }
     }

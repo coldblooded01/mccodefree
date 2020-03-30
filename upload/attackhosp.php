@@ -33,10 +33,11 @@ $h->startheaders();
 include "mysql.php";
 global $c;
 $is =
-        mysql_query(
+        mysqli_query(
                 "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+                $c) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -46,14 +47,14 @@ $h->menuarea();
 
 $_GET['ID'] = abs((int) $_GET['ID']);
 $_SESSION['attacking'] = 0;
-$od = mysql_query("SELECT * FROM users WHERE userid={$_GET['ID']}", $c);
+$od = mysqli_query("SELECT * FROM users WHERE userid={$_GET['ID']}", $c);
 if ($_SESSION['attackwon'] != $_GET['ID'])
 {
     die("Cheaters don't get anywhere.");
 }
-if (mysql_num_rows($od))
+if (mysqli_num_rows($od))
 {
-    $r = mysql_fetch_array($od);
+    $r = mysqli_fetch_array($od);
     if ($r['hp'] == 1)
     {
         print "What a cheater you are.";
@@ -66,11 +67,11 @@ if (mysql_num_rows($od))
                 "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> hospitalized you.",
                 $c);
 
-        mysql_query(
+        mysqli_query(
                 "UPDATE users SET hp=1,hospital=hospital+80+(rand()*230),hospreason='Hospitalized by <a href=\'viewuser.php?u={$userid}\'>{$ir['username']}</a>' WHERE userid={$r['userid']}",
                 $c);
         $atklog = mysql_escape_string($_SESSION['attacklog']);
-        mysql_query(
+        mysqli_query(
                 "INSERT INTO attacklogs VALUES(NULL,$userid,{$_GET['ID']},'won',"
                         . time() . ",-1,'$atklog');", $c);
         $_SESSION['attackwon'] = 0;
@@ -83,16 +84,16 @@ if (mysql_num_rows($od))
         if (in_array($r['userid'], $bots))
         {
             $qk =
-                    mysql_query(
+                    mysqli_query(
                             "SELECT * FROM challengesbeaten WHERE userid=$userid AND npcid={$r['userid']}",
                             $c);
-            if (!mysql_num_rows($qk))
+            if (!mysqli_num_rows($qk))
             {
                 $gain = $moneys[$r['userid']];
-                mysql_query(
+                mysqli_query(
                         "UPDATE users SET money=money+$gain WHERE userid=$userid",
                         $c);
-                mysql_query(
+                mysqli_query(
                         "INSERT INTO challengesbeaten VALUES ($userid,{$r['userid']})",
                         $c);
                 print

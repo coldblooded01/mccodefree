@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -47,13 +48,13 @@ $_GET['shop'] = abs((int) $_GET['shop']);
 if (!$_GET['shop'])
 {
     print "You begin looking through town and you see a few shops.<br />";
-    $q =
-            mysql_query(
-                    "SELECT * FROM shops WHERE shopLOCATION={$ir['location']}",
-                    $c);
+    $q = mysqli_query(
+        $c,
+        "SELECT * FROM shops WHERE shopLOCATION={$ir['location']}"
+    );
     print
             "<table width=85%><tr style='background: gray;'><th>Shop</th><th>Description</th></tr>";
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         print
                 "<tr><td><a href='shops.php?shop={$r['shopID']}'>{$r['shopNAME']}</a></td><td>{$r['shopDESCRIPTION']}</td></tr>";
@@ -62,21 +63,21 @@ if (!$_GET['shop'])
 }
 else
 {
-    $sd = mysql_query("SELECT * FROM shops WHERE shopID={$_GET['shop']}", $c);
-    if (mysql_num_rows($sd))
+    $sd = mysqli_query($c, "SELECT * FROM shops WHERE shopID={$_GET['shop']}");
+    if (mysqli_num_rows($sd))
     {
-        $shopdata = mysql_fetch_array($sd);
+        $shopdata = mysqli_fetch_array($sd);
         if ($shopdata['shopLOCATION'] == $ir['location'])
         {
             print
                     "Browsing items at <b>{$shopdata['shopNAME']}...</b><br />
 <table><tr style='background: gray;'><th>Item</th><th>Description</th><th>Price</th><th>Sell Price</th><th>Buy</th></tr>";
-            $qtwo =
-                    mysql_query(
-                            "SELECT si.*,i.*,it.* FROM shopitems si LEFT JOIN items i ON si.sitemITEMID=i.itmid LEFT JOIN itemtypes it ON i.itmtype=it.itmtypeid WHERE si.sitemSHOP={$_GET['shop']} ORDER BY i.itmtype ASC, i.itmbuyprice ASC, i.itmname ASC",
-                            $c) or die(mysql_error());
+            $qtwo = mysqli_query(
+                $c,
+                "SELECT si.*,i.*,it.* FROM shopitems si LEFT JOIN items i ON si.sitemITEMID=i.itmid LEFT JOIN itemtypes it ON i.itmtype=it.itmtypeid WHERE si.sitemSHOP={$_GET['shop']} ORDER BY i.itmtype ASC, i.itmbuyprice ASC, i.itmname ASC"
+            ) or die(mysqli_error($c));
             $lt = "";
-            while ($r = mysql_fetch_array($qtwo))
+            while ($r = mysqli_fetch_array($qtwo))
             {
                 if ($lt != $r['itmtypename'])
                 {

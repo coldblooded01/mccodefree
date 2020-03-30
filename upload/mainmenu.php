@@ -31,11 +31,11 @@ if (!$ir['hospital'])
 <a href='inventory.php'>Items</a><br />
 <a href='explore.php'>Explore</a><br />
 <a href='events.php'>";
-    $d =
-            mysql_query(
-                    "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$ir['userid']} AND evREAD=0",
-                    $c) or die(mysql_error());
-    $r = mysql_fetch_array($d);
+    $d = mysqli_query(
+        $c,
+        "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$ir['userid']} AND evREAD=0"
+    ) or die(mysqli_error($c));
+    $r = mysqli_fetch_array($d);
     if ($r['cnt'] > 0)
     {
         print "<b>Events ({$r['cnt']})</b>";
@@ -46,11 +46,11 @@ if (!$ir['hospital'])
     }
     print "</a><br />
 <a href='mailbox.php'>";
-    $d2 =
-            mysql_query(
-                    "SELECT COUNT(*) as cnt FROM mail WHERE mail_to={$ir['userid']} AND mail_read=0",
-                    $c) or die(mysql_error());
-    $r = mysql_fetch_array($d2);
+    $d2 = mysqli_query(
+        $c,
+        "SELECT COUNT(*) as cnt FROM mail WHERE mail_to={$ir['userid']} AND mail_read=0"
+    ) or die(mysqli_error($c));
+    $r = mysqli_fetch_array($d2);
     if ($r['cnt'] > 0)
     {
         print "<b>Mail ({$r['cnt']})</b>";
@@ -79,11 +79,11 @@ if (!$ir['hospital'])
     if ($ir['user_level'] > 1)
     {
         print "<hr /><b>Staff Online:</b><br />";
-        $q =
-                mysql_query(
-                        "SELECT * FROM users WHERE laston > " . (time() - 900)
-                                . " AND user_level>1 ORDER BY userid ASC", $c);
-        while ($r = mysql_fetch_array($q))
+        $q = mysqli_query(
+            $c,
+            "SELECT * FROM users WHERE laston > " . (time() - 900)
+            . " AND user_level>1 ORDER BY userid ASC");
+        while ($r = mysqli_fetch_array($q))
         {
             $la = time() - $r['laston'];
             $unit = "secs";
@@ -132,11 +132,11 @@ else
             "<a href='index.php'>Home</a><br />
 <a href='inventory.php'>Items</a><br />
 <a href='events.php'>";
-    $d =
-            mysql_query(
-                    "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$ir['userid']} AND evREAD=0",
-                    $c) or die(mysql_error());
-    $r = mysql_fetch_array($d);
+    $d = mysqli_query(
+        $c,
+        "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$ir['userid']} AND evREAD=0"
+    ) or die(mysqli_error($c));
+    $r = mysqli_fetch_array($d);
     if ($r['cnt'] > 0)
     {
         print "<b>Events ({$r['cnt']})</b>";
@@ -147,11 +147,11 @@ else
     }
     print "</a><br />
 <a href='mailbox.php'>";
-    $d2 =
-            mysql_query(
-                    "SELECT COUNT(*) as cnt FROM mail WHERE mail_to={$ir['userid']} AND mail_read=0",
-                    $c) or die(mysql_error());
-    $r = mysql_fetch_array($d2);
+    $d2 = mysqli_query(
+        $c,
+        "SELECT COUNT(*) as cnt FROM mail WHERE mail_to={$ir['userid']} AND mail_read=0"
+    ) or die(mysqli_error($c));
+    $r = mysqli_fetch_array($d2);
     if ($r['cnt'] > 0)
     {
         print "<b>Mail ({$r['cnt']})</b>";
@@ -176,12 +176,12 @@ else
     if ($ir['user_level'] > 1)
     {
         print "<hr /><b>Staff Online:</b><br />";
-        $q =
-                mysql_query(
-                        "SELECT * FROM users WHERE laston>(" . time()
-                                . "-15*60) AND user_level>1 ORDER BY userid ASC",
-                        $c);
-        while ($r = mysql_fetch_array($q))
+        $q = mysqli_query(
+            $c,
+            "SELECT * FROM users WHERE laston>(" . time()
+                . "-15*60) AND user_level>1 ORDER BY userid ASC"
+        );
+        while ($r = mysqli_fetch_array($q))
         {
             $la = time() - $r['laston'];
             $unit = "secs";

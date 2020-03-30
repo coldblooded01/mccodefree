@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -44,24 +45,19 @@ $lv = date('F j, Y, g:i a', $ir['laston']);
 $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 $_GET['u'] = abs((int) $_GET['u']);
-if (!$_GET['u'])
-{
+if (!$_GET['u']) {
     print "Invalid use of file";
-}
-else
-{
-    $q =
-            mysql_query(
-                    "SELECT u.*,us.*,c.*,h.*,f.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid LEFT JOIN cities c ON u.location=c.cityid LEFT JOIN houses h ON u.maxwill=h.hWILL LEFT JOIN fedjail f ON f.fed_userid=u.userid WHERE u.userid={$_GET['u']}",
-                    $c);
-    if (mysql_num_rows($q) == 0)
-    {
+} else {
+    $q = mysqli_query(
+        $c,
+        "SELECT u.*,us.*,c.*,h.*,f.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid LEFT JOIN cities c ON u.location=c.cityid LEFT JOIN houses h ON u.maxwill=h.hWILL LEFT JOIN fedjail f ON f.fed_userid=u.userid WHERE u.userid={$_GET['u']}"
+    );
+    
+    if (mysqli_num_rows($q) == 0) {
         print 
                 "Sorry, we could not find a user with that ID, check your source.";
-    }
-    else
-    {
-        $r = mysql_fetch_array($q);
+    } else {
+        $r = mysqli_fetch_array($q);
         if ($r['user_level'] == 1)
         {
             $userl = "Member";
@@ -140,23 +136,23 @@ Money: \${$r['money']}<br />
 Crystals: {$r['crystals']}<br />
 Property: {$r['hNAME']}<br />
 Referals: ";
-        $rr =
-                mysql_query(
-                        "SELECT * FROM referals WHERE refREFER={$r['userid']}",
-                        $c);
-        print mysql_num_rows($rr);
-        $q_y =
-                mysql_query(
-                        "SELECT * FROM friendslist WHERE fl_ADDED={$r['userid']}",
-                        $c);
-        $q_z =
-                mysql_query(
-                        "SELECT * FROM blacklist WHERE bl_ADDED={$r['userid']}",
-                        $c);
+        $rr = mysqli_query(
+            $c,
+            "SELECT * FROM referals WHERE refREFER={$r['userid']}"
+        );
+        print mysqli_num_rows($rr);
+        $q_y = mysqli_query(
+            $c,
+            "SELECT * FROM friendslist WHERE fl_ADDED={$r['userid']}"
+        );
+        $q_z = mysqli_query(
+            $c,
+            "SELECT * FROM blacklist WHERE bl_ADDED={$r['userid']}"
+        );
         print 
                 "<br />
-Friends: " . mysql_num_rows($q_y) . "<br />
-Enemies: " . mysql_num_rows($q_z) . "
+Friends: " . mysqli_num_rows($q_y) . "<br />
+Enemies: " . mysqli_num_rows($q_z) . "
 </td> <td rowspan='2'>";
         if ($r['display_pic'])
         {

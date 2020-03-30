@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -44,57 +45,58 @@ $lv = date('F j, Y, g:i a', $ir['laston']);
 $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 // Basic Stats (all users)
-$q =
-        mysql_query(
-                "SELECT COUNT(`userid`) AS `c_users`,
-				 SUM(`money`) AS `s_money`,
-				 SUM(`crystals`) AS `s_crystals`
-                 FROM `users`", $c);
-$mem_info = mysql_fetch_assoc($q);
+$q = mysqli_query(
+    $c,
+    "SELECT COUNT(`userid`) AS `c_users`,
+            SUM(`money`) AS `s_money`,
+            SUM(`crystals`) AS `s_crystals`
+        FROM `users`"
+);
+$mem_info = mysqli_fetch_assoc($q);
 $membs = $mem_info['c_users'];
 $total = $mem_info['s_money'];
 $avg = (int) ($total / ($membs > 1 ? $membs : 1));
 $totalc = $mem_info['s_crystals'];
 $avgc = (int) ($totalc / ($membs > 1 ? $membs : 1));
-mysql_free_result($q);
-$q =
-        mysql_query(
-                "SELECT COUNT(`userid`) AS `c_users`,
-                 SUM(`bankmoney`) AS `s_bank`
-                 FROM `users`
-                 WHERE `bankmoney` > -1", $c);
-$bank_info = mysql_fetch_assoc($q);
+mysqli_free_result($q);
+$q = mysqli_query(
+    $c,
+    "SELECT COUNT(`userid`) AS `c_users`,
+            SUM(`bankmoney`) AS `s_bank`
+        FROM `users`
+        WHERE `bankmoney` > -1"
+);
+$bank_info = mysqli_fetch_assoc($q);
 $banks = $bank_info['c_users'];
 $totalb = $bank_info['s_bank'];
 $avgb = (int) ($totalb / ($banks > 0 ? $banks : 1));
-mysql_free_result($q);
-$q =
-        mysql_query(
-                "SELECT COUNT(`userid`)
-                 FROM `users`
-                 WHERE `gender` = 'Male'", $c);
-$male = mysql_result($q, 0, 0);
-mysql_free_result($q);
-$q =
-        mysql_query(
-                "SELECT COUNT(`userid`)
-                 FROM `users`
-                 WHERE `gender` = 'Female'", $c);
-$fem = mysql_result($q, 0, 0);
-mysql_free_result($q);
+mysqli_free_result($q);
+$q = mysqli_query(
+    $c,
+    "SELECT COUNT(`userid`)
+        FROM `users`
+        WHERE `gender` = 'Male'"
+);
+$male = mysqli_data_seek($q, 0);
+mysqli_free_result($q);
+$q = mysqli_query(
+    $c,
+    "SELECT COUNT(`userid`)
+        FROM `users`
+        WHERE `gender` = 'Female'"
+);
+$fem = mysqli_data_seek($q, 0);
+mysqli_free_result($q);
 
-$q = mysql_query("SELECT SUM(`inv_qty`)
-				 FROM `inventory`", $c);
-$totali =(int) mysql_result($q, 0, 0);
-mysql_free_result($q);
-$q = mysql_query("SELECT COUNT(`mail_id`)
-				 FROM `mail`", $c);
-$mail = mysql_result($q, 0, 0);
-mysql_free_result($q);
-$q = mysql_query("SELECT COUNT(`evID`)
-				 FROM `events`", $c);
-$events = mysql_result($q, 0, 0);
-mysql_free_result($q);
+$q = mysqli_query($c, "SELECT SUM(`inv_qty`) FROM `inventory`");
+$totali =(int) mysqli_data_seek($q, 0);
+mysqli_free_result($q);
+$q = mysqli_query($c, "SELECT COUNT(`mail_id`) FROM `mail`");
+$mail = mysqli_data_seek($q, 0);
+mysqli_free_result($q);
+$q = mysqli_query($c, "SELECT COUNT(`evID`) FROM `events`");
+$events = mysqli_data_seek($q, 0);
+mysqli_free_result($q);
 echo "<h3>Country Statistics</h3>
 You step into the Statistics Department and login to the service. You see some stats that interest you.<br />
 <table width='75%' cellspacing='1' class='table'>

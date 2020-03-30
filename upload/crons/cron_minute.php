@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 require_once(dirname(__FILE__) . "/../mysql.php");
-$cron_code = '{CRON_CODE}';
+$cron_code = '1a876d50ea194ff1e83eb8121e2587a6';
 if ($argc == 2)
 {
     if ($argv[1] != $cron_code)
@@ -32,5 +32,5 @@ else if (!isset($_GET['code']) || $_GET['code'] !== $cron_code)
 {
     exit;
 }
-mysql_query("UPDATE users SET hospital=hospital-1 WHERE hospital>0", $c);
+mysqli_query($c, "UPDATE users SET hospital=hospital-1 WHERE hospital>0");
 

@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -71,11 +72,11 @@ function cmarket_index()
             "<a href='cmarket.php?action=add'>&gt; Add A Listing</a><br /><br />
 Viewing all listings...
 <table width=75%> <tr style='background:gray'> <th>Adder</th> <th>Qty</th> <th>Price each</th> <th>Price total</th> <th>Links</th> </tr>";
-    $q =
-            mysql_query(
-                    "SELECT cm.*, u.* FROM crystalmarket cm LEFT JOIN users u ON u.userid=cm.cmADDER ORDER BY cmPRICE/cmQTY ASC",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+    $q = mysqli_query(
+        $c,
+        "SELECT cm.*, u.* FROM crystalmarket cm LEFT JOIN users u ON u.userid=cm.cmADDER ORDER BY cmPRICE/cmQTY ASC"
+    );
+    while ($r = mysqli_fetch_array($q))
     {
         if ($r['cmADDER'] == $userid)
         {
@@ -100,11 +101,11 @@ Viewing all listings...
 function crystal_remove()
 {
     global $ir, $c, $userid, $h;
-    $q =
-            mysql_query(
-                    "SELECT * FROM crystalmarket WHERE cmID='{$_GET['ID']}' AND cmADDER=$userid",
-                    $c);
-    if (!mysql_num_rows($q))
+    $q = mysqli_query(
+        $c,
+        "SELECT * FROM crystalmarket WHERE cmID='{$_GET['ID']}' AND cmADDER=$userid"
+    );
+    if (!mysqli_num_rows($q))
     {
         print
                 "Error, either these crystals do not exist, or you are not the owner.<br />
@@ -112,11 +113,12 @@ function crystal_remove()
         $h->endpage();
         exit;
     }
-    $r = mysql_fetch_array($q);
-    mysql_query(
-            "UPDATE users SET crystals=crystals+{$r['cmQTY']} where userid=$userid",
-            $c) or die(mysql_error());
-    mysql_query("DELETE FROM crystalmarket WHERE cmID='{$_GET['ID']}'", $c);
+    $r = mysqli_fetch_array($q);
+    mysqli_query(
+        $c,
+        "UPDATE users SET crystals=crystals+{$r['cmQTY']} where userid=$userid"
+    ) or die(mysqli_error($c));
+    mysqli_query($c, "DELETE FROM crystalmarket WHERE cmID='{$_GET['ID']}'");
     print
             "Crystals removed from market!<br />
 <a href='cmarket.php'>&gt; Back</a>";
@@ -125,11 +127,11 @@ function crystal_remove()
 function crystal_buy()
 {
     global $ir, $c, $userid, $h;
-    $q =
-            mysql_query(
-                    "SELECT * FROM crystalmarket cm WHERE cmID='{$_GET['ID']}'",
-                    $c);
-    if (!mysql_num_rows($q))
+    $q = mysqli_query(
+        $c,
+        "SELECT * FROM crystalmarket cm WHERE cmID='{$_GET['ID']}'"
+    );
+    if (!mysqli_num_rows($q))
     {
         print
                 "Error, either these crystals do not exist, or they have already been bought.<br />
@@ -137,7 +139,7 @@ function crystal_buy()
         $h->endpage();
         exit;
     }
-    $r = mysql_fetch_array($q);
+    $r = mysqli_fetch_array($q);
     if ($r['cmPRICE'] > $ir['money'])
     {
         print
@@ -146,16 +148,19 @@ function crystal_buy()
         $h->endpage();
         exit;
     }
-    mysql_query(
-            "UPDATE users SET crystals=crystals+{$r['cmQTY']} where userid=$userid",
-            $c) or die(mysql_error());
-    mysql_query("DELETE FROM crystalmarket WHERE cmID='{$_GET['ID']}'", $c);
-    mysql_query(
-            "UPDATE users SET money=money-{$r['cmPRICE']} where userid=$userid",
-            $c);
-    mysql_query(
-            "UPDATE users SET money=money+{$r['cmPRICE']} where userid={$r['cmADDER']}",
-            $c);
+    mysqli_query(
+        $c,
+        "UPDATE users SET crystals=crystals+{$r['cmQTY']} where userid=$userid"
+    ) or die(mysqli_error($c));
+    mysqli_query($c, "DELETE FROM crystalmarket WHERE cmID='{$_GET['ID']}'");
+    mysqli_query(
+        $c,
+        "UPDATE users SET money=money-{$r['cmPRICE']} where userid=$userid"
+    );
+    mysqli_query(
+        $c,
+        "UPDATE users SET money=money+{$r['cmPRICE']} where userid={$r['cmADDER']}"
+    );
     event_add($r['cmADDER'],
             "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> bought your {$r['cmQTY']} crystals from the market for \$"
                     . number_format($r['cmPRICE']) . ".", $c);
@@ -178,12 +183,14 @@ function crystal_add()
                     "You are trying to add more crystals to the market than you have.");
         }
         $tp = $_POST['amnt'] * $_POST['price'];
-        mysql_query(
-                "INSERT INTO crystalmarket VALUES(NULL,{$_POST['amnt']},$userid,$tp)",
-                $c);
-        mysql_query(
-                "UPDATE users SET crystals=crystals-{$_POST['amnt']} WHERE userid=$userid",
-                $c);
+        mysqli_query(
+            $c,
+            "INSERT INTO crystalmarket VALUES(NULL,{$_POST['amnt']},$userid,$tp)"
+        );
+        mysqli_query(
+            $c,
+            "UPDATE users SET crystals=crystals-{$_POST['amnt']} WHERE userid=$userid"
+        );
         print
                 "Crystals added to market!<br />
 <a href='cmarket.php'>&gt; Back</a>";

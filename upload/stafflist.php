@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+	$c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -44,18 +45,18 @@ $lv = date('F j, Y, g:i a', $ir['laston']);
 $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 $staff = array();
-$q =
-        mysql_query(
-                "SELECT `userid`, `laston`, `username`, `level`, `money`,
- 				 `user_level`
- 				 FROM `users`
- 				 WHERE `user_level` IN(2, 3, 4, 5)
- 				 ORDER BY `userid` ASC",$c);
-while ($r = mysql_fetch_assoc($q))
+$q = mysqli_query(
+    $c,
+    "SELECT `userid`, `laston`, `username`, `level`, `money`, `user_level`
+        FROM `users`
+        WHERE `user_level` IN(2, 3, 4, 5)
+        ORDER BY `userid` ASC"
+);
+while ($r = mysqli_fetch_assoc($q))
 {
     $staff[$r['userid']] = $r;
 }
-mysql_free_result($q);
+mysqli_free_result($q);
 echo '
 <b>Admins</b>
 <br />

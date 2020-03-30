@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -52,17 +53,17 @@ if (!$itmid)
 }
 else
 {
-    $q =
-            mysql_query(
-                    "SELECT i.*,it.* FROM items i LEFT JOIN itemtypes it ON i.itmtype=itmtypeid WHERE i.itmid=$itmid LIMIT 1",
-                    $c);
-    if (!mysql_num_rows($q))
+    $q = mysqli_query(
+        $c,
+        "SELECT i.*,it.* FROM items i LEFT JOIN itemtypes it ON i.itmtype=itmtypeid WHERE i.itmid=$itmid LIMIT 1"
+    );
+    if (!mysqli_num_rows($q))
     {
         print "Invalid item ID";
     }
     else
     {
-        $id = mysql_fetch_array($q);
+        $id = mysqli_fetch_array($q);
         print
                 "<table width=75%><tr style='background: gray;'><th colspan=2><b>Looking up info on {$id['itmname']}</b></th></table>
 <table width=75%><tr bgcolor=#dfdfdf><th colspan=2>The <b>{$id['itmname']}</b> is a/an {$id['itmtypename']} Item - <b>{$id['itmdesc']}</b></th></table><br />

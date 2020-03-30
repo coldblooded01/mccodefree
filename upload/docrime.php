@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -44,26 +45,19 @@ $lv = date('F j, Y, g:i a', $ir['laston']);
 $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 $_GET['c'] = abs((int) $_GET['c']);
-if (!$_GET['c'])
-{
+if (!$_GET['c']) {
     print "Invalid crime";
-}
-else
-{
-    $q = mysql_query("SELECT * FROM crimes WHERE crimeID={$_GET['c']}", $c);
-    if (mysql_num_rows($q) == 0)
-    {
+} else {
+    $q = mysqli_query($c, "SELECT * FROM crimes WHERE crimeID={$_GET['c']}");
+    if (mysqli_num_rows($q) == 0) {
         echo 'Invalid crime.';
         $h->endpage();
         exit;
     }
-    $r = mysql_fetch_array($q);
-    if ($ir['brave'] < $r['crimeBRAVE'])
-    {
+    $r = mysqli_fetch_array($q);
+    if ($ir['brave'] < $r['crimeBRAVE']) {
         print "You do not have enough Brave to perform this crime.";
-    }
-    else
-    {
+    } else {
         $ec =
                 "\$sucrate="
                         . str_replace(array("LEVEL", "EXP", "WILL", "IQ"),
@@ -72,22 +66,21 @@ else
         eval($ec);
         print $r['crimeITEXT'];
         $ir['brave'] -= $r['crimeBRAVE'];
-        mysql_query(
-                "UPDATE users SET brave={$ir['brave']} WHERE userid=$userid",
-                $c);
-        if (rand(1, 100) <= $sucrate)
-        {
+        mysqli_query(
+            $c,
+            "UPDATE users SET brave={$ir['brave']} WHERE userid=$userid"
+        );
+        if (rand(1, 100) <= $sucrate) {
             print
                     str_replace("{money}", $r['crimeSUCCESSMUNY'],
                             $r['crimeSTEXT']);
             $ir['money'] += $r['crimeSUCCESSMUNY'];
             $ir['exp'] += (int) ($r['crimeSUCCESSMUNY'] / 8);
-            mysql_query(
-                    "UPDATE users SET money={$ir['money']},exp={$ir['exp']} WHERE userid=$userid",
-                    $c);
-        }
-        else
-        {
+            mysqli_query(
+                $c,
+                "UPDATE users SET money={$ir['money']},exp={$ir['exp']} WHERE userid=$userid"
+            );
+        } else {
             print $r['crimeFTEXT'];
         }
         print

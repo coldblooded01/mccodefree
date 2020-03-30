@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -45,18 +46,21 @@ $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 if ($ir['user_level'] == 2 || $ir['user_level'] == 3 || $ir['user_level'] == 5)
 {
-    $q =
-            mysql_query(
-                    "SELECT staffnotes FROM users WHERE userid={$_POST['ID']}",
-                    $c);
-    $old = mysql_real_escape_string(mysql_result($q, 0, 0), $c);
-    $new = mysql_real_escape_string(stripslashes($_POST['staffnotes']), $c);
-    mysql_query(
-            "UPDATE users SET staffnotes='{$new}' WHERE userid='{$_POST['ID']}'",
-            $c);
-    mysql_query(
-            "INSERT INTO staffnotelogs VALUES(NULL, $userid, {$_POST['ID']}, "
-                    . time() . ", '$old', '{$new}')", $c);
+    $q = mysqli_query(
+        $c,
+        "SELECT staffnotes FROM users WHERE userid={$_POST['ID']}"
+    );
+    $old = mysqli_real_escape_string($c, mysqli_data_seek($q, 0));
+    $new = mysqli_real_escape_string($c, stripslashes($_POST['staffnotes']));
+    mysqli_query(
+        $c,
+        "UPDATE users SET staffnotes='{$new}' WHERE userid='{$_POST['ID']}'"
+    );
+    mysqli_query(
+        $c,
+        "INSERT INTO staffnotelogs VALUES(NULL, $userid, {$_POST['ID']}, "
+            . time() . ", '$old', '{$new}')"
+    );
     print 
             "User notes updated!<br />
 <a href='viewuser.php?u={$_POST['ID']}'>&gt; Back To Profile</a>";

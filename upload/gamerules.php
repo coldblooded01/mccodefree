@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -60,7 +61,7 @@ manner, but do not mail them repeatedly, or mail multiple staff members.</li>
 <li>Do not harrass other players, use common sense on this one, if you don't know when your crossing the line from fantasy into
 harrassment, assume that you are harrassing the other player. This will not be tolerated and will result in a stiff punishment.</li>
 <li>Scamming will not be tolerated in any manner. Any attempt to scam anyone will result in being jailed for a long long time.</li>
-<li>If a member of staff is bothering you for any unfair or just plain, weird reason, mail {ID1_NAME} [1]</li>
+<li>If a member of staff is bothering you for any unfair or just plain, weird reason, mail {GAME_OWNER} [1]</li>
 <li>Common sense rules are not posted here, if you can't determine the difference between what is ok, and what is not, you should
 consider not interacting with other people until you do understand.</li>
 <li>These rules are subject to change without notice, check them from time to time, as ignorance will not be accepted as an excuse.</li>

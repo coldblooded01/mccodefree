@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -49,11 +50,13 @@ if ($ir['user_level'] != 2 && $ir['user_level'] != 3 && $ir['user_level'] != 5)
     $h->endpage();
     exit;
 }
-$posta = mysql_real_escape_string(print_r($_POST, 1), $c);
-$geta = mysql_real_escape_string(print_r($_GET, 1), $c);
-mysql_query(
-        "INSERT INTO seclogs VALUES(NULL, $userid, '$posta', '$geta', "
-                . time() . " )", $c);
+$posta = mysqli_real_escape_string($c, print_r($_POST, 1));
+$geta = mysqli_real_escape_string($c, print_r($_GET, 1));
+mysqli_query(
+    $c,
+    "INSERT INTO seclogs VALUES(NULL, $userid, '$posta', '$geta', "
+        . time() . " )"
+);
 
 // Stuff that all staff can do
 $actions = array();
@@ -178,9 +181,9 @@ function admin_index()
 			<td rowspan='3'>
 EOF;
     include 'admin.news';
-    $versq = mysql_query("SELECT VERSION()");
-    $mv = mysql_result($versq, 0, 0);
-    mysql_free_result($versq);
+    $versq = mysqli_query($c, "SELECT VERSION()");
+    $mv = mysqli_data_seek($versq, 0);
+    mysqli_free_result($versq);
     $versionno = intval('11000');
     $version = '1.1.0';
     $phpv = phpversion();

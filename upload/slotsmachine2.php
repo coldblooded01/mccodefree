@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -138,8 +139,10 @@ You bet \${$_GET['bet']} ";
         $gain = -$_GET['bet'];
         print "and lost it.";
     }
-    mysql_query(
-            "UPDATE users SET money=money+({$gain}) where userid=$userid", $c);
+    mysqli_query(
+        $c,
+        "UPDATE users SET money=money+({$gain}) where userid=$userid"
+    );
     $tresder = (int) (rand(100, 999));
     print
             "<br />

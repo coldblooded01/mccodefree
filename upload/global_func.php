@@ -49,8 +49,7 @@ function itemtype_dropdown($connection, $ddname = "item_type", $selected = -1)
 {
     $ret = "<select name='$ddname' type='dropdown'>";
     $q =
-            mysql_query("SELECT * FROM itemtypes ORDER BY itmtypename ASC",
-                    $connection);
+            mysqli_query($connection, "SELECT * FROM itemtypes ORDER BY itmtypename ASC");
     if ($selected == -1)
     {
         $first = 0;
@@ -59,7 +58,7 @@ function itemtype_dropdown($connection, $ddname = "item_type", $selected = -1)
     {
         $first = 1;
     }
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $ret .= "\n<option value='{$r['itmtypeid']}'";
         if ($selected == $r['itmtypeid'] || $first == 0)
@@ -76,9 +75,10 @@ function itemtype_dropdown($connection, $ddname = "item_type", $selected = -1)
 function item_dropdown($connection, $ddname = "item", $selected = -1)
 {
     $ret = "<select name='$ddname' type='dropdown'>";
-    $q =
-            mysql_query("SELECT * FROM items ORDER BY itmname ASC",
-                    $connection);
+    $q = mysqli_query(
+        $connection,
+        "SELECT * FROM items ORDER BY itmname ASC"
+    );
     if ($selected == -1)
     {
         $first = 0;
@@ -87,7 +87,7 @@ function item_dropdown($connection, $ddname = "item", $selected = -1)
     {
         $first = 1;
     }
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $ret .= "\n<option value='{$r['itmid']}'";
         if ($selected == $r['itmid'] || $first == 0)
@@ -104,9 +104,10 @@ function item_dropdown($connection, $ddname = "item", $selected = -1)
 function location_dropdown($connection, $ddname = "location", $selected = -1)
 {
     $ret = "<select name='$ddname' type='dropdown'>";
-    $q =
-            mysql_query("SELECT * FROM cities ORDER BY cityname ASC",
-                    $connection);
+    $q = mysqli_query(
+        $connection,
+        "SELECT * FROM cities ORDER BY cityname ASC"
+    );
     if ($selected == -1)
     {
         $first = 0;
@@ -115,7 +116,7 @@ function location_dropdown($connection, $ddname = "location", $selected = -1)
     {
         $first = 1;
     }
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $ret .= "\n<option value='{$r['cityid']}'";
         if ($selected == $r['cityid'] || $first == 0)
@@ -132,9 +133,10 @@ function location_dropdown($connection, $ddname = "location", $selected = -1)
 function shop_dropdown($connection, $ddname = "shop", $selected = -1)
 {
     $ret = "<select name='$ddname' type='dropdown'>";
-    $q =
-            mysql_query("SELECT * FROM shops ORDER BY shopNAME ASC",
-                    $connection);
+    $q = mysqli_query(
+        $connection,
+        "SELECT * FROM shops ORDER BY shopNAME ASC"
+    );
     if ($selected == -1)
     {
         $first = 0;
@@ -143,7 +145,7 @@ function shop_dropdown($connection, $ddname = "shop", $selected = -1)
     {
         $first = 1;
     }
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $ret .= "\n<option value='{$r['shopID']}'";
         if ($selected == $r['shopID'] || $first == 0)
@@ -160,9 +162,10 @@ function shop_dropdown($connection, $ddname = "shop", $selected = -1)
 function user_dropdown($connection, $ddname = "user", $selected = -1)
 {
     $ret = "<select name='$ddname' type='dropdown'>";
-    $q =
-            mysql_query("SELECT * FROM users ORDER BY username ASC",
-                    $connection);
+    $q = mysqli_query(
+        $connection,
+        "SELECT * FROM users ORDER BY username ASC"
+    );
     if ($selected == -1)
     {
         $first = 0;
@@ -171,7 +174,7 @@ function user_dropdown($connection, $ddname = "user", $selected = -1)
     {
         $first = 1;
     }
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $ret .= "\n<option value='{$r['userid']}'";
         if ($selected == $r['userid'] || $first == 0)
@@ -188,10 +191,10 @@ function user_dropdown($connection, $ddname = "user", $selected = -1)
 function fed_user_dropdown($connection, $ddname = "user", $selected = -1)
 {
     $ret = "<select name='$ddname' type='dropdown'>";
-    $q =
-            mysql_query(
-                    "SELECT * FROM users WHERE fedjail=1 ORDER BY username ASC",
-                    $connection);
+    $q = mysqli_query(
+        $connection,
+        "SELECT * FROM users WHERE fedjail=1 ORDER BY username ASC"
+    );
     if ($selected == -1)
     {
         $first = 0;
@@ -200,7 +203,7 @@ function fed_user_dropdown($connection, $ddname = "user", $selected = -1)
     {
         $first = 1;
     }
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         $ret .= "\n<option value='{$r['userid']}'";
         if ($selected == $r['userid'] || $first == 0)
@@ -216,17 +219,18 @@ function fed_user_dropdown($connection, $ddname = "user", $selected = -1)
 
 function event_add($userid, $text, $connection)
 {
-    $text = mysql_real_escape_string($text, $connection);
-    mysql_query(
-            "INSERT INTO events VALUES(NULL,$userid," . time() . ",0,'$text')",
-            $connection) or die(mysql_error());
+    $text = mysql_real_escape_string($connection, $text);
+    mysqli_query(
+        $connection,
+        "INSERT INTO events VALUES(NULL,$userid," . time() . ",0,'$text')"
+    ) or die(mysqli_error($connection));
     return 1;
 }
 
 function mysql_escape($str)
 {
     global $c;
-    return mysql_real_escape_string($str, $c);
+    return mysql_real_escape_string($c, $str);
 }
 
 function check_level()
@@ -249,20 +253,23 @@ function check_level()
         $ir['exp_needed'] =
                 (int) (($ir['level'] + 1) * ($ir['level'] + 1)
                         * ($ir['level'] + 1) * 2.2);
-        mysql_query(
-                "UPDATE users SET level=level+1,exp=$expu,energy=energy+2,brave=brave+2,maxenergy=maxenergy+2,maxbrave=maxbrave+2,
-hp=hp+50,maxhp=maxhp+50 where userid=$userid", $c);
+        mysqli_query(
+            $c,
+            "UPDATE users SET level=level+1,exp=$expu,energy=energy+2,brave=brave+2,maxenergy=maxenergy+2,maxbrave=maxbrave+2,
+                hp=hp+50,maxhp=maxhp+50 where userid=$userid"
+        );
     }
 }
 
 function get_rank($stat, $mykey)
 {
     global $ir, $userid, $c;
-    $q =
-            mysql_query(
-                    "SELECT count(*) FROM userstats us LEFT JOIN users u ON us.userid=u.userid WHERE us.$mykey > $stat AND us.userid != $userid AND u.user_level != 0",
-                    $c);
-    return mysql_result($q, 0, 0) + 1;
+    $query = "SELECT count(*) FROM userstats us LEFT JOIN users u ON us.userid=u.userid WHERE us.$mykey > $stat AND us.userid != $userid AND u.user_level != 0";
+    $q = mysqli_query(
+        $c,
+        $query
+    )or die(mysqli_error($c));
+    return mysqli_data_seek($q, 0) + 1;
 }
 
 /**

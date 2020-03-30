@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -99,11 +100,11 @@ function mail_inbox()
     print 
             "Only the last 25 messages sent to you are visible.<br />
 <table width=75% border=2><tr style='background:gray'><th>From</th><th>Subject/Message</th></tr>";
-    $q =
-            mysql_query(
-                    "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_from=u.userid WHERE m.mail_to=$userid ORDER BY mail_time DESC LIMIT 25",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+    $q = mysqli_query(
+        $c,
+        "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_from=u.userid WHERE m.mail_to=$userid ORDER BY mail_time DESC LIMIT 25"
+    );
+    while ($r = mysqli_fetch_array($q))
     {
         $sent = date('F j, Y, g:i:s a', $r['mail_time']);
         print "<tr><td>";
@@ -122,7 +123,7 @@ function mail_inbox()
 <a href='mailbox.php?action=delete&ID={$r['mail_id']}'>Delete</a> <br />
 <a href='preport.php?ID={$r['userid']}&amp;report=Fradulent mail: {$fm}'>Report</a></td><td>{$r['mail_text']}</td></tr>";
     }
-    mysql_query("UPDATE mail SET mail_read=1 WHERE mail_to=$userid", $c);
+    mysqli_query($c, "UPDATE mail SET mail_read=1 WHERE mail_to=$userid");
 
 }
 
@@ -132,11 +133,11 @@ function mail_outbox()
     print 
             "Only the last 25 messages you have sent are visible.<br />
 <table width=75% border=2><tr style='background:gray'><th>To</th><th>Subject/Message</th></tr>";
-    $q =
-            mysql_query(
-                    "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_to=u.userid WHERE m.mail_from=$userid ORDER BY mail_time DESC LIMIT 25",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+    $q = mysqli_query(
+        $c,
+        "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_to=u.userid WHERE m.mail_from=$userid ORDER BY mail_time DESC LIMIT 25"
+    );
+    while ($r = mysqli_fetch_array($q))
     {
         $sent = date('F j, Y, g:i:s a', $r['mail_time']);
         print 
@@ -159,11 +160,11 @@ function mail_compose()
     {
         print 
                 "<br /><table width=75% border=2><tr><td colspan=2><b>Your last 5 mails to/from this person:</b></td></tr>";
-        $q =
-                mysql_query(
-                        "SELECT m.*,u1.username as sender from mail m left join users u1 on m.mail_from=u1.userid WHERE (m.mail_from=$userid AND m.mail_to={$_GET['ID']}) OR (m.mail_to=$userid AND m.mail_from={$_GET['ID']}) ORDER BY m.mail_time DESC LIMIT 5",
-                        $c);
-        while ($r = mysql_fetch_array($q))
+        $q = mysqli_query(
+            $c,
+            "SELECT m.*,u1.username as sender from mail m left join users u1 on m.mail_from=u1.userid WHERE (m.mail_from=$userid AND m.mail_to={$_GET['ID']}) OR (m.mail_to=$userid AND m.mail_from={$_GET['ID']}) ORDER BY m.mail_time DESC LIMIT 5"
+        );
+        while ($r = mysqli_fetch_array($q))
         {
             $sent = date('F j, Y, g:i:s a', $r['mail_time']);
             print 
@@ -176,22 +177,32 @@ function mail_compose()
 function mail_send()
 {
     global $ir, $c, $userid, $h;
-    $subj =
-            mysql_real_escape_string(
-                    str_replace(array("\n"), array("<br />"),
-                            htmlentities(
-                                    stripslashes(strip_tags($_POST['subject'])),
-                                    ENT_QUOTES, 'ISO-8859-1')), $c);
-    $msg =
-            mysql_real_escape_string(
-                    str_replace(array("\n"), array("<br />"),
-                            htmlentities(
-                                    stripslashes(strip_tags($_POST['message'])),
-                                    ENT_QUOTES, 'ISO-8859-1')), $c);
+    $subj = mysqli_real_escape_string(
+        $c,
+        str_replace(
+            array("\n"), array("<br />"),
+            htmlentities(
+                    stripslashes(strip_tags($_POST['subject'])),
+                    ENT_QUOTES, 'ISO-8859-1'
+            )
+        )
+    );
+    $msg = mysqli_real_escape_string(
+        $c,
+        str_replace(
+            array("\n"), array("<br />"),
+            htmlentities(
+                stripslashes(strip_tags($_POST['message'])),
+                ENT_QUOTES, 'ISO-8859-1'
+            )
+        )
+    );
     $to = (int) $_POST['userid'];
-    mysql_query(
-            "INSERT INTO mail VALUES(NULL,0,$userid,$to," . time()
-                    . ",'$subj','$msg')", $c) or die(mysql_error());
+    mysqli_query(
+        $c,
+        "INSERT INTO mail VALUES(NULL,0,$userid,$to," . time()
+            . ",'$subj','$msg')"
+    ) or die(mysqli_error($c));
     print "Message sent.<br />
 <a href='mailbox.php'>&gt; Back</a>";
 }
@@ -199,9 +210,10 @@ function mail_send()
 function mail_delete()
 {
     global $ir, $c, $userid, $h;
-    mysql_query(
-            "DELETE FROM mail WHERE mail_id={$_GET['ID']} AND mail_to=$userid",
-            $c);
+    mysqli_query(
+        $c,
+        "DELETE FROM mail WHERE mail_id={$_GET['ID']} AND mail_to=$userid"
+    );
     print "Message deleted.<br />
 <a href='mailbox.php'>&gt; Back</a>";
 }
@@ -219,9 +231,9 @@ There is <b>NO</b> undo, so be sure.<br />
 function mail_delall2()
 {
     global $ir, $c, $userid, $h;
-    mysql_query("DELETE FROM mail WHERE mail_to='$userid'", $c);
+    mysqli_query($c, "DELETE FROM mail WHERE mail_to='$userid'");
     print 
-            "All " . mysql_affected_rows($c)
+            "All " . mysqli_affected_rows($c)
                     . " mails in your inbox were deleted.<br />
 <a href='mailbox.php'>&gt; Back</a>";
 }

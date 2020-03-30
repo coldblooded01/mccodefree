@@ -32,19 +32,21 @@ $h = new headers;
 //$h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
 $lv = date('F j, Y, g:i a', $ir['laston']);
-$q =
-        mysql_query(
-                "SELECT * FROM votes WHERE userid=$userid AND list='twg'", $c);
-if (mysql_num_rows($q))
+$q = mysqli_query(
+    $c,
+    "SELECT * FROM votes WHERE userid=$userid AND list='twg'"
+);
+if (mysqli_num_rows($q))
 {
     $h->startheaders();
     $h->userdata($ir, $lv, $fm, $cm);
@@ -54,11 +56,12 @@ if (mysql_num_rows($q))
 }
 else
 {
-    mysql_query("INSERT INTO votes values ($userid,'twg')", $c);
-    mysql_query(
-            "UPDATE users SET energy=energy+maxenergy/5 WHERE userid=$userid",
-            $c);
-    mysql_query("UPDATE users SET energy=maxenergy WHERE energy>maxenergy", $c);
+    mysqli_query($c, "INSERT INTO votes values ($userid,'twg')");
+    mysqli_query(
+        $c,
+        "UPDATE users SET energy=energy+maxenergy/5 WHERE userid=$userid"
+    );
+    mysqli_query($c, "UPDATE users SET energy=maxenergy WHERE energy>maxenergy");
     header("Location:http://www.topwebgames.com/in.asp?id=3341");
     exit;
 }

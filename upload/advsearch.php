@@ -32,11 +32,11 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -49,7 +49,7 @@ if ($_POST['submit'])
     $levelmax = abs((int) $_POST['levelmax']);
     $levelmin_clause = "WHERE level >= '{$levelmin}'";
     $levelmax_clause = " AND level <= '{$levelmax}'";
-    $nom = mysql_real_escape_string(stripslashes($_POST['name']), $c);
+    $nom = mysqli_real_escape_string($c, stripslashes($_POST['name']));
     $gender =
             in_array($_POST['gender'], array('Male', 'Female'), true)
                     ? $_POST['gender'] : '';
@@ -63,15 +63,15 @@ if ($_POST['submit'])
     $online_clause = ($online) ? " AND laston >= " . (time() - $online) : "";
     $daysmin_clause = ($dayo_min) ? " AND daysold >= '{$dayo_min}'" : "";
     $daysmax_clause = ($dayo_max) ? " AND daysold <= '{$dayo_max}'" : "";
-    $q =
-            mysql_query(
-                    "SELECT * FROM users $levelmin_clause$levelmax_clause$name_clause$gender_clause$house_clause$online_clause$daysmin_clause$daysmax_clause",
-                    $c);
+    $q = mysqli_query(
+        $c,
+        "SELECT * FROM users $levelmin_clause$levelmax_clause$name_clause$gender_clause$house_clause$online_clause$daysmin_clause$daysmax_clause"
+    );
     print
-            mysql_num_rows($q)
+            mysqli_num_rows($q)
                     . " players found. <br />
 <table><tr style='background-color:gray;'><th>User</th><th>Level</th><th>Money</th></tr>";
-    while ($r = mysql_fetch_array($q))
+    while ($r = mysqli_fetch_array($q))
     {
         print
                 "<tr><td><a href='viewuser.php?u={$r['userid']}'>{$r['username']}</a></td><td>{$r['level']}</td><td>\${$r['money']}</td></tr>";
@@ -97,8 +97,8 @@ Gender: <select name="gender" type="dropdown">
 House: <select name=house type=dropdown>
 <option value=0 selected>Any House</option>
 EOF;
-    $q = mysql_query("SELECT * FROM houses ORDER BY hWILL ASC", $c);
-    while ($r = mysql_fetch_array($q))
+    $q = mysqli_query($c, "SELECT * FROM houses ORDER BY hWILL ASC");
+    while ($r = mysqli_fetch_array($q))
     {
         print "\n<option value='{$r['hWILL']}'>{$r['hNAME']}</option>";
     }

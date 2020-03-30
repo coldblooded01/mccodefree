@@ -42,14 +42,14 @@ if (empty($username) || empty($password))
 	You did not fill in the login form!<br />
 	<a href='login.php'>&gt; Back</a>");
 }
-$form_username = mysql_real_escape_string(stripslashes($username), $c);
+$form_username = mysqli_real_escape_string($c, stripslashes($username));
 $raw_password = stripslashes($password);
 $uq =
-        mysql_query(
+        mysqli_query($c,
                 "SELECT `userid`, `userpass`, `pass_salt`
                  FROM `users`
-                 WHERE `login_name` = '$form_username'", $c);
-if (mysql_num_rows($uq) == 0)
+                 WHERE `login_name` = '$form_username'");
+if (mysqli_num_rows($uq) == 0)
 {
     die(
             "<h3>{GAME_NAME} Error</h3>
@@ -58,7 +58,7 @@ if (mysql_num_rows($uq) == 0)
 }
 else
 {
-    $mem = mysql_fetch_assoc($uq);
+    $mem = mysqli_fetch_assoc($uq);
     $login_failed = false;
     // Pass Salt generation: autofix
     if (empty($mem['pass_salt']))
@@ -69,12 +69,13 @@ else
         }
         $salt = generate_pass_salt();
         $enc_psw = encode_password($mem['userpass'], $salt, true);
-        $e_salt = mysql_real_escape_string($salt, $c); // in case of changed salt function
-        $e_encpsw = mysql_real_escape_string($enc_psw, $c); // ditto for password encoder
-        mysql_query(
+        $e_salt = mysqli_real_escape_string($c, $salt); // in case of changed salt function
+        $e_encpsw = mysqli_real_escape_string($c, $enc_psw); // ditto for password encoder
+        mysqli_query(
+                $c,
                 "UPDATE `users`
         		 SET `pass_salt` = '{$e_salt}', `userpass` = '{$e_encpsw}'
-        		 WHERE `userid` = {$mem['userid']}", $c);
+        		 WHERE `userid` = {$mem['userid']}");
     }
     else
     {

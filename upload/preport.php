@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -47,12 +48,13 @@ if ($_POST['report'])
 {
     $_POST['player'] = abs((int) $_POST['player']);
     $ins_report =
-            mysql_real_escape_string(stripslashes($_POST['report']), $c);
-    mysql_query(
-            "INSERT INTO preports VALUES(NULL,$userid,{$_POST['player']},'{$ins_report}')",
-            $c)
-            or die(
-                    "Your report could not be processed, make sure you have filled out the form entirely.");
+            mysqli_real_escape_string(stripslashes($_POST['report']), $c);
+    mysqli_query(
+        $c,
+        "INSERT INTO preports VALUES(NULL,$userid,{$_POST['player']},'{$ins_report}')"
+    ) or die(
+        "Your report could not be processed, make sure you have filled out the form entirely."
+    );
     print "Report processed!";
 }
 else

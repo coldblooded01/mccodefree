@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -63,25 +64,29 @@ else
         }
         else
         {
-            mysql_query(
-                    "UPDATE users SET money=money-{$_POST['money']} WHERE userid=$userid",
-                    $c);
-            mysql_query(
-                    "UPDATE users SET money=money+{$_POST['money']} WHERE userid={$_GET['ID']}",
-                    $c);
+            mysqli_query(
+                $c,
+                "UPDATE users SET money=money-{$_POST['money']} WHERE userid=$userid"
+            );
+            mysqli_query(
+                $c,
+                "UPDATE users SET money=money+{$_POST['money']} WHERE userid={$_GET['ID']}"
+            );
             print "You sent \${$_POST['money']} to ID {$_GET['ID']}.";
             event_add($_GET['ID'],
                     "You received \${$_POST['money']} from {$ir['username']}.",
                     $c);
-            $it =
-                    mysql_query(
-                            "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid={$_GET['ID']}",
-                            $c) or die(mysql_error());
-            $er = mysql_fetch_array($it);
-            mysql_query(
-                    "INSERT INTO cashxferlogs VALUES(NULL, $userid, {$_GET['ID']}, {$_POST['money']}, "
-                            . time()
-                            . ", '{$ir['lastip']}', '{$er['lastip']}')", $c);
+            $it = mysqli_query(
+                $c,
+                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid={$_GET['ID']}"
+            ) or die(mysqli_error($c));
+            $er = mysqli_fetch_array($it);
+            mysqli_query(
+                $c,
+                "INSERT INTO cashxferlogs VALUES(NULL, $userid, {$_GET['ID']}, {$_POST['money']}, "
+                    . time()
+                    . ", '{$ir['lastip']}', '{$er['lastip']}')"
+            );
         }
     }
     else
@@ -95,14 +100,13 @@ Amnt: <input type='text' name='money' /><br />
         print
                 "<h3>Latest 5 Transfers</h3>
 <table width=75% border=2> <tr style='background:gray'>  <th>Time</th> <th>User From</th> <th>User To</th> <th>Amount</th> </tr>";
-        $q =
-                mysql_query(
-                        "SELECT cx.*,u1.username as sender, u2.username as sent FROM cashxferlogs cx LEFT JOIN users u1 ON cx.cxFROM=u1.userid LEFT JOIN users u2 ON cx.cxTO=u2.userid WHERE cx.cxFROM=$userid ORDER BY cx.cxTIME DESC LIMIT 5",
-                        $c)
-                or die(
-                        mysql_error() . "<br />"
-                                . "SELECT cx.*,u1.username as sender, u2.username as sent FROM cashxferlogs cx LEFT JOIN users u1 ON cx.cxFROM=u1.userid LEFT JOIN users u2 ON cx.cxTO=u2.userid WHERE cx.cxFROM=$userid ORDER BY cx.cxTIME DESC LIMIT 5");
-        while ($r = mysql_fetch_array($q))
+        $q = mysqli_query(
+            $c,
+            "SELECT cx.*,u1.username as sender, u2.username as sent FROM cashxferlogs cx LEFT JOIN users u1 ON cx.cxFROM=u1.userid LEFT JOIN users u2 ON cx.cxTO=u2.userid WHERE cx.cxFROM=$userid ORDER BY cx.cxTIME DESC LIMIT 5"
+        ) or die( mysqli_error($c) . "<br />"
+            . "SELECT cx.*,u1.username as sender, u2.username as sent FROM cashxferlogs cx LEFT JOIN users u1 ON cx.cxFROM=u1.userid LEFT JOIN users u2 ON cx.cxTO=u2.userid WHERE cx.cxFROM=$userid ORDER BY cx.cxTIME DESC LIMIT 5"
+        );
+        while ($r = mysqli_fetch_array($q))
         {
             if ($r['cxFROMIP'] == $r['cxTOIP'])
             {

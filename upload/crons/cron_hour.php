@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once(dirname(__FILE__) . "/../mysql.php");
 require_once(dirname(__FILE__) . "/../global_func.php");
-$cron_code = '{CRON_CODE}';
+$cron_code = '1a876d50ea194ff1e83eb8121e2587a6';
 if ($argc == 2)
 {
     if ($argv[1] != $cron_code)

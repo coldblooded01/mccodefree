@@ -46,10 +46,10 @@ EOF;
     function userdata($ir, $lv, $fm, $cm, $dosessh = 1)
     {
         global $c, $userid;
-        $ip = mysql_real_escape_string($_SERVER['REMOTE_ADDR']);
-        mysql_query(
+        $ip = mysqli_real_escape_string($c, $_SERVER['REMOTE_ADDR']);
+        mysqli_query($c,
                 "UPDATE users SET laston=" . time()
-                        . ",lastip='$ip' WHERE userid=$userid", $c);
+                        . ",lastip='$ip' WHERE userid=$userid");
         if (!$ir['email'])
         {
             die(
@@ -60,7 +60,7 @@ EOF;
             if ($_SESSION['attacking'] > 0)
             {
                 print "You lost all your EXP for running from the fight.";
-                mysql_query("UPDATE users SET exp=0 WHERE userid=$userid", $c);
+                mysqli_query($c, "UPDATE users SET exp=0 WHERE userid=$userid");
                 $_SESSION['attacking'] = 0;
             }
         }
@@ -102,25 +102,24 @@ EOF;
 <img src=bargreen.gif width=$hpperc height=10><img src=barred.gif width=$hpopp height=10></td></tr></table></div><center><b><u><a href='voting.php'>Vote for {GAME_NAME} on various gaming sites and be rewarded!</a></u></b></center><br />
 <center><b><u><a href='donator.php'>Donate to {GAME_NAME}, it's only \$3 and gets you a lot of benefits!</a></u></b></center><br />
                 ";
-        $q = mysql_query("SELECT * FROM ads ORDER BY rand() LIMIT 1", $c);
-        if (mysql_num_rows($q))
+        $q = mysqli_query($c, "SELECT * FROM ads ORDER BY rand() LIMIT 1");
+        if (mysqli_num_rows($q))
         {
-            $r = mysql_fetch_array($q);
+            $r = mysqli_fetch_array($q);
             print
                     "<center><a href='ad.php?ad={$r['adID']}'><img src='{$r['adIMG']}' alt='Paid Advertisement' /></a></center><br />";
-            mysql_query(
-                    "UPDATE ads SET adVIEWS=adVIEWS+1 WHERE adID={$r['adID']}",
-                    $c);
+            mysqli_query($c, "UPDATE ads SET adVIEWS=adVIEWS+1 WHERE adID={$r['adID']}");
         }
         print "<table width=100%><tr><td width=20% valign='top'>
 ";
         if ($ir['fedjail'])
         {
             $q =
-                    mysql_query(
-                            "SELECT * FROM fedjail WHERE fed_userid=$userid",
-                            $c);
-            $r = mysql_fetch_array($q);
+                    mysqli_query(
+                            $c,
+                            "SELECT * FROM fedjail WHERE fed_userid=$userid"
+                    );
+            $r = mysqli_fetch_array($q);
             die(
                     "<b><font color=red size=+1>You have been put in the {GAME_NAME} Federal Jail for {$r['fed_days']} day(s).<br />
 Reason: {$r['fed_reason']}</font></b></body></html>");

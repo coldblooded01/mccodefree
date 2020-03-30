@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -59,16 +60,16 @@ print
 foreach ($bots as $k => $v)
 {
     $earn = $moneys[$k];
-    $q =
-            mysql_query(
-                    "SELECT u.*,c.npcid FROM users u LEFT JOIN challengesbeaten c ON c.npcid=u.userid AND c.userid=$userid  WHERE u.userid=$v",
-                    $c);
-    $r = mysql_fetch_array($q);
-    $q =
-            mysql_query(
-                    "SELECT count(*) FROM challengesbeaten WHERE npcid=$v",
-                    $c);
-    $times = mysql_result($q, 0, 0);
+    $q = mysqli_query(
+        $c,
+        "SELECT u.*,c.npcid FROM users u LEFT JOIN challengesbeaten c ON c.npcid=u.userid AND c.userid=$userid  WHERE u.userid=$v"
+    );
+    $r = mysqli_fetch_array($q);
+    $q = mysqli_query(
+        $c,
+        "SELECT count(*) FROM challengesbeaten WHERE npcid=$v"
+    );
+    $times = mysqli_data_seek($q, 0);
     print
             "<tr><td>{$r['username']}</td><td>{$r['level']}</td><td>$times</td><td>";
     if ($r['hp'] >= $r['maxhp'] / 2)

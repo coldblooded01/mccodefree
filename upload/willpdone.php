@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -53,11 +54,15 @@ else if ($_GET['action'] == "done")
     {
         die("Get a life.");
     }
-    $quantity =
-            mysql_real_escape_string(stripslashes($_GET['quantity']), $c);
-    mysql_query(
-            "INSERT INTO willplogs VALUES(NULL,$userid," . time()
-                    . ",'{$quantity}');", $c);
+    $quantity = mysqli_real_escape_string(
+        $c,
+        stripslashes($_GET['quantity'])
+    );
+    mysqli_query(
+        $c,
+        "INSERT INTO willplogs VALUES(NULL,$userid," . time()
+            . ",'{$quantity}');"
+    );
     if ($_GET['quantity'] == 'one')
     {
         $q = 1;
@@ -72,7 +77,7 @@ else if ($_GET['action'] == "done")
         $h->endpage();
         exit;
     }
-    mysql_query("INSERT INTO inventory VALUES(NULL,34,$userid,$q)", $c);
+    mysqli_query($c, "INSERT INTO inventory VALUES(NULL,34,$userid,$q)");
     print 
             "Your will potions have been credited, if you are cheating, we will jail you.";
 }

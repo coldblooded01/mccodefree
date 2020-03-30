@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -126,10 +127,12 @@ function do_sex_change()
     {
         $g = "Male";
     }
-    mysql_query("UPDATE users SET gender='$g' WHERE userid=$userid", $c);
-    mysql_query("UPDATE users SET crystals=crystals-20 WHERE userid=$userid",
-            $c);
-    mysql_query("UPDATE users SET crystals=0 WHERE crystals<0", $c);
+    mysqli_query($c, "UPDATE users SET gender='$g' WHERE userid=$userid");
+    mysqli_query(
+        $c,
+        "UPDATE users SET crystals=crystals-20 WHERE userid=$userid"
+    );
+    mysqli_query($c, "UPDATE users SET crystals=0 WHERE crystals<0");
     print "Success, you are now $g!<br />
 <a href='preferences.php'>Back</a>";
 }
@@ -165,13 +168,16 @@ function do_pass_change()
     else
     {
         // Re-encode password
-        $new_psw =
-                mysql_real_escape_string(
-                        encode_password($newpw, $ir['pass_salt']), $c);
-        mysql_query(
-                "UPDATE `users`
+        $new_psw = mysqli_real_escape_string(
+            $c,
+            encode_password($newpw, $ir['pass_salt'])
+        );
+        mysqli_query(
+            $c,
+            "UPDATE `users`
                  SET `userpass` = '{$new_psw}'
-                 WHERE `userid` = {$ir['userid']}", $c);
+                 WHERE `userid` = {$ir['userid']}"
+        );
         echo "Password changed!<br />
         &gt; <a href='preferences.php'>Go Back</a>";
     }
@@ -204,16 +210,25 @@ function do_name_change()
     }
     else
     {
-        $_POST['newname'] =
-                mysql_real_escape_string(
-                        htmlentities(stripslashes($_POST['newname']),
-                                ENT_QUOTES, 'ISO-8859-1'), $c);
-        mysql_query(
-                "UPDATE users SET username='{$_POST['newname']}' WHERE userid=$userid",
-                $c);
-        mysql_query("UPDATE users SET money=money-3000 WHERE userid=$userid",
-                $c);
-        mysql_query("UPDATE users SET money=0 WHERE money<0", $c);
+        $_POST['newname'] = mysqli_real_escape_string(
+            $c,
+            htmlentities(
+                stripslashes($_POST['newname']),
+                ENT_QUOTES, 'ISO-8859-1'
+            )
+        );
+        mysqli_query(
+            $c,
+            "UPDATE users SET username='{$_POST['newname']}' WHERE userid=$userid"
+        );
+        mysqli_query(
+            $c,
+            "UPDATE users SET money=money-3000 WHERE userid=$userid"
+        );
+        mysqli_query(
+            $c,
+            "UPDATE users SET money=0 WHERE money<0"
+        );
         print "Username changed!";
     }
 }
@@ -257,12 +272,18 @@ function do_pic_change()
         	&gt; <a href="preferences.php?action=picchange">Go Back</a>';
             die($h->endpage());
         }
-        $esc_npic =
-                mysql_real_escape_string(
-                        htmlentities($npic, ENT_QUOTES, 'ISO-8859-1'), $c);
-        mysql_query(
-                "UPDATE users SET display_pic='{$esc_npic}' WHERE userid=$userid",
-                $c);
+        $esc_npic = mysqli_real_escape_string(
+            $c,
+            htmlentities(
+                $npic,
+                ENT_QUOTES,
+                'ISO-8859-1'
+            )
+        );
+        mysqli_query(
+            $c,
+            "UPDATE users SET display_pic='{$esc_npic}' WHERE userid=$userid"
+        );
         print "Pic changed!";
     }
 }

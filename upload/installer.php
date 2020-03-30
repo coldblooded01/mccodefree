@@ -81,7 +81,7 @@ function menuprint($highlight)
 function diagnostics()
 {
     menuprint("diag");
-    if (version_compare(phpversion(), '4.3.3') < 0)
+    if (version_compare(phpversion(), '7.0') < 0)
     {
         $pv = '<span style="color: red">Failed</span>';
         $pvf = 0;
@@ -101,7 +101,7 @@ function diagnostics()
         $wv = '<span style="color: red">Failed</span>';
         $wvf = 0;
     }
-    if (function_exists('mysql_connect'))
+    if (function_exists('mysqli_connect'))
     {
         $dv = '<span style="color: green">OK</span>';
         $dvf = 1;
@@ -115,7 +115,7 @@ function diagnostics()
     <h3>Basic Diagnostic Results:</h3>
     <table width='80%' border='1' cellspacing='1' cellpadding='1' align='center'>
     		<tr>
-    			<td>PHP version >= 4.3.3</td>
+    			<td>PHP version >= 7.0</td>
     			<td>{$pv}</td>
     		</tr>
     		<tr>
@@ -368,8 +368,8 @@ function install()
     }
     // Try to establish DB connection first...
     echo 'Attempting DB connection...<br />';
-    $c = mysql_connect($db_hostname, $db_username, $db_password);
-    mysql_select_db($db_database, $c);
+    $c = mysqli_connect($db_hostname, $db_username, $db_password, $db_database);
+    
     // Done, move on
     echo '... Successful.<br />';
     echo 'Writing game config file...<br />';
@@ -386,8 +386,8 @@ function install()
     $config_file =
             <<<EOF
 <?php
-\$c = mysql_connect('{$e_db_hostname}', '{$e_db_username}', '{$e_db_password}') or die(mysql_error());
-mysql_select_db('{$e_db_database}', \$c);
+\$c = mysqli_connect('{$e_db_hostname}', '{$e_db_username}', '{$e_db_password}', '{$e_db_database}') or die(mysqli_error(\$c));
+
 EOF;
     $f = fopen('mysql.php', 'w');
     fwrite($f, $config_file);
@@ -405,29 +405,31 @@ EOF;
             $query .= $line;
             if (!(strpos($line, ";") === FALSE))
             {
-                mysql_query($query);
+                mysqli_query($c, $query);
                 $query = '';
             }
         }
     }
     echo '... done.<br />';
     echo 'Writing game configuration...<br />';
-    $ins_username =
-            mysql_real_escape_string(
-                    htmlentities($adm_username, ENT_QUOTES, 'ISO-8859-1'), $c);
+    $ins_username = mysqli_real_escape_string(
+        $c,
+        htmlentities($adm_username, ENT_QUOTES, 'ISO-8859-1')
+    );
     $salt = generate_pass_salt();
-    $e_salt = mysql_real_escape_string($salt, $c);
+    $e_salt = mysqli_real_escape_string($c, $salt);
     $encpsw = encode_password($adm_pswd, $salt);
-    $e_encpsw = mysql_real_escape_string($encpsw, $c);
-    $ins_email = mysql_real_escape_string($adm_email, $c);
-    $IP = mysql_real_escape_string($_SERVER['REMOTE_ADDR'], $c);
+    $e_encpsw = mysqli_real_escape_string($c, $encpsw);
+    $ins_email = mysqli_real_escape_string($c, $adm_email);
+    $IP = mysqli_real_escape_string($c, $_SERVER['REMOTE_ADDR']);
     $ins_game_name = htmlentities($game_name, ENT_QUOTES, 'ISO-8859-1');
     $ins_game_desc =
             nl2br(htmlentities($description, ENT_QUOTES, 'ISO-8859-1'));
     $ins_game_owner = htmlentities($owner, ENT_QUOTES, 'ISO-8859-1');
     $ins_game_id1name =
             htmlentities($adm_username, ENT_QUOTES, 'ISO-8859-1');
-    mysql_query(
+    mysqli_query(
+        $c,
             "INSERT INTO `users`
              (`username`, `login_name`, `userpass`, `level`, `money`,
              `crystals`, `donatordays`, `user_level`, `energy`, `maxenergy`,
@@ -438,11 +440,13 @@ EOF;
              100, 0, 0, 2, 12, 12, 100, 100, 5, 5, 100, 100, 1,
              '{$adm_gender}', " . time()
                     . ", '{$ins_email}', -1, '$IP',
-             '{$e_salt}')", $c) or die(mysql_error());
+             '{$e_salt}')") or die(mysqli_error($c));
     $i = mysql_insert_id($c);
-    mysql_query(
-            "INSERT INTO `userstats`
-    		 VALUES($i, 10, 10, 10, 10, 10)", $c);
+    mysqli_query(
+        $c,
+        "INSERT INTO `userstats`
+             VALUES($i, 10, 10, 10, 10, 10)"
+        );
     $gamename_files =
             array('authenticate.php', 'donator.php', 'explore.php',
                     'gamerules.php', 'header.php', 'helptutorial.php',

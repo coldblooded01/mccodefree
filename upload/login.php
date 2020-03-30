@@ -76,6 +76,7 @@ print
     </h3><br />
     <div style="font-style: italic; text-align: center">
       Powered by codes made by Dabomstew. Copyright &copy; {$year} {GAME_OWNER}.
+      Ported to PHP 7.0 by Yeraycat.
     </div>
   </body>
 </html>

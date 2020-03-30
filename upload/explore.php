@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+        $c,
+        "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -51,7 +52,7 @@ print
 <a href='shops.php'>Shops</a><br />
 <a href='itemmarket.php'>Item Market</a><br />
 <a href='cmarket.php'>Crystal Market</a></td>
-<td valign=top
+<td valign=top>
 <u>Serious Money Makers</u><br />
 <a href='monorail.php'>Travel Agency</a><br />
 <a href='estate.php'>Estate Agent</a><br />

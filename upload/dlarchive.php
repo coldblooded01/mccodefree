@@ -39,11 +39,11 @@ if ($_GET['a'] == 'inbox')
                     . $userid . '_' . time() . '.htm"');
     print
             "<table width=75% border=2><tr style='background:gray'><th>From</th><th>Subject/Message</th></tr>";
-    $q =
-            mysql_query(
-                    "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_from=u.userid WHERE m.mail_to=$userid ORDER BY mail_time DESC ",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+    $q = mysqli_query(
+        $c,
+        "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_from=u.userid WHERE m.mail_to=$userid ORDER BY mail_time DESC "
+    );
+    while ($r = mysqli_fetch_array($q))
     {
         $sent = date('F j, Y, g:i:s a', $r['mail_time']);
         print "<tr><td>";
@@ -71,11 +71,11 @@ else if ($_GET['a'] == 'outbox')
                     . $userid . '_' . time() . '.htm"');
     print
             "<table width=75% border=2><tr style='background:gray'><th>To</th><th>Subject/Message</th></tr>";
-    $q =
-            mysql_query(
-                    "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_to=u.userid WHERE m.mail_from=$userid ORDER BY mail_time DESC",
-                    $c);
-    while ($r = mysql_fetch_array($q))
+    $q = mysqli_query(
+        $c,
+        "SELECT m.*,u.* FROM mail m LEFT JOIN users u ON m.mail_to=u.userid WHERE m.mail_from=$userid ORDER BY mail_time DESC"
+    );
+    while ($r = mysqli_fetch_array($q))
     {
         $sent = date('F j, Y, g:i:s a', $r['mail_time']);
         print

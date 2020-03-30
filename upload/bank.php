@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -71,9 +72,10 @@ else
             print
                     "Congratulations, you bought a bank account for \$50,000!<br />
 <a href='bank.php'>Start using my account</a>";
-            mysql_query(
-                    "UPDATE users SET money=money-50000,bankmoney=0 WHERE userid=$userid",
-                    $c);
+            mysqli_query(
+                $c,
+                "UPDATE users SET money=money-50000,bankmoney=0 WHERE userid=$userid"
+            );
         }
         else
         {
@@ -123,9 +125,10 @@ function deposit()
         }
         $gain = $_POST['deposit'] - $fee;
         $ir['bankmoney'] += $gain;
-        mysql_query(
-                "UPDATE users SET bankmoney=bankmoney+$gain, money=money-{$_POST['deposit']} where userid=$userid",
-                $c);
+        mysqli_query(
+            $c,
+            "UPDATE users SET bankmoney=bankmoney+$gain, money=money-{$_POST['deposit']} where userid=$userid"
+        );
         print
                 "You hand over \${$_POST['deposit']} to be deposited, <br />
 after the fee is taken (\$$fee), \$$gain is added to your account. <br />
@@ -147,9 +150,10 @@ function withdraw()
 
         $gain = $_POST['withdraw'];
         $ir['bankmoney'] -= $gain;
-        mysql_query(
-                "UPDATE users SET bankmoney=bankmoney-$gain, money=money+$gain where userid=$userid",
-                $c);
+        mysqli_query(
+            $c,
+            "UPDATE users SET bankmoney=bankmoney-$gain, money=money+$gain where userid=$userid"
+        );
         print
                 "You ask to withdraw $gain, <br />
 the banking lady grudgingly hands it over. <br />

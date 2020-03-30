@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -48,8 +49,8 @@ if (!$_GET['ID'])
 {
     die("Incorrect usage of file.");
 }
-$q = mysql_query("SELECT * FROM oclogs WHERE oclID={$_GET['ID']}", $c);
-$r = mysql_fetch_array($q);
+$q = mysqli_query($c, "SELECT * FROM oclogs WHERE oclID={$_GET['ID']}");
+$r = mysqli_fetch_array($q);
 print
         "Here is the detailed view on this crime.<br />
 <b>Crime:</b> {$r['ocCRIMEN']}<br />

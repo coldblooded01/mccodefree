@@ -32,11 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysql_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysql_error());
-$ir = mysql_fetch_array($is);
+$is = mysqli_query(
+    $c,
+    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
+) or die(mysqli_error($c));
+$ir = mysqli_fetch_array($is);
+
 check_level();
 $fm = money_formatter($ir['money']);
 $cm = money_formatter($ir['crystals'], '');
@@ -44,11 +45,11 @@ $lv = date('F j, Y, g:i a', $ir['laston']);
 $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 
-$inv =
-        mysql_query(
-                "SELECT iv.*,i.*,it.* FROM inventory iv LEFT JOIN items i ON iv.inv_itemid=i.itmid LEFT JOIN itemtypes it ON i.itmtype=it.itmtypeid WHERE iv.inv_userid={$userid} ORDER BY i.itmtype ASC, i.itmname ASC",
-                $c);
-if (mysql_num_rows($inv) == 0)
+$inv = mysqli_query(
+    $c,
+    "SELECT iv.*,i.*,it.* FROM inventory iv LEFT JOIN items i ON iv.inv_itemid=i.itmid LEFT JOIN itemtypes it ON i.itmtype=it.itmtypeid WHERE iv.inv_userid={$userid} ORDER BY i.itmtype ASC, i.itmname ASC"
+);
+if (mysqli_num_rows($inv) == 0)
 {
     print "<b>You have no items!</b>";
 }
@@ -58,7 +59,7 @@ else
             "<b>Your items are listed below.</b><br />
 <table width=100%><tr style='background-color:gray;'><th>Item</th><th>Sell Value</th><th>Total Sell Value</th><th>Links</th></tr>";
     $lt = "";
-    while ($i = mysql_fetch_array($inv))
+    while ($i = mysqli_fetch_array($inv))
     {
         if ($lt != $i['itmtypename'])
         {
