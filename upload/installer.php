@@ -34,6 +34,7 @@ if (!isset($_SESSION['started']))
 require_once('installer_head.php');
 require_once('global_func.php');
 require_once('lib/installer_error_handler.php');
+
 set_error_handler('error_php');
 if (!isset($_GET['code']))
 {
@@ -447,6 +448,17 @@ EOF;
         "INSERT INTO `userstats`
              VALUES($i, 10, 10, 10, 10, 10)"
         );
+    
+    require_once('models/setting.php');
+    $game_name = Setting::create('GAME_NAME', $ins_game_name);
+    $game_description = Setting::create('GAME_DESCRIPTION', $ins_game_desc);
+    $game_owner = Setting::create('GAME_OWNER', $ins_game_owner);
+    $paypal = Setting::create('PAYPAL', $paypal);
+    $id1_name = Setting::create('ID1_NAME', $ins_game_id1name);
+    $cron_code = Setting::create('CRON_CODE', $code);
+    
+
+
     $gamename_files =
             array('authenticate.php', 'donator.php', 'explore.php',
                     'gamerules.php', 'header.php', 'helptutorial.php',
@@ -459,30 +471,30 @@ EOF;
     $cron_files =
             array('crons/cron_day.php', 'crons/cron_fivemins.php',
                     'crons/cron_hour.php', 'crons/cron_minute.php');
-    foreach ($gamename_files as $file)
-    {
-        file_update($file, '{GAME_NAME}', $ins_game_name);
-    }
-    foreach ($gameowner_files as $file)
-    {
-        file_update($file, '{GAME_OWNER}', $ins_game_owner);
-    }
-    foreach ($paypal_files as $file)
-    {
-        file_update($file, '{PAYPAL}', $paypal);
-    }
-    foreach ($gamedesc_files as $file)
-    {
-        file_update($file, '{GAME_DESCRIPTION}', $ins_game_desc);
-    }
-    foreach ($id1_files as $file)
-    {
-        file_update($file, '{ID1_NAME}', $ins_game_id1name);
-    }
-    foreach ($cron_files as $file)
-    {
-        file_update($file, '{CRON_CODE}', $code);
-    }
+    // foreach ($gamename_files as $file)
+    // {
+    //     file_update($file, '{GAME_NAME}', $ins_game_name);
+    // }
+    // foreach ($gameowner_files as $file)
+    // {
+    //     file_update($file, '{GAME_OWNER}', $ins_game_owner);
+    // }
+    // foreach ($paypal_files as $file)
+    // {
+    //     file_update($file, '{PAYPAL}', $paypal);
+    // }id1_name
+    // foreach ($gamedesc_files as $file)
+    // {
+    //     file_update($file, '{GAME_DESCRIPTION}', $ins_game_desc);
+    // }
+    // foreach ($id1_files as $file)
+    // {
+    //     file_update($file, '{ID1_NAME}', $ins_game_id1name);
+    // }
+    // foreach ($cron_files as $file)
+    // {
+    //     file_update($file, '{CRON_CODE}', $code);
+    // }
     echo '... Done.<br />';
     $path = dirname($_SERVER['SCRIPT_FILENAME']);
     echo "
