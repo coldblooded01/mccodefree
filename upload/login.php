@@ -20,6 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
+include "mysql.php";
+require_once(dirname(__FILE__) . "/models/setting.php");
+$GAME_NAME = Setting::get('GAME_NAME')->value;
+$GAME_OWNER = Setting::get('GAME_OWNER')->value;
+$GAME_DESCRIPTION = Setting::get('GAME_DESCRIPTION')->value;
 print
         <<<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -28,7 +33,7 @@ print
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <link href="css/game.css" type="text/css" rel="stylesheet" />
 <script src="js/login.js" type="text/javascript" language="JavaScript"></script>
-<title>{GAME_NAME}</title>
+<title>{$GAME_NAME}</title>
 </head>
 <body onload="getme();" bgcolor="#C3C3C3">
 <img src="logo.png" alt="Your Game Logo" />
@@ -46,14 +51,14 @@ $year = date('Y');
 print
         <<<EOF
     <h3>
-      &gt; {GAME_NAME} Log-In
+      &gt; {$GAME_NAME} Log-In
     </h3>
     <table width="80%">
       <tr>
         <td width="50%">
           <fieldset>
-            <legend>About {GAME_NAME}</legend>
-            {GAME_DESCRIPTION}
+            <legend>About {$GAME_NAME}</legend>
+            {$GAME_DESCRIPTION}
           </fieldset>
         </td>
         <td>
@@ -75,7 +80,7 @@ print
       <a href='register.php'>REGISTER NOW!</a>
     </h3><br />
     <div style="font-style: italic; text-align: center">
-      Powered by codes made by Dabomstew. Copyright &copy; {$year} {GAME_OWNER}.
+      Powered by codes made by Dabomstew. Copyright &copy; {$year} {$GAME_OWNER}.
       Ported to PHP 7.0 by Yeraycat.
     </div>
   </body>

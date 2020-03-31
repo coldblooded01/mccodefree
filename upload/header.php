@@ -24,19 +24,23 @@ if (strpos($_SERVER['PHP_SELF'], "header.php") !== false)
     exit;
 }
 
+include "mysql.php";
+require_once(dirname(__FILE__) . "/models/setting.php");
+
 class headers
 {
 
     function startheaders()
     {
         global $ir;
+        $GAME_NAME = Setting::get('GAME_NAME')->value;
         echo <<<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <link href="css/game.css" type="text/css" rel="stylesheet" />
-<title>{GAME_NAME}</title>
+<title>{$GAME_NAME}</title>
 </head>
 <body style='background-color: #C3C3C3;'>
 
@@ -46,6 +50,7 @@ EOF;
     function userdata($ir, $lv, $fm, $cm, $dosessh = 1)
     {
         global $c, $userid;
+        $GAME_NAME = Setting::get('GAME_NAME')->value;
         $ip = mysqli_real_escape_string($c, $_SERVER['REMOTE_ADDR']);
         mysqli_query($c,
                 "UPDATE users SET laston=" . time()
@@ -99,8 +104,8 @@ EOF;
 <b>EXP:</b> {$experc}%<br />
 <img src=bargreen.gif width=$experc height=10><img src=barred.gif width=$exopp height=10><br />
 <b>Health:</b> {$hpperc}%<br />
-<img src=bargreen.gif width=$hpperc height=10><img src=barred.gif width=$hpopp height=10></td></tr></table></div><center><b><u><a href='voting.php'>Vote for {GAME_NAME} on various gaming sites and be rewarded!</a></u></b></center><br />
-<center><b><u><a href='donator.php'>Donate to {GAME_NAME}, it's only \$3 and gets you a lot of benefits!</a></u></b></center><br />
+<img src=bargreen.gif width=$hpperc height=10><img src=barred.gif width=$hpopp height=10></td></tr></table></div><center><b><u><a href='voting.php'>Vote for {$GAME_NAME} on various gaming sites and be rewarded!</a></u></b></center><br />
+<center><b><u><a href='donator.php'>Donate to {$GAME_NAME}, it's only \$3 and gets you a lot of benefits!</a></u></b></center><br />
                 ";
         $q = mysqli_query($c, "SELECT * FROM ads ORDER BY rand() LIMIT 1");
         if (mysqli_num_rows($q))
@@ -121,7 +126,7 @@ EOF;
                     );
             $r = mysqli_fetch_array($q);
             die(
-                    "<b><font color=red size=+1>You have been put in the {GAME_NAME} Federal Jail for {$r['fed_days']} day(s).<br />
+                    "<b><font color=red size=+1>You have been put in the {$GAME_NAME} Federal Jail for {$r['fed_days']} day(s).<br />
 Reason: {$r['fed_reason']}</font></b></body></html>");
         }
         if (file_exists('ipbans/' . $ip))
@@ -141,11 +146,12 @@ Reason: {$r['fed_reason']}</font></b></body></html>");
 
     function endpage()
     {
+        $GAME_OWNER = Setting::get('GAME_OWNER')->value;
         $year = date('Y');
         print
                 "</td></tr></table>
         <div style='font-style: italic; text-align: center'>
-      		Powered by codes made by Dabomstew. Copyright &copy; {$year} {GAME_OWNER}.
+      		Powered by codes made by Dabomstew. Copyright &copy; {$year} {$GAME_OWNER}.
     	</div>
         </body>
 		</html>";

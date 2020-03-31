@@ -32,6 +32,10 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
+
+require_once(dirname(__FILE__) . "/models/setting.php");
+$GAME_NAME = Setting::get('GAME_NAME')->value;
+
 $is = mysqli_query(
         $c,
         "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
@@ -81,7 +85,7 @@ print
         "</td><td valign=top>
 <u>Statistics Dept</u><br />
 <a href='userlist.php'>User List</a><br />
-<a href='stafflist.php'>{GAME_NAME} Staff</a><br />
+<a href='stafflist.php'>{$GAME_NAME} Staff</a><br />
 <a href='halloffame.php'>Hall of Fame</a><br />
 <a href='stats.php'>Game Stats</a><br />
 <a href='usersonline.php'>Users Online</a></td><td valign=top>&nbsp;</td><td valign=top>

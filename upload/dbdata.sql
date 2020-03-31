@@ -887,10 +887,10 @@ CREATE TABLE `seclogs` (
 -- 
 
 CREATE TABLE `settings` (
-  `settingID` int(11) NOT NULL auto_increment,
+  `settingID` varchar(256) NOT NULL,
   `settingVALUE` longtext NOT NULL,
   PRMIARY KEY (`settingID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 

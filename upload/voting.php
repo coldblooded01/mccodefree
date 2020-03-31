@@ -20,7 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
+require "mysql.php";
 require "global_func.php";
+require_once(dirname(__FILE__) . "/models/setting.php");
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,7 +32,7 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+
 global $c;
 $is = mysqli_query(
     $c,
@@ -46,7 +48,7 @@ $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 print
         "<h3>Voting</h3>
-Here you may vote for {GAME_NAME} at various RPG toplists and be rewarded.<br />
+Here you may vote for {$GAME_NAME} at various RPG toplists and be rewarded.<br />
 <a href='http://apexwebgaming.com/in/498'>Vote at APEX (no reward)</a><br />
 <a href='votetwg.php'>Vote at TWG (20% energy restore)</a><br />
 <a href='votetrpg.php'>Vote at TOPRPG (\$300)</a>";
