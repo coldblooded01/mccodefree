@@ -31,6 +31,8 @@ require "header.php";
 $h = new headers;
 $h->startheaders();
 include "mysql.php";
+require_once "models/setting.php";
+$PAYPAL = Setting::get('PAYPAL')->value;
 global $c;
 $is = mysqli_query(
     $c,
@@ -53,7 +55,7 @@ Buy will potions today! They restore 100% will.<br />
 <b>Buy One:</b> (\$1)<br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
+<input type="hidden" name="business" value="{$PAYPAL}">
 <input type="hidden" name="item_name" value="Will Potion for ($userid) (1)">
 <input type="hidden" name="amount" value="1.00">
 <input type="hidden" name="no_shipping" value="1">
@@ -67,7 +69,7 @@ Buy will potions today! They restore 100% will.<br />
 <b>Buy Five:</b> (\$4.50)<br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
+<input type="hidden" name="business" value="{$PAYPAL}">
 <input type="hidden" name="item_name" value="Will Potion for ($userid) (5)">
 <input type="hidden" name="amount" value="4.50">
 <input type="hidden" name="no_shipping" value="1">

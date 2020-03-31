@@ -20,6 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
+include "mysql.php";
+require_once(dirname(__FILE__) . "/models/setting.php");
+
+$GAME_NAME = Setting::get('GAME_NAME')->value;
+$ID1_NAME = Setting::get('ID1_NAME')->value;
 require "global_func.php";
 if ($_SESSION['loggedin'] == 0)
 {
@@ -30,7 +35,6 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
 global $c;
 $is = mysqli_query(
     $c,
@@ -46,7 +50,7 @@ $h->userdata($ir, $lv, $fm, $cm);
 $h->menuarea();
 print
         <<<EOF
-<h1>{GAME_NAME} Rules and Regulations</h1>
+<h1>{$GAME_NAME} Rules and Regulations</h1>
 <ol>
 <li>Players are only allowed to have one account, owning two or more accounts will result in all accounts being jailed,
 if you are on the same IP as another player, mail staff and let them know.</li>
@@ -61,7 +65,7 @@ manner, but do not mail them repeatedly, or mail multiple staff members.</li>
 <li>Do not harrass other players, use common sense on this one, if you don't know when your crossing the line from fantasy into
 harrassment, assume that you are harrassing the other player. This will not be tolerated and will result in a stiff punishment.</li>
 <li>Scamming will not be tolerated in any manner. Any attempt to scam anyone will result in being jailed for a long long time.</li>
-<li>If a member of staff is bothering you for any unfair or just plain, weird reason, mail {GAME_OWNER} [1]</li>
+<li>If a member of staff is bothering you for any unfair or just plain, weird reason, mail {$ID1_NAME} [1]</li>
 <li>Common sense rules are not posted here, if you can't determine the difference between what is ok, and what is not, you should
 consider not interacting with other people until you do understand.</li>
 <li>These rules are subject to change without notice, check them from time to time, as ignorance will not be accepted as an excuse.</li>

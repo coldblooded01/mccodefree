@@ -32,6 +32,12 @@ $h = new headers;
 $h->startheaders();
 include "mysql.php";
 global $c;
+
+require_once(dirname(__FILE__) . "/models/setting.php");
+$GAME_NAME = Setting::get('GAME_NAME')->value;
+$PAYPAL = Setting::get('PAYPAL')->value;
+
+
 $is = mysqli_query(
     $c,
     "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
@@ -49,7 +55,7 @@ print
         <<<EOF
 <h3>Donations</h3>
 <b>[<a href='willpotion.php'>Buy Will Potions</a>]</b><br />
-If you become a donator to {GAME_NAME}, you will receive (each time you donate):<br />
+If you become a donator to {$GAME_NAME}, you will receive (each time you donate):<br />
 <b>1st Offer:</b><ul>
 <li>\$5,000 game money</li>
 <li>50 crystals</li>
@@ -59,8 +65,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type=hidden name=cmd value=_xclick>
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 1)">
+<input type="hidden" name="business" value="{$PAYPAL}">
+<input type="hidden" name="item_name" value="{$GAME_NAME} Donation for ($userid) (Pack 1)">
 <input type="hidden" name="amount" value="3.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=standard">
@@ -77,8 +83,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 2)">
+<input type="hidden" name="business" value="{$PAYPAL}">
+<input type="hidden" name="item_name" value="{$GAME_NAME} Donation for ($userid) (Pack 2)">
 <input type="hidden" name="amount" value="3.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=crystals">
@@ -95,8 +101,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 3)">
+<input type="hidden" name="business" value="{$PAYPAL}">
+<input type="hidden" name="item_name" value="{$GAME_NAME} Donation for ($userid) (Pack 3)">
 <input type="hidden" name="amount" value="3.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=iq">
@@ -115,8 +121,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 4)">
+<input type="hidden" name="business" value="{$PAYPAL}">
+<input type="hidden" name="item_name" value="{$GAME_NAME} Donation for ($userid) (Pack 4)">
 <input type="hidden" name="amount" value="5.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=fivedollars">
@@ -136,8 +142,8 @@ If you become a donator to {GAME_NAME}, you will receive (each time you donate):
 <li><b>NEW!</b> 17% Energy every 5 mins instead of 8%</li></ul><br />
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_xclick">
-<input type="hidden" name="business" value="{PAYPAL}">
-<input type="hidden" name="item_name" value="{GAME_NAME} Donation for ($userid) (Pack 5)">
+<input type="hidden" name="business" value="{$PAYPAL}">
+<input type="hidden" name="item_name" value="{$GAME_NAME} Donation for ($userid) (Pack 5)">
 <input type="hidden" name="amount" value="10.00">
 <input type="hidden" name="no_shipping" value="1">
 <input type="hidden" name="return" value="http://{$game_url}/donatordone.php?action=done&type=tendollars">

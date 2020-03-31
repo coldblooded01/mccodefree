@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 session_start();
 require "mysql.php";
 require "global_func.php";
+require_once(dirname(__FILE__) . "/models/setting.php");
+$GAME_NAME = Setting::get('GAME_NAME')->value;
 print 
         <<<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -29,7 +31,7 @@ print
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <link href="css/game.css" type="text/css" rel="stylesheet" />
-<title>{GAME_NAME}</title>
+<title>{$GAME_NAME}</title>
 </head>
 <body onload="getme();" bgcolor="#C3C3C3">
 <img src="logo.png" alt="Your Game Logo" />
@@ -138,7 +140,7 @@ else
     $fref = $gref ? $gref : '';
     echo <<<EOF
     <h3>
-      {GAME_NAME} Registration
+      {$GAME_NAME} Registration
     </h3>
     <form action="register.php" method="post">
       Username: <input type="text" name="username" /><br />

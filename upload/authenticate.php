@@ -20,15 +20,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
+
+require_once("mysql.php");
+require_once(dirname(__FILE__) . "/models/setting.php");
+
+$GAME_NAME = Setting::get('GAME_NAME')->value;
+
 if ($_POST['username'] == "" || $_POST['password'] == "")
 {
     die(
-            "<h3>{GAME_NAME} Error</h3>
+            "<h3>{$GAME_NAME}Error</h3>
 You did not fill in the login form!<br />
 <a href=login.php>&gt; Back</a>");
 }
-include "mysql.php";
+
 require "global_func.php";
+
+
 $username =
         (array_key_exists('username', $_POST) && is_string($_POST['username']))
                 ? $_POST['username'] : '';
@@ -38,7 +46,7 @@ $password =
 if (empty($username) || empty($password))
 {
     die(
-            "<h3>{GAME_NAME} Error</h3>
+            "<h3>{$GAME_NAME} Error</h3>
 	You did not fill in the login form!<br />
 	<a href='login.php'>&gt; Back</a>");
 }
@@ -52,7 +60,7 @@ $uq =
 if (mysqli_num_rows($uq) == 0)
 {
     die(
-            "<h3>{GAME_NAME} Error</h3>
+            "<h3>{$GAME_NAME} Error</h3>
 	Invalid username or password!<br />
 	<a href='login.php'>&gt; Back</a>");
 }
@@ -86,14 +94,14 @@ else
     if ($login_failed)
     {
         die(
-                "<h3>{GAME_NAME} Error</h3>
+                "<h3>{$GAME_NAME} Error</h3>
 		Invalid username or password!<br />
 		<a href='login.php'>&gt; Back</a>");
     }
     if ($mem['userid'] == 1 && file_exists('./installer.php'))
     {
         die(
-                "<h3>{GAME_NAME} Error</h3>
+                "<h3>{$GAME_NAME} Error</h3>
                 The installer still exists! You need to delete installer.php immediately.<br />
                 <a href='login.php'>&gt; Back</a>");
     }

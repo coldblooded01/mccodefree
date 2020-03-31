@@ -21,6 +21,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 session_start();
 require "global_func.php";
+
+include "mysql.php";
+require_once(dirname(__FILE__) . "/models/setting.php");
+
+$GAME_NAME = Setting::get('GAME_NAME')->value;
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,7 +35,7 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+
 global $c;
 $is = mysqli_query(
     $c,
@@ -49,7 +54,7 @@ print
 <h2>Welcome back, your last visit was: $lv.</h2>";
 $q = mysqli_query($c, "SELECT * FROM papercontent LIMIT 1");
 $content = mysqli_result($q, 0);
-print "{GAME_NAME} Latest News:<br />
+print "{$GAME_NAME} Latest News:<br />
 $content
 ";
 $h->endpage();

@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 session_start();
 require "global_func.php";
+include "mysql.php";
+require_once(dirname(__FILE__) . "/models/setting.php");
+$GAME_NAME = Setting::get('GAME_NAME')->value;
 if ($_SESSION['loggedin'] == 0)
 {
     header("Location: login.php");
@@ -30,7 +33,7 @@ $userid = $_SESSION['userid'];
 require "header.php";
 $h = new headers;
 $h->startheaders();
-include "mysql.php";
+
 global $c;
 $is = mysqli_query(
     $c,
@@ -151,9 +154,9 @@ else
 
 function admin_index()
 {
-    global $ir, $c, $userid;
+    global $ir, $c, $userid, $GAME_NAME;
     print 
-            "Welcome to the {GAME_NAME} admin panel, <b>{$ir['username']}!</b><br />";
+            "Welcome to the {$GAME_NAME} admin panel, <b>{$ir['username']}!</b><br />";
     echo <<<EOF
     <table width='90%' border='1' cellspacing='1' cellpadding='2'>
     	<tr style='background-color: black; color: white;'>
@@ -292,9 +295,9 @@ EOF;
 
 function sec_index()
 {
-    global $ir, $c;
+    global $ir, $c, $GAME_NAME;
     print 
-            "Welcome to the {GAME_NAME} secretary panel, {$ir['username']}!<br />
+            "Welcome to the {$GAME_NAME} secretary panel, {$ir['username']}!<br />
 <h3><font color=red>Secretary Warning: Any sec who uses their powers without reason will be fired. No second chances.</font></h3><br />
 <b>News from the Admins:</b> <br />";
     include "admin.news";
@@ -321,9 +324,9 @@ function sec_index()
 
 function ass_index()
 {
-    global $ir, $c;
+    global $ir, $c, $GAME_NAME;
     print 
-            "Welcome to the {GAME_NAME} assistant panel, {$ir['username']}!<br />
+            "Welcome to the {$GAME_NAME} assistant panel, {$ir['username']}!<br />
 <h3><font color=red>Assistant Warning: Any assistant who uses their powers without reason will be fired. No second chances.</font></h3><br />
 <b>News from the Admins:</b> <br />";
     include "admin.news";
