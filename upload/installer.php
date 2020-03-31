@@ -449,7 +449,7 @@ EOF;
              VALUES($i, 10, 10, 10, 10, 10)"
         );
     
-    require_once('models/setting.php');
+    require_once(dirname(__FILE__) . "/models/setting.php");
     $game_name = Setting::create('GAME_NAME', $ins_game_name);
     $game_description = Setting::create('GAME_DESCRIPTION', $ins_game_desc);
     $game_owner = Setting::create('GAME_OWNER', $ins_game_owner);
@@ -458,43 +458,6 @@ EOF;
     $cron_code = Setting::create('CRON_CODE', $code);
     
 
-
-    $gamename_files =
-            array('authenticate.php', 'donator.php', 'explore.php',
-                    'gamerules.php', 'header.php', 'helptutorial.php',
-                    'loggedin.php', 'login.php', 'new_staff.php',
-                    'register.php', 'voting.php');
-    $gameowner_files = array('header.php', 'login.php');
-    $paypal_files = array('donator.php', 'willpotion.php');
-    $gamedesc_files = array('login.php');
-    $id1_files = array('gamerules.php');
-    $cron_files =
-            array('crons/cron_day.php', 'crons/cron_fivemins.php',
-                    'crons/cron_hour.php', 'crons/cron_minute.php');
-    // foreach ($gamename_files as $file)
-    // {
-    //     file_update($file, '{GAME_NAME}', $ins_game_name);
-    // }
-    // foreach ($gameowner_files as $file)
-    // {
-    //     file_update($file, '{GAME_OWNER}', $ins_game_owner);
-    // }
-    // foreach ($paypal_files as $file)
-    // {
-    //     file_update($file, '{PAYPAL}', $paypal);
-    // }id1_name
-    // foreach ($gamedesc_files as $file)
-    // {
-    //     file_update($file, '{GAME_DESCRIPTION}', $ins_game_desc);
-    // }
-    // foreach ($id1_files as $file)
-    // {
-    //     file_update($file, '{ID1_NAME}', $ins_game_id1name);
-    // }
-    // foreach ($cron_files as $file)
-    // {
-    //     file_update($file, '{CRON_CODE}', $code);
-    // }
     echo '... Done.<br />';
     $path = dirname($_SERVER['SCRIPT_FILENAME']);
     echo "
