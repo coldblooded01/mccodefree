@@ -46,31 +46,32 @@ class User {
         $this->IQ = $IQ;
     }
 
-    public static function getAll() {
-
-    }
-
-    public static function exists($userid) {
+    public static function search($levelmin, $levelmax, $nom, $gender, $house, $online, $dayo_min, $dayo_max) {
         global $c;
-        $query = "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid={$userid}";
-        $q = mysqli_query(
-            $c,
-            $query
-        );
-        return mysqli_num_rows($q) != 0;
-    }
 
-    public static function get($userid) {
-        global $c;
-        $query = "SELECT u.*,us.*
-            FROM users u 
-            LEFT JOIN userstats us ON u.userid=us.userid 
-            WHERE u.userid=$userid";
+        $levelmin_clause = "WHERE level >= '{$levelmin}'";
+        $levelmax_clause = " AND level <= '{$levelmax}'";
+        $name_clause = ($nom) ? " AND username LIKE('%{$nom}%')" : "";
+        $gender_clause = ($gender) ? " AND gender = '{$gender}'" : "";
+        $house_clause = ($house) ? " AND maxwill = '{$house}'" : "";
+        $online_clause = ($online) ? " AND laston >= " . (time() - $online) : "";
+        $daysmin_clause = ($dayo_min) ? " AND daysold >= '{$dayo_min}'" : "";
+        $daysmax_clause = ($dayo_max) ? " AND daysold <= '{$dayo_max}'" : "";
+
+        $query = "SELECT * FROM users $levelmin_clause$levelmax_clause$name_clause$gender_clause$house_clause$online_clause$daysmin_clause$daysmax_clause";
         $q = mysqli_query(
             $c,
             $query
         ) or die(mysqli_error($c));
-        $r = mysqli_fetch_array($q);
+        $result = [];
+        while ($r = mysqli_fetch_array($q))
+        {
+            array_push($result, self::create($r));
+        }
+        return $result;
+    }
+
+    public static function create($r) {
         return new User(
             $r['userid'],
             $r['username'],
@@ -120,6 +121,30 @@ class User {
             $r['labour'],
             $r['IQ']
         );
+    }
+
+    public static function exists($userid) {
+        global $c;
+        $query = "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid={$userid}";
+        $q = mysqli_query(
+            $c,
+            $query
+        );
+        return mysqli_num_rows($q) != 0;
+    }
+
+    public static function get($userid) {
+        global $c;
+        $query = "SELECT u.*,us.*
+            FROM users u 
+            LEFT JOIN userstats us ON u.userid=us.userid 
+            WHERE u.userid=$userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        $r = mysqli_fetch_array($q);
+        return self::create($r);
     }
 
     public function is_in_hospital() {

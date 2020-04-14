@@ -43,34 +43,22 @@ if ($_POST['submit'])
 {
     $levelmin = abs((int) $_POST['levelmin']);
     $levelmax = abs((int) $_POST['levelmax']);
-    $levelmin_clause = "WHERE level >= '{$levelmin}'";
-    $levelmax_clause = " AND level <= '{$levelmax}'";
     $nom = mysqli_real_escape_string($c, stripslashes($_POST['name']));
     $gender =
             in_array($_POST['gender'], array('Male', 'Female'), true)
                     ? $_POST['gender'] : '';
-    $name_clause = ($nom) ? " AND username LIKE('%{$nom}%')" : "";
-    $gender_clause = ($gender) ? " AND gender = '{$gender}'" : "";
     $house = abs((int) $_POST['house']);
     $online = abs((int) $_POST['online']);
     $dayo_min = abs((int) $_POST['daysmin']);
     $dayo_max = abs((int) $_POST['daysmax']);
-    $house_clause = ($house) ? " AND maxwill = '{$house}'" : "";
-    $online_clause = ($online) ? " AND laston >= " . (time() - $online) : "";
-    $daysmin_clause = ($dayo_min) ? " AND daysold >= '{$dayo_min}'" : "";
-    $daysmax_clause = ($dayo_max) ? " AND daysold <= '{$dayo_max}'" : "";
-    $q = mysqli_query(
-        $c,
-        "SELECT * FROM users $levelmin_clause$levelmax_clause$name_clause$gender_clause$house_clause$online_clause$daysmin_clause$daysmax_clause"
-    );
+    $search_result = User::search($levelmin, $levelmax, $nom, $gender, $house, $online, $dayo_min, $dayo_max);
     print
-            mysqli_num_rows($q)
+            count($search_result)
                     . " players found. <br />
 <table><tr style='background-color:gray;'><th>User</th><th>Level</th><th>Money</th></tr>";
-    while ($r = mysqli_fetch_array($q))
-    {
+    foreach ($search_result as $r) {
         print
-                "<tr><td><a href='viewuser.php?u={$r['userid']}'>{$r['username']}</a></td><td>{$r['level']}</td><td>\${$r['money']}</td></tr>";
+                "<tr><td><a href='viewuser.php?u={$r->userid}'>{$r->username}</a></td><td>{$r->level}</td><td>\${$r->money}</td></tr>";
     }
     print "</table>";
 }
