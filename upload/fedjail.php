@@ -53,19 +53,16 @@ while ($r = mysqli_fetch_array($q))
 <td>{$r['fed_days']} </td><td> {$r['fed_reason']}</td><td><a href='viewuser.php?u={$r['fed_jailedby']}'>{$r['jailer']}</a></td></tr>";
 }
 print "</table>";
-$q = mysqli_query(
-    $c,
-    "SELECT * FROM users WHERE mailban>0 ORDER BY mailban ASC"
-);
+$mailban_users = User::get_mailban();
 print
-        "<b>Mail Bann</b></center><br />
+        "<b>Mail Ban</b></center><br />
 If you ever swear or do bad things at your mail, your name will become a permanent part of this list...<br />
 <table width=100% border=1><tr style='background:gray'><th>Who</th><th>Days</th><th>Reason</th></tr>";
-while ($r = mysqli_fetch_array($q))
+foreach ($mailban_users as $mb_user)
 {
     print
-            "<tr><td><a href='viewuser.php?u={$r['userid']}'>{$r['username']}</a></td>
-<td>{$r['mailban']} </td><td> {$r['mb_reason']}</td><td></td></tr>";
+            "<tr><td><a href='viewuser.php?u={$$mb_user->userid}'>{$mb_user->username}</a></td>
+<td>{$mb_user->mailban} </td><td> {$$mb_user->mb_reason}</td><td></td></tr>";
 }
 print "</table>";
 $h->endpage();

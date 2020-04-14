@@ -147,6 +147,36 @@ class User {
         return self::create($r);
     }
 
+    public static function get_mailban() {
+        global $c;
+        $query = "SELECT * FROM users WHERE mailban>0 ORDER BY mailban ASC";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        $result = [];
+        while ($r = mysqli_fetch_array($q))
+        {
+            array_push($result, self::create($r));
+        }
+        return $result;
+    }
+
+    public static function get_users_in_fedjail() {
+        global $c;
+        $query = "SELECT f.*,u.username,u2.username as jailer FROM fedjail f LEFT JOIN users u ON f.fed_userid=u.userid LEFT JOIN users u2 ON f.fed_jailedby=u2.userid ORDER BY f.fed_days ASC";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        $result = [];
+        while ($r = mysqli_fetch_array($q))
+        {
+            array_push($result, self::create($r));
+        }
+        return $result;
+    }
+
     public function is_in_hospital() {
         return $this->in_hospital != 0;
     }

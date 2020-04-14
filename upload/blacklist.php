@@ -137,36 +137,35 @@ function add_enemy()
 
     if ($_POST['ID'])
     {
+        $enemy_id = $_POST['ID'];
         $qc = mysqli_query(
             $c,
-            "SELECT * FROM blacklist WHERE bl_ADDER=$user->userid AND bl_ADDED={$_POST['ID']}"
+            "SELECT * FROM blacklist WHERE bl_ADDER=$user->userid AND bl_ADDED={$enemy_id}"
         );
-        $q = mysqli_query(
-            $c,
-            "SELECT * FROM users WHERE userid={$_POST['ID']}"
-        );
+        
         if (mysqli_num_rows($qc))
         {
             print "You cannot add the same person twice.";
         }
-        else if ($user->userid == $_POST['ID'])
+        else if ($user->userid == $enemy_id)
         {
             print 
                     "You cannot be so lonely that you have to try and add yourself.";
         }
-        else if (mysqli_num_rows($q) == 0)
+        else if (User::exists($enemy_id))
         {
             print "Oh no, you're trying to add a ghost.";
         }
         else
         {
+            $comment = $_POST['comment'];
             mysqli_query(
                 $c,
-                "INSERT INTO blacklist VALUES(NULL, $user->userid, {$_POST['ID']}, '{$_POST['comment']}')"
+                "INSERT INTO blacklist VALUES(NULL, $user->userid, {$enemy_id}, '{$comment}')"
             ) or die(mysqli_error($c));
-            $r = mysqli_fetch_array($q);
+            $enemy = User::get($enemy_id);
             print 
-                    "{$r['username']} was added to your black list.<br />
+                    "{$enemy->username} was added to your black list.<br />
 <a href='blacklist.php'>&gt; Back</a>";
         }
     }
