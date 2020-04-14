@@ -27,22 +27,16 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 $_GET['ID'] = abs((int) $_GET['ID']);
 $_POST['money'] = abs((int) $_POST['money']);
@@ -58,7 +52,7 @@ else
 {
     if ((int) $_POST['money'])
     {
-        if ($_POST['money'] > $ir['money'])
+        if ($_POST['money'] > $user->money)
         {
             print "Die j00 abuser.";
         }
@@ -74,7 +68,7 @@ else
             );
             print "You sent \${$_POST['money']} to ID {$_GET['ID']}.";
             event_add($_GET['ID'],
-                    "You received \${$_POST['money']} from {$ir['username']}.",
+                    "You received \${$_POST['money']} from {$user->username}.",
                     $c);
             $it = mysqli_query(
                 $c,
@@ -85,7 +79,7 @@ else
                 $c,
                 "INSERT INTO cashxferlogs VALUES(NULL, $userid, {$_GET['ID']}, {$_POST['money']}, "
                     . time()
-                    . ", '{$ir['lastip']}', '{$er['lastip']}')"
+                    . ", '{$user->lastip}', '{$er['lastip']}')"
             );
         }
     }

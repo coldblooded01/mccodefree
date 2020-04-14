@@ -27,24 +27,18 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
-$mpq = mysqli_query($c, "SELECT * FROM houses WHERE hWILL={$ir['maxwill']}");
+$mpq = mysqli_query($c, "SELECT * FROM houses WHERE hWILL={$user->max_will}");
 $mp = mysqli_fetch_array($mpq);
 $_GET['property'] = abs((int) $_GET['property']);
 if ($_GET['property'])
@@ -58,7 +52,7 @@ if ($_GET['property'])
     {
         print "You cannot go backwards in houses!";
     }
-    else if ($np['hPRICE'] > $ir['money'])
+    else if ($np['hPRICE'] > $user->money)
     {
         print "You do not have enough money to buy the {$np['hrNAME']}.";
     }
@@ -75,10 +69,10 @@ else if (isset($_GET['sellhouse']))
 {
     $npq = mysqli_query(
         $c,
-        "SELECT * FROM houses WHERE hWILL={$ir['maxwill']}"
+        "SELECT * FROM houses WHERE hWILL={$user->max_will}"
     );
     $np = mysqli_fetch_array($npq);
-    if ($ir['maxwill'] == 100)
+    if ($user->max_will == 100)
     {
         print "You already live in the lowest property!";
     }
@@ -96,13 +90,13 @@ else
     print
             "Your current property: <b>{$mp['hNAME']}</b><br />
 The houses you can buy are listed below. Click a house to buy it.<br />";
-    if ($ir['maxwill'] > 100)
+    if ($user->max_will > 100)
     {
         print "<a href='estate.php?sellhouse'>Sell Your House</a><br />";
     }
     $hq = mysqli_query(
         $c,
-        "SELECT * FROM houses WHERE hWILL>{$ir['maxwill']} ORDER BY hWILL ASC"
+        "SELECT * FROM houses WHERE hWILL>{$user->max_will} ORDER BY hWILL ASC"
     );
     while ($r = mysqli_fetch_array($hq))
     {

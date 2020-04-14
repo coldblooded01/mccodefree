@@ -27,22 +27,16 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 $_GET['c'] = abs((int) $_GET['c']);
 if (!$_GET['c']) {
@@ -55,20 +49,20 @@ if (!$_GET['c']) {
         exit;
     }
     $r = mysqli_fetch_array($q);
-    if ($ir['brave'] < $r['crimeBRAVE']) {
+    if ($user->brave < $r['crimeBRAVE']) {
         print "You do not have enough Brave to perform this crime.";
     } else {
         $ec =
                 "\$sucrate="
                         . str_replace(array("LEVEL", "EXP", "WILL", "IQ"),
-                                array($ir['level'], $ir['exp'], $ir['will'],
-                                        $ir['IQ']), $r['crimePERCFORM']) . ";";
+                                array($user->level, $user->exp, $user->will,
+                                        $user->IQ), $r['crimePERCFORM']) . ";";
         eval($ec);
         print $r['crimeITEXT'];
         $ir['brave'] -= $r['crimeBRAVE'];
         mysqli_query(
             $c,
-            "UPDATE users SET brave={$ir['brave']} WHERE userid=$userid"
+            "UPDATE users SET brave={$user->brave} WHERE userid=$userid"
         );
         if (rand(1, 100) <= $sucrate) {
             print
@@ -78,7 +72,7 @@ if (!$_GET['c']) {
             $ir['exp'] += (int) ($r['crimeSUCCESSMUNY'] / 8);
             mysqli_query(
                 $c,
-                "UPDATE users SET money={$ir['money']},exp={$ir['exp']} WHERE userid=$userid"
+                "UPDATE users SET money={$user->money},exp={$user->exp} WHERE userid=$userid"
             );
         } else {
             print $r['crimeFTEXT'];

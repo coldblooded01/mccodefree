@@ -27,24 +27,18 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
-if ($ir['user_level'] != 2)
+if ($user->user_level != 2)
 {
     die("");
 }
@@ -126,7 +120,7 @@ else
         $payment = $r['level'] * 1000;
         print
                 "You are hiring a spy to spy on <b>{$r['username']}</b> at the cost of \$$payment.<br />";
-        if ($ir['money'] >= $payment)
+        if ($user->money >= $payment)
         {
             print
                     "<form action='hirespy.php' method='post'><input type='hidden' name='ID' value='{$_GET['ID']}' /><input type='submit' value='Hire' /></form>";

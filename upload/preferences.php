@@ -27,22 +27,16 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 
 switch ($_GET['action'])
@@ -86,7 +80,7 @@ default:
 
 function prefs_home()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print 
             "<h3>Preferences</h3>
 <a href='preferences.php?action=sexchange'>Sex Change</a><br />
@@ -97,8 +91,8 @@ function prefs_home()
 
 function conf_sex_change()
 {
-    global $ir, $c, $userid, $h;
-    if ($ir['gender'] == "Male")
+    global $user, $c, $userid, $h;
+    if ($user->is_male)
     {
         $g = "Female";
     }
@@ -113,13 +107,13 @@ function conf_sex_change()
 
 function do_sex_change()
 {
-    global $ir, $c, $userid, $h;
-    if ($ir['crystals'] < 20)
+    global $user, $c, $userid, $h;
+    if ($user->crystals < 20)
     {
         print "You don't have enough crystals!";
         exit;
     }
-    else if ($ir['gender'] == "Male")
+    else if ($user->is_male())
     {
         $g = "Female";
     }
@@ -139,7 +133,7 @@ function do_sex_change()
 
 function pass_change()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print 
             "<h3>Password Change</h3><form action='preferences.php?action=passchange2' method='post'>Current Password: <input type='password' name='oldpw' /><br />
 New Password: <input type='password' name='newpw' /><br />
@@ -149,11 +143,11 @@ Confirm: <input type='password' name='newpw2' /><br />
 
 function do_pass_change()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     $oldpw = stripslashes($_POST['oldpw']);
     $newpw = stripslashes($_POST['newpw']);
     $newpw2 = stripslashes($_POST['newpw2']);
-    if (!verify_user_password($oldpw, $ir['pass_salt'], $ir['userpass']))
+    if (!verify_user_password($oldpw, $user->pass_salt, $user->userpass))
     {
         echo "
 		The current password you entered was wrong.<br />
@@ -170,13 +164,13 @@ function do_pass_change()
         // Re-encode password
         $new_psw = mysqli_real_escape_string(
             $c,
-            encode_password($newpw, $ir['pass_salt'])
+            encode_password($newpw, $user->pass_salt)
         );
         mysqli_query(
             $c,
             "UPDATE `users`
                  SET `userpass` = '{$new_psw}'
-                 WHERE `userid` = {$ir['userid']}"
+                 WHERE `userid` = {$user->userid}"
         );
         echo "Password changed!<br />
         &gt; <a href='preferences.php'>Go Back</a>";
@@ -185,7 +179,7 @@ function do_pass_change()
 
 function name_change()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print 
             "<h3>Name Change</h3>
 Changing your name now costs \$3000<br />
@@ -196,8 +190,8 @@ New Name: <input type='text' name='newname' /><br />
 
 function do_name_change()
 {
-    global $ir, $c, $userid, $h;
-    if ($ir['money'] < 3000)
+    global $user, $c, $userid, $h;
+    if ($user->money < 3000)
     {
         print "You don't have enough money!";
         exit;
@@ -235,18 +229,18 @@ function do_name_change()
 
 function pic_change()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print 
             "<h3>Pic Change</h3>
 Please note that this must be externally hosted, <a href='http://imageshack.us'>ImageShack</a> is our recommendation.<br />
 Any images that are not 150x150 will be automatically resized <form action='preferences.php?action=picchange2' method='post'>
-New Pic: <input type='text' name='newpic' value='{$ir['display_pic']}' /><br />
+New Pic: <input type='text' name='newpic' value='{$user->display_pic}' /><br />
 <input type='submit' value='Change Pic' /></form>";
 }
 
 function do_pic_change()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     if (empty($_POST['newpic']))
     {
         print 

@@ -27,8 +27,10 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
@@ -36,17 +38,8 @@ global $c;
 require_once(dirname(__FILE__) . "/models/setting.php");
 $GAME_NAME = Setting::get('GAME_NAME')->value;
 
-$is = mysqli_query(
-        $c,
-        "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
-
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 $tresder = (int) rand(100, 999);
 print
@@ -62,7 +55,7 @@ print
 <a href='estate.php'>Estate Agent</a><br />
 <a href='bank.php'>City Bank</a></td>
 <td valign=top>";
-if ($ir['location'] == 5)
+if ($user->location == 5)
 {
     print
             "<u>Cyber State</u><br />
@@ -75,7 +68,7 @@ print
 <a href='slotsmachine.php?tresde=$tresder'>Slots Machine</a><br />
 <a href='roulette.php?tresde=$tresder'>Roulette</a></td></tr><tr height=100>
 <td valign=top>";
-if ($ir['location'] == 5)
+if ($user->location == 5)
 {
     print
             "<u>Cyber Casino</u><br />
@@ -91,7 +84,7 @@ print
 <a href='usersonline.php'>Users Online</a></td><td valign=top>&nbsp;</td><td valign=top>
 <u>Mysterious</u><br />
 <a href='crystaltemple.php'>Crystal Temple</a><br />";
-if ($ir['location'] == 4)
+if ($user->location == 4)
 {
     print "<a href='battletent.php'>Battle Tent</a><br />";
 }

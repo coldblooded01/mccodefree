@@ -27,22 +27,16 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 print
         "<h3>Hall Of Fame</h3>
@@ -81,7 +75,7 @@ case "iq":
 
 function hof_level()
 {
-    global $ir, $c, $userid;
+    global $user, $c, $userid;
     print
             "Showing the 20 users with the highest levels<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> <th>Level</th> </tr>";
@@ -111,7 +105,7 @@ function hof_level()
 
 function hof_money()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     print
             "Showing the 20 users with the highest amount of money<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> <th>Money</th> </tr>";
@@ -142,7 +136,7 @@ function hof_money()
 
 function hof_crystals()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     print
             "Showing the 20 users with the highest amount of crystals<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> <th>Crystals</th> </tr>";
@@ -174,7 +168,7 @@ function hof_crystals()
 
 function hof_total()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     print
             "Showing the 20 users with the highest total stats<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
@@ -186,7 +180,7 @@ function hof_total()
     while ($r = mysqli_fetch_array($q))
     {
         $p++;
-        if ($r['userid'] == $ir['userid'])
+        if ($r['userid'] == $userid)
         {
             $t = "<b>";
             $et = "</b>";
@@ -204,7 +198,7 @@ function hof_total()
 
 function hof_strength()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     print
             "Showing the 20 users with the highest strength<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
@@ -216,7 +210,7 @@ function hof_strength()
     while ($r = mysqli_fetch_array($q))
     {
         $p++;
-        if ($r['userid'] == $ir['userid'])
+        if ($r['userid'] == $userid)
         {
             $t = "<b>";
             $et = "</b>";
@@ -234,7 +228,7 @@ function hof_strength()
 
 function hof_agility()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     print
             "Showing the 20 users with the highest agility<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
@@ -246,7 +240,7 @@ function hof_agility()
     while ($r = mysqli_fetch_array($q))
     {
         $p++;
-        if ($r['userid'] == $ir['userid'])
+        if ($r['userid'] == $userid)
         {
             $t = "<b>";
             $et = "</b>";
@@ -264,7 +258,7 @@ function hof_agility()
 
 function hof_guard()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     print
             "Showing the 20 users with the highest guard<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
@@ -276,7 +270,7 @@ function hof_guard()
     while ($r = mysqli_fetch_array($q))
     {
         $p++;
-        if ($r['userid'] == $ir['userid'])
+        if ($r['userid'] == $userid)
         {
             $t = "<b>";
             $et = "</b>";
@@ -294,7 +288,7 @@ function hof_guard()
 
 function hof_labour()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     print
             "Showing the 20 users with the highest labour<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
@@ -306,7 +300,7 @@ function hof_labour()
     while ($r = mysqli_fetch_array($q))
     {
         $p++;
-        if ($r['userid'] == $ir['userid'])
+        if ($r['userid'] == $userid)
         {
             $t = "<b>";
             $et = "</b>";
@@ -324,7 +318,7 @@ function hof_labour()
 
 function hof_iq()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     print
             "Showing the 20 users with the highest IQ<br />
 <table width=75%><tr style='background:gray'> <th>Pos</th> <th>User</th> </tr>";
@@ -336,7 +330,7 @@ function hof_iq()
     while ($r = mysqli_fetch_array($q))
     {
         $p++;
-        if ($r['userid'] == $ir['userid'])
+        if ($r['userid'] == $userid)
         {
             $t = "<b>";
             $et = "</b>";

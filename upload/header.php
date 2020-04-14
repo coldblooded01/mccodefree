@@ -76,7 +76,7 @@ EOF;
         $wiperc = (int) ($user->will / $user->max_will * 100);
         $experc = (int) ($user->exp / $user->exp_needed * 100);
         $brperc = (int) ($user->brave / $user->max_brave * 100);
-        $hpperc = (int) ($user->hp / $user->maxhp * 100);
+        $hpperc = (int) ($user->hp / $user->max_hp * 100);
         $enopp = 100 - $enperc;
         $wiopp = 100 - $wiperc;
         $exopp = 100 - $experc;
@@ -102,7 +102,7 @@ EOF;
 <img src=bargreen.gif width=$enperc height=10><img src=barred.gif width=$enopp height=10><br />
 <b>Will:</b> {$wiperc}%<br />
 <img src=bargreen.gif width=$wiperc height=10><img src=barred.gif width=$wiopp height=10><br />
-<b>Brave:</b> {$ir['brave']}/{$ir['maxbrave']}<br />
+<b>Brave:</b> {$user->brave}/{$user->max_brave}<br />
 <img src=bargreen.gif width=$brperc height=10><img src=barred.gif width=$bropp height=10><br />
 <b>EXP:</b> {$experc}%<br />
 <img src=bargreen.gif width=$experc height=10><img src=barred.gif width=$exopp height=10><br />
@@ -142,7 +142,7 @@ Reason: {$r['fed_reason']}</font></b></body></html>");
     function menuarea()
     {
         include "mainmenu.php";
-        global $ir, $c;
+        global $user, $c;
         print "</td><td valign='top'>
 ";
     }

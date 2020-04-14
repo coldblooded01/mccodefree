@@ -9,7 +9,7 @@ class User {
             $lastrest_life, $lastrest_other, $location, $hospital, $jail, $fedjail, $user_level,
             $gender, $daysold, $signedup, $course, $cdays, $donatordays, $email, $login_name,
             $display_pic, $duties, $bankmoney, $cybermoney, $staffnotes, $mailban, $mb_reason,
-            $hospreason, $pass_salt, $strength, $agility, $guard) {
+            $hospreason, $pass_salt, $strength, $agility, $guard, $labour, $IQ) {
         $this->userid = $userid;
         $this->username = $username;
         $this->userpass = $userpass;
@@ -25,14 +25,25 @@ class User {
         $this->will = $will;
         $this->max_will = $maxwill;
         $this->brave = $brave;
-        $this->max_brave = $max_brave;
+        $this->max_brave = $maxbrave;
         $this->hp = $hp;
         $this->max_hp = $maxhp;
         $this->location = $location;
         $this->in_hospital = $hospital;
+        $this->jail = $jail;
+        $this->fedjail = $fedjail;
+        $this->user_level = $user_level;
+        $this->gender = $gender;
+        $this->daysold = $daysold;
+        $this->donatordays = $donatordays;
+        $this->course = $course;
+        $this->cdays = $cdays;
+        $this->email = $email;
         $this->strength = $strength;
         $this->agility = $agility;
         $this->guard = $guard;
+        $this->labour = $labour;
+        $this->IQ = $IQ;
     }
 
     public static function getAll() {
@@ -66,7 +77,7 @@ class User {
             $r['userpass'],
             $r['level'],
             $r['exp'],
-            $r['exp_needed']
+            $r['exp_needed'],
             $r['money'],
             $r['crystals'],
             $r['laston'],
@@ -105,7 +116,9 @@ class User {
             $r['pass_salt'],
             $r['strength'],
             $r['agility'],
-            $r['guard']
+            $r['guard'],
+            $r['labour'],
+            $r['IQ']
         );
     }
 
@@ -117,8 +130,27 @@ class User {
         return $this->hp == 1;
     }
 
+    public function is_donator() {
+        return $this->donatordays > 0;
+    }
+
+    public function is_male() {
+        return $this->gender == "Male";
+    }
+
     public function has_energy_to_attack() {
         return $this->energy  >= $this->max_energy / 2;
+    }
+
+    public function get_house() {
+        global $c;
+        $query = "SELECT * FROM houses WHERE hWILL = $this->max_will";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        $r = mysqli_fetch_array($q);
+        return $r;
     }
 
     public function kill() {

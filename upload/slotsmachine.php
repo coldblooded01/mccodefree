@@ -27,25 +27,18 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
-
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 $tresder = (int) (rand(100, 999));
-$maxbet = $ir['level'] * 250;
+$maxbet = $user->level * 250;
 $_GET['tresde'] = abs((int) $_GET['tresde']);
 if (($_SESSION['tresde'] == $_GET['tresde']) || $_GET['tresde'] < 100)
 {
@@ -58,7 +51,7 @@ $_GET['bet'] = abs((int) $_GET['bet']);
 print "<h3>Slots</h3>";
 if ($_GET['bet'])
 {
-    if ($_GET['bet'] > $ir['money'])
+    if ($_GET['bet'] > $user->money)
     {
         die(
                 "You are trying to bet more than you have.<br />
