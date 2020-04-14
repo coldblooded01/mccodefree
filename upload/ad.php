@@ -19,13 +19,14 @@ along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-require "mysql.php";
-$_GET['ad'] = abs(@intval($_GET['ad']));
-mysqli_query($c, "UPDATE ads SET adCLICKS=adCLICKS+1 WHERE adID='{$_GET['ad']}'");
-$q = mysqli_query($c, "SELECT adURL FROM ads WHERE adID='{$_GET['ad']}'");
-if (mysqli_num_rows($q) > 0)
+require_once(dirname(__FILE__) . "/models/ad.php");
+$ad_id = abs(@intval($_GET['ad']));
+
+if (Ad::exists($ad_id))
 {
-    header("Location: " . mysqli_result($q, 0, 0));
+    $ad = Ad::get($ad_id);
+    $ad->click();
+    header("Location: " . $ad->url);
 }
 else
 {
