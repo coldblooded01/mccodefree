@@ -38,7 +38,7 @@ global $c;
 require_once(dirname(__FILE__) . "/models/setting.php");
 $GAME_NAME = Setting::get('GAME_NAME')->value;
 
-check_level();
+$user->check_level();
 $h->userdata($user);
 $h->menuarea();
 $tresder = (int) rand(100, 999);

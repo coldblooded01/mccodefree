@@ -35,7 +35,7 @@ $h->startheaders();
 include "mysql.php";
 global $c;
 
-check_level();
+$user->check_level();
 $h->userdata($user, 0);
 $h->menuarea();
 
@@ -58,14 +58,15 @@ if (User::exists($_GET['ID'])))
         print "You beat {$opponent->username} and leave him on the ground.";
         $qe = $opponent->level * $opponent->level * $opponent->level;
         $expgain = rand($qe / 4, $qe / 2);
-        $expperc = (int) ($expgain / $user->exp_needed * 100);
+        $expperc = (int) ($expgain / $user->get_exp_needed() * 100);
         print " and gained $expperc% EXP!";
         mysqli_query($c, "UPDATE users SET exp=exp+$expgain WHERE userid=$userid");
         mysqli_query($c, "UPDATE users SET hp=1 WHERE userid={$opponent->userid}");
-        event_add($opponent->userid,
-                "<a href='viewuser.php?u=$userid'>{$user->username}</a> attacked you and left you lying on the street.",
-                $c);
-
+        Event::add(
+            $opponent->userid,
+            "<a href='viewuser.php?u=$userid'>{$user->username}</a> attacked you and left you lying on the street."
+        );
+        
         mysqli_query(
             $c,
             "UPDATE users SET hp=1,hospital=hospital+20+(rand()*20),hospreason='Attacked by <a href=\'viewuser.php?u={$userid}\'>{$user->username}</a>' WHERE userid={$opponent->userid}"

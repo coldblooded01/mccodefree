@@ -28,6 +28,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/event.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
@@ -35,36 +36,29 @@ $h->startheaders();
 include "mysql.php";
 global $c;
 
-$user->exp_needed = ($user->level + 1) ^ 3;
-check_level();
+$user->check_level();
 $h->userdata($user);
 $h->menuarea();
 $_GET['delete'] = abs((int) $_GET['delete']);
 if ($_GET['delete'])
 {
-    mysqli_query(
-        $c,
-        "DELETE FROM events WHERE evID={$_GET['delete']} AND evUSER=$userid"
-    );
+    Event::delete_event($_GET['delete'], $userid);
     print "<b>Event Deleted</b><br />";
 }
 print "<b>Latest 10 events</b><br />";
-$q = mysqli_query(
-    $c,
-    "SELECT * FROM events WHERE evUSER=$userid ORDER BY evTIME DESC LIMIT 10;"
-);
+$events = Event::get_events_for_user($userid);
 print
         "<table width=75% border=2> <tr style='background:gray;'> <th>Time</th> <th>Event</th><th>Links</th> </tr>";
-while ($r = mysqli_fetch_array($q))
+foreach ($events as $event)
 {
-    print "<tr><td>" . date('F j Y, g:i:s a', $r['evTIME']);
-    if (!$r['evREAD'])
+    print "<tr><td>" . date('F j Y, g:i:s a', $event->time);
+    if ($event->is_new())
     {
         print "<br /><b>New!</b>";
     }
     print
-            "</td><td>{$r['evTEXT']}</td><td><a href='events.php?delete={$r['evID']}'>Delete</a></td></tr>";
+            "</td><td>{$event->text}</td><td><a href='events.php?delete={$event->id}'>Delete</a></td></tr>";
 }
 print "</table>";
-mysqli_query($c, "UPDATE events SET evREAD=1 WHERE evUSER=$userid");
+Event::mark_all_as_read($userid);
 $h->endpage();

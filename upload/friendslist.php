@@ -37,7 +37,7 @@ global $c;
 require_once(dirname(__FILE__) . "/models/user.php");
 $user = User::get($userid);
 
-check_level();
+$user->check_level();
 $h->userdata($user);
 $h->menuarea();
 if (!$user->is_donator())

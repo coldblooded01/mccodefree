@@ -19,6 +19,8 @@ along with this program; if not, write to the Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+require_once(dirname(__FILE__) . "/models/event.php");
+
 if (strpos($_SERVER['PHP_SELF'], "mainmenu.php") !== false)
 {
     exit;
@@ -31,14 +33,10 @@ if (!$user->is_in_hospital())
 <a href='inventory.php'>Items</a><br />
 <a href='explore.php'>Explore</a><br />
 <a href='events.php'>";
-    $d = mysqli_query(
-        $c,
-        "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$user->userid} AND evREAD=0"
-    ) or die(mysqli_error($c));
-    $r = mysqli_fetch_array($d);
-    if ($r['cnt'] > 0)
+    $cnt_new_ev = Event::count_new_events($user->userid);
+    if ($cnt_new_ev > 0)
     {
-        print "<b>Events ({$r['cnt']})</b>";
+        print "<b>Events ({$cnt_new_ev})</b>";
     }
     else
     {

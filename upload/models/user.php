@@ -15,7 +15,6 @@ class User {
         $this->userpass = $userpass;
         $this->level = $level;
         $this->exp = $exp;
-        $this->exp_needed = $exp_needed;
         $this->money = $money;
         $this->crystals = $crystals;
         $this->last_time_online = $laston;
@@ -139,12 +138,12 @@ class User {
     }
 
     public function has_energy_to_attack() {
-        return $this->energy  >= $this->max_energy / 2;
+        return $this->energy > ($this->max_energy / 2);
     }
 
     public function get_house() {
         global $c;
-        $query = "SELECT * FROM houses WHERE hWILL = $this->max_will";
+        $query = "SELECT * FROM houses WHERE hWILL = {$this->max_will}";
         $q = mysqli_query(
             $c,
             $query
@@ -162,6 +161,10 @@ class User {
             $c,
             $query
         ) or die(mysqli_error($c));
+    }
+
+    public function get_exp_needed() {
+        return ($this->level + 1) ^ 3;
     }
 
     public function damage($damage) {
@@ -182,7 +185,7 @@ class User {
     public function spend_attack_energy() {
         global $c;
         $this->energy -= $this->max_energy / 2;
-        $me = $user->energy;
+        $me = $this->max_energy / 2;
         $query = "UPDATE users SET energy=energy-{$me} WHERE userid=$this->userid";
         $q = mysqli_query(
             $c,
@@ -199,4 +202,26 @@ class User {
             $query
         ) or die(mysqli_error($c));
     }
+
+    public function check_level()
+    {
+        global $c;
+        if ($this->exp >= $this->get_exp_needed())
+        {
+            $expu = $this->exp - $this->get_exp_needed();
+            $this->level += 1;
+            $this->exp = $expu;
+            $this->energy += 2;
+            $this->brave += 2;
+            $this->max_energy += 2;
+            $this->max_brave += 2;
+            $this->hp += 50;
+            $this->max_hp += 50;
+            mysqli_query(
+                $c,
+                "UPDATE users SET level=level+1,exp=$expu,energy=energy+2,brave=brave+2,maxenergy=maxenergy+2,maxbrave=maxbrave+2,
+                    hp=hp+50,maxhp=maxhp+50 where userid=$this->userid"
+            );
+        }
+}
 }

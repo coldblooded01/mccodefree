@@ -35,7 +35,7 @@ $h->startheaders();
 include "mysql.php";
 global $c;
 
-check_level();
+$user->check_level();
 $h->userdata($user, 0);
 $h->menuarea();
 
@@ -59,7 +59,7 @@ if (User::exists($_GET['ID']))
         print "You beat {$opponent->username} and stole \$$stole";
         $qe = $opponent->level ^ 3;
         $expgain = rand($qe / 4, $qe / 2);
-        $expperc = (int) ($expgain / $user->exp_needed * 100);
+        $expperc = (int) ($expgain / $user->get_exp_needed() * 100);
         print " and gained $expperc% EXP!";
         mysqli_query(
             $c,

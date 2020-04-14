@@ -38,7 +38,7 @@ $h->startheaders();
 
 global $c;
 
-check_level();
+$user->check_level();
 $h->userdata($user);
 $h->menuarea();
 if ($user->user_level != 2 && $user->user_level != 3 && $user->user_level != 5)

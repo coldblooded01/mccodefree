@@ -36,7 +36,7 @@ include "mysql.php";
 require_once "models/setting.php";
 $PAYPAL = Setting::get('PAYPAL')->value;
 global $c;
-check_level();
+$user->check_level();
 $h->userdata($user);
 $h->menuarea();
 $game_url = determine_game_urlbase();
