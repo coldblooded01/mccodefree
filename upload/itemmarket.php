@@ -27,22 +27,15 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
-
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 print "<h3>Item Market</h3>";
 switch ($_GET['action'])
@@ -70,7 +63,7 @@ default:
 
 function imarket_index()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print
             "Viewing all listings...
 <table width=75%> <tr style='background:gray'> <th>Adder</th> <th>Item</th> <th>Price</th> <th>Links</th> </tr>";
@@ -107,7 +100,7 @@ function imarket_index()
 
 function item_remove()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     $q =
             mysqli_query(
                     "SELECT im.*,i.* FROM itemmarket im LEFT JOIN items i ON im.imITEM=i.itmid WHERE imID={$_GET['ID']} AND imADDER=$userid",
@@ -131,7 +124,7 @@ function item_remove()
         $c,
         "INSERT INTO imremovelogs VALUES(NULL, {$r['imITEM']}, {$r['imADDER']}, $userid, {$r['imID']}, $i, "
             . time()
-            . ", '{$ir['username']} removed a {$r['itmname']} from the item market.')"
+            . ", '{$user->username} removed a {$r['itmname']} from the item market.')"
     );
     print
             "Item removed from market!<br />
@@ -140,7 +133,7 @@ function item_remove()
 
 function item_buy()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     $q = mysqli_query(
         $c,
         "SELECT * FROM itemmarket im LEFT JOIN items i ON i.itmid=im.imITEM WHERE imID={$_GET['ID']}"
@@ -154,7 +147,7 @@ function item_buy()
         exit;
     }
     $r = mysqli_fetch_array($q);
-    if ($r['imPRICE'] > $ir['money'])
+    if ($r['imPRICE'] > $user->money)
     {
         print
                 "Error, you do not have the funds to buy this item.<br />
@@ -180,13 +173,13 @@ function item_buy()
         "UPDATE users SET money=money+{$r['imPRICE']} where userid={$r['imADDER']}"
     );
     event_add($r['imADDER'],
-            "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> bought your {$r['itmname']} item from the market for \$"
+            "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['itmname']} item from the market for \$"
                     . number_format($r['imPRICE']) . ".", $c);
     mysqli_query(
         $c,
         "INSERT INTO imbuylogs VALUES(NULL, {$r['imITEM']}, {$r['imADDER']}, $userid,  {$r['imPRICE']}, {$r['imID']}, $i, "
             . time()
-            . ", '{$ir['username']} bought a {$r['itmname']} from the item market for \${$r['imPRICE']} from user ID {$r['imADDER']}')"
+            . ", '{$user->username} bought a {$r['itmname']} from the item market for \${$r['imPRICE']} from user ID {$r['imADDER']}')"
     );
     print
             "You bought the {$r['itmname']} from the market for \$"
@@ -196,7 +189,7 @@ function item_buy()
 
 function item_gift1()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     $q = mysqli_query(
         $c,
         "SELECT * FROM itemmarket im LEFT JOIN items i ON i.itmid=im.imITEM WHERE imID={$_GET['ID']}"
@@ -210,7 +203,7 @@ function item_gift1()
         exit;
     }
     $r = mysqli_fetch_array($q);
-    if ($r['imPRICE'] > $ir['money'])
+    if ($r['imPRICE'] > $user->money)
     {
         print
                 "Error, you do not have the funds to buy this item.<br />
@@ -231,7 +224,7 @@ User to give gift to: " . user_dropdown($c, 'user')
 
 function item_gift2()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     $q = mysqli_query(
         $c,
         "SELECT * FROM itemmarket im LEFT JOIN items i ON i.itmid=im.imITEM WHERE imID={$_POST['ID']}"
@@ -245,7 +238,7 @@ function item_gift2()
         exit;
     }
     $r = mysqli_fetch_array($q);
-    if ($r['imPRICE'] > $ir['money'])
+    if ($r['imPRICE'] > $user->money)
     {
         print
                 "Error, you do not have the funds to buy this item.<br />
@@ -268,13 +261,13 @@ function item_gift2()
         "UPDATE users SET money=money+{$r['imPRICE']} where userid={$r['imADDER']}"
     );
     event_add($r['imADDER'],
-        "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> bought your {$r['itmname']} item from the market for \$"
+        "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['itmname']} item from the market for \$"
             . number_format($r['imPRICE']) . ".",
         $c
     );
 
     event_add($_POST['user'],
-        "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> bought you a {$r['itmname']} from the item market as a gift.",
+        "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought you a {$r['itmname']} from the item market as a gift.",
             $c);
     $u = mysqli_query($c, "SELECT * FROM users WHERE userid={$_POST['user']}");
     $uname = mysqli_data_seek($u, 0, 1);
@@ -282,7 +275,7 @@ function item_gift2()
         $c,
         "INSERT INTO imbuylogs VALUES(NULL, {$r['imITEM']}, {$r['imADDER']}, $userid,  {$r['imPRICE']}, {$r['imID']}, $i, "
             . time()
-            . ", '{$ir['username']} bought a {$r['itmname']} from the item market for \${$r['imPRICE']} from user ID {$r['imADDER']} as a gift for $uname [{$_POST['user']}]')"
+            . ", '{$user->username} bought a {$r['itmname']} from the item market for \${$r['imPRICE']} from user ID {$r['imADDER']} as a gift for $uname [{$_POST['user']}]')"
     );
     print
             "You bought the {$r['itmname']} from the market for \$"

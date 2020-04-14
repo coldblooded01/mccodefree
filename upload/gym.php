@@ -27,21 +27,15 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
 $out = "";
 $_GET['times'] = abs((int) $_GET['times']);
 if (isset($_GET['train']))
@@ -49,26 +43,26 @@ if (isset($_GET['train']))
     if ($_GET['train'] != "strength" && $_GET['train'] != "agility"
             && $_GET['train'] != "guard" && $_GET['train'] != "labour")
     {
-        $h->userdata($ir, $lv, $fm, $cm);
+        $h->userdata($user);
         $h->menuarea();
         die("Abusers aren't allowed.");
     }
     $tgain = 0;
-    for ($i = 1; $i <= $_GET['times'] && $ir['energy'] > 0; $i++)
+    for ($i = 1; $i <= $_GET['times'] && $user->energy > 0; $i++)
     {
-        if ($ir['energy'] > 0)
+        if ($user->energy > 0)
         {
             $gain =
                     rand(1, 3) / rand(800, 1000) * rand(800, 1000)
-                            * (($ir['will'] + 20) / 150);
+                            * (($user->will + 20) / 150);
             $tgain += $gain;
             if ($_GET['train'] == "IQ")
             {
                 $gain /= 100;
             }
-            $ir[$_GET['train']] += $gain;
+            $user->aliases[$_GET['train']] += $gain;
             $egain = $gain / 10;
-            $ts = $ir[$_GET['train']];
+            $ts = $user->aliases[$_GET['train']];
             $st = $_GET['train'];
 
             mysqli_query(
@@ -80,44 +74,44 @@ if (isset($_GET['train']))
                         . mysqli_error($c)
                 );
             $wu = (int) (rand(1, 3));
-            if ($ir['will'] >= $wu) {
-                $ir['will'] -= $wu;
+            if ($user->will >= $wu) {
+                $user->will -= $wu;
                 mysqli_query(
                     $c,
                     "UPDATE users SET energy=energy-1,exp=exp+$egain,will=will-$wu WHERE userid=$userid"
                 );
             } else {
-                $ir['will'] = 0;
+                $user->will = 0;
                 mysqli_query(
                     $c,
                     "UPDATE users SET energy=energy-1,exp=exp+$egain,will=0 WHERE userid=$userid"
                 );
             }
-            $ir['energy'] -= 1;
-            $ir['exp'] += $egain;
+            $user->energy -= 1;
+            $user->exp += $egain;
 
         } else {
             $out = "You do not have enough energy to train.";
         }
     }
-    $stat = $ir[$st];
+    $stat = $user->aliases[$st];
     $i--;
     $out =
             "You begin training your $st.<br />
 You have gained $tgain $st by training it $i times.<br />
-You now have $stat $st and {$ir['energy']} energy left.<br /><br />";
+You now have $stat $st and {$user->energy} energy left.<br /><br />";
 
 }
 else
 {
     $out = "<h3>Gym: Main Lobby<h3>";
 }
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 print $out;
 print
         "Enter the amount of times you wish to train and choose the stat to train.<br />
-You can train up to {$ir['energy']} times.<br /><form action='gym.php' method='get'>
+You can train up to {$user->energy} times.<br /><form action='gym.php' method='get'>
 <input type='text' name='times' value='1' /><select type='dropdown' name='train'>
 <option value='strength'>Strength</option>
 <option value='agility'>Agility</option>

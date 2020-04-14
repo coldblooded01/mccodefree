@@ -27,42 +27,35 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm, 0);
+$h->userdata($user, 0);
 $h->menuarea();
 
 $_GET['ID'] == abs((int) $_GET['ID']);
 $_SESSION['attacking'] = 0;
-$od = mysqli_query($c, "SELECT * FROM users WHERE userid={$_GET['ID']}");
-if (mysqli_num_rows($od))
+if (User::exists($_GET['ID']))
 {
     $_SESSION['attacklost'] = 0;
-    $r = mysqli_fetch_array($od);
-    print "You lost to {$r['username']}";
-    $expgain = abs(($ir['level'] - $r['level']) ^ 3);
-    $expgainp = $expgain / $ir['exp_needed'] * 100;
+    $opponent = User::get($_GET['ID']);
+    print "You lost to {$opponent->username}";
+    $expgain = abs(($user->level - $opponent->level) ^ 3);
+    $expgainp = $expgain / $user->exp_needed * 100;
     print " and lost $expgainp% EXP!";
     mysqli_query(
         $c,
-        "UPDATE users SET exp=exp-$expgain,hospital=40+(rand()*20),hospreason='Lost to <a href=\'viewuser.php?u={$r['userid']}\'>{$r['username']}</a>' WHERE userid=$userid"
+        "UPDATE users SET exp=exp-$expgain,hospital=40+(rand()*20),hospreason='Lost to <a href=\'viewuser.php?u={$opponent->userid}\'>{$opponent->username}</a>' WHERE userid=$userid"
     );
     mysqli_query($c, "UPDATE users SET exp=0 WHERE exp<0");
-    event_add($r['userid'],
-            "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> attacked you and lost.",
+    event_add($opponent->userid,
+            "<a href='viewuser.php?u=$userid'>{$user->username}</a> attacked you and lost.",
             $c);
     $atklog = mysqli_escape_string($c, $_SESSION['attacklog']);
     mysqli_query(

@@ -27,22 +27,16 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 $_GET['shop'] = abs((int) $_GET['shop']);
 if (!$_GET['shop'])
@@ -50,7 +44,7 @@ if (!$_GET['shop'])
     print "You begin looking through town and you see a few shops.<br />";
     $q = mysqli_query(
         $c,
-        "SELECT * FROM shops WHERE shopLOCATION={$ir['location']}"
+        "SELECT * FROM shops WHERE shopLOCATION={$user->location}"
     );
     print
             "<table width=85%><tr style='background: gray;'><th>Shop</th><th>Description</th></tr>";
@@ -67,7 +61,7 @@ else
     if (mysqli_num_rows($sd))
     {
         $shopdata = mysqli_fetch_array($sd);
-        if ($shopdata['shopLOCATION'] == $ir['location'])
+        if ($shopdata['shopLOCATION'] == $user->location)
         {
             print
                     "Browsing items at <b>{$shopdata['shopNAME']}...</b><br />

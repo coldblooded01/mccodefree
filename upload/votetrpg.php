@@ -27,21 +27,14 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
-//$h->startheaders();
+$h = new Header();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
 $q = mysqli_query(
     $c,
     "SELECT * FROM votes WHERE userid=$userid AND list='trpg'"
@@ -49,15 +42,15 @@ $q = mysqli_query(
 if (mysqli_num_rows($q))
 {
     $h->startheaders();
-    $h->userdata($ir, $lv, $fm, $cm);
+    $h->userdata($user);
     $h->menuarea();
     print "You have already voted at TOPRPG today!";
     $h->endpage();
 }
 else
 {
-    mysqli_query($c, "INSERT INTO votes values ($userid,'trpg')");
-    mysqli_query($c, "UPDATE users SET money=money+300 WHERE userid=$userid");
-    header("Location:http://www.toprpgames.com/vote.php?idno=757");
+    // mysqli_query($c, "INSERT INTO votes values ($userid,'trpg')");
+    // mysqli_query($c, "UPDATE users SET money=money+300 WHERE userid=$userid");
+    // // header("Location:http://www.toprpgames.com/vote.php?idno=757");
     exit;
 }

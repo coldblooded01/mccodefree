@@ -27,30 +27,23 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
-
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
-if ($ir['mailban'])
+if ($user->mailban)
 {
     die(
             "<font color=red><h3>! ERROR</h3>
-You have been mail banned for {$ir['mailban']} days.<br />
+You have been mail banned for {$user->mailban} days.<br />
 <br />
-<b>Reason: {$ir['mb_reason']}</font></b>");
+<b>Reason: {$user->mb_reason}</font></b>");
 }
 $_GET['ID'] = abs((int) $_GET['ID']);
 print 
@@ -96,7 +89,7 @@ default:
 
 function mail_inbox()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print 
             "Only the last 25 messages sent to you are visible.<br />
 <table width=75% border=2><tr style='background:gray'><th>From</th><th>Subject/Message</th></tr>";
@@ -129,7 +122,7 @@ function mail_inbox()
 
 function mail_outbox()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print 
             "Only the last 25 messages you have sent are visible.<br />
 <table width=75% border=2><tr style='background:gray'><th>To</th><th>Subject/Message</th></tr>";
@@ -148,7 +141,7 @@ function mail_outbox()
 
 function mail_compose()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print 
             "<form action='mailbox.php?action=send' method='post'>
 <table width=75% border=2> <tr>
@@ -176,7 +169,7 @@ function mail_compose()
 
 function mail_send()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     $subj = mysqli_real_escape_string(
         $c,
         str_replace(
@@ -209,7 +202,7 @@ function mail_send()
 
 function mail_delete()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     mysqli_query(
         $c,
         "DELETE FROM mail WHERE mail_id={$_GET['ID']} AND mail_to=$userid"
@@ -220,7 +213,7 @@ function mail_delete()
 
 function mail_delall()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print 
             "This will delete all the messages in your inbox.<br />
 There is <b>NO</b> undo, so be sure.<br />
@@ -230,7 +223,7 @@ There is <b>NO</b> undo, so be sure.<br />
 
 function mail_delall2()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     mysqli_query($c, "DELETE FROM mail WHERE mail_to='$userid'");
     print 
             "All " . mysqli_affected_rows($c)
@@ -240,7 +233,7 @@ function mail_delall2()
 
 function mail_archive()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print 
             "This tool will download an archive of all your messages.<br />
 <a href='dlarchive.php?a=inbox'>&gt; Download Inbox</a><br />

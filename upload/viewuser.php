@@ -27,22 +27,16 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 $_GET['u'] = abs((int) $_GET['u']);
 if (!$_GET['u']) {
@@ -179,8 +173,8 @@ Health: {$r['hp']}/{$r['maxhp']}<br />";
             print 
                     "<br /><b><font color=red>In hospital for {$r['hospital']} minutes.<br />{$r['hospreason']}</font></b>";
         }
-        if ($ir['user_level'] == 2 || $ir['user_level'] == 3
-                || $ir['user_level'] == 5)
+        if ($user->user_level == 2 || $user->user_level == 3
+                || $user->user_level == 5)
         {
             print "<br />IP Address: {$r['lastip']}";
             $e_staffnotes =
@@ -196,15 +190,15 @@ Staff Notes: <br />
                 "</td><td>[<a href='mailbox.php?action=compose&ID={$r['userid']}'>Send Mail</a>]<br /><br />
 [<a href='sendcash.php?ID={$r['userid']}'>Send Cash</a>]<br /><br />
 [<a href='attack.php?ID={$r['userid']}'>Attack</a>]";
-        if ($ir['user_level'] == 2 || $ir['user_level'] == 3
-                || $ir['user_level'] == 5)
+        if ($user->user_level == 2 || $user->user_level == 3
+                || $user->user_level == 5)
         {
             print 
                     "<br /><br />
 [<a href='jailuser.php?userid={$r['userid']}'>Jail</a>]<br /><br />
 [<a href='mailban.php?userid={$r['userid']}'>MailBan</a>]";
         }
-        if ($ir['donatordays'] > 0)
+        if ($user->donatordays > 0)
         {
             print 
                     "<br /><br />

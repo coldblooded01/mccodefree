@@ -27,24 +27,20 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
-if ($ir['donatordays'] == 0)
+if (!$user->is_donator())
 {
     die("This feature is for donators only.");
 }
@@ -70,7 +66,7 @@ default:
 
 function friends_list()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     print
             "<a href='friendslist.php?action=add'>&gt; Add a Friend</a><br />
 These are the people on your friends list. ";
@@ -129,7 +125,7 @@ Most liked: [";
 
 function add_friend()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     $_POST['ID'] = abs((int) $_POST['ID']);
     $_POST['comment'] = mysqli_real_escape_string(
         $c,
@@ -194,7 +190,7 @@ Comment (optional): <br />
 
 function remove_friend()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     mysqli_query(
         $c,
         "DELETE FROM friendslist WHERE fl_ID={$_GET['f']} AND fl_ADDER=$userid"
@@ -206,7 +202,7 @@ function remove_friend()
 
 function change_comment()
 {
-    global $ir, $c, $userid;
+    global $c, $userid;
     $_POST['f'] = abs((int) $_POST['f']);
     $_POST['comment'] = mysqli_real_escape_string(
         $c,

@@ -27,22 +27,16 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 $_GET['to'] = abs((int) $_GET['to']);
 if (!$_GET['to'])
@@ -52,7 +46,7 @@ if (!$_GET['to'])
 Where would you like to travel today?<br />";
     $q = mysqli_query(
         $c,
-        "SELECT * FROM cities WHERE cityid != {$ir['location']} AND cityminlevel <= {$ir['level']}"
+        "SELECT * FROM cities WHERE cityid != {$user->location} AND cityminlevel <= {$user->level}"
     );
     print
             "<table width=75%><tr style='background:gray'><th>Name</th><th>Description</th><th>Min Level</th><th>&nbsp;</th></tr>";
@@ -65,7 +59,7 @@ Where would you like to travel today?<br />";
 }
 else
 {
-    if ($ir['money'] < 1000)
+    if ($user->money < 1000)
     {
         print "You don't have enough money.";
     }
@@ -77,7 +71,7 @@ else
     {
         $q = mysqli_query(
             $c,
-            "SELECT * FROM cities WHERE cityid = {$_GET['to']} AND cityminlevel <= {$ir['level']}"
+            "SELECT * FROM cities WHERE cityid = {$_GET['to']} AND cityminlevel <= {$user->level}"
         );
         if (!mysqli_num_rows($q))
         {

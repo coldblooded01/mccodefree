@@ -27,22 +27,17 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
+
 require "header.php";
-$h = new headers;
+$h = new Header;
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm, 0);
+$h->userdata($user, 0);
 $_GET['ID'] == (int) $_GET['ID'];
 if (!$_GET['ID'])
 {
@@ -56,13 +51,8 @@ else if ($_GET['ID'] == $userid)
     $h->endpage();
     exit;
 }
-//get player data
-$youdata = $ir;
-$q = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid={$_GET['ID']}"
-);
-if (mysqli_num_rows($q) == 0)
+
+if (!User::exists($_GET['ID']))
 {
     print
             "<b><font color='red'>This player does not exist.</font></b><br />
@@ -71,8 +61,8 @@ if (mysqli_num_rows($q) == 0)
     $_SESSION['attacking'] = 0;
     exit;
 }
-$odata = mysqli_fetch_array($q);
-if ($odata['hp'] == 1)
+$opponent = User::get($_GET['ID']);
+if ($opponent->is_unconscious())
 {
     print
             "<b><font color='red'>This player is unconscious.</font></b><br />
@@ -81,7 +71,7 @@ if ($odata['hp'] == 1)
     $_SESSION['attacking'] = 0;
     exit;
 }
-else if ($odata['hospital'] and $ir['hospital'] == 0)
+else if ($opponent->is_in_hospital() and !$user->is_in_hospital())
 {
     print
             "<font color='red'><b>This player is in hospital.</b><font><br />
@@ -90,7 +80,7 @@ else if ($odata['hospital'] and $ir['hospital'] == 0)
     $_SESSION['attacking'] = 0;
     exit;
 }
-else if ($ir['hospital'])
+else if ($user->is_in_hospital())
 {
     print
             "<b><font color='red'>You can not attack while in hospital.</font></b><br />
@@ -104,13 +94,9 @@ if ($_GET['wepid'])
 {
     if ($_SESSION['attacking'] == 0)
     {
-        if ($youdata['energy'] >= $youdata['maxenergy'] / 2)
+        if ($user->has_energy_to_attack())
         {
-
-            $youdata['energy'] -= $youdata['maxenergy'] / 2;
-            $me = $youdata['maxenergy'] / 2;
-            mysqli_query(
-                    $c, "UPDATE users SET energy=energy- {$me} WHERE userid=$userid");
+            $user->spend_attack_energy();
             $_SESSION['attacklog'] = "";
         }
         else
@@ -135,7 +121,7 @@ if ($_GET['wepid'])
         print
                 "<font color='red'>Stop trying to abuse a game bug. You can lose all your EXP for that.</font></b><br />
 <a href='index.php'>&gt; Home</a>";
-        mysqli_query($c, "UPDATE users SET exp=0 where userid=$userid");
+        $user->exp_penalty();
         die("");
     }
     $qo = mysqli_query(
@@ -144,9 +130,9 @@ if ($_GET['wepid'])
     );
     $r1 = mysqli_fetch_array($qo);
     $mydamage =
-            (int) (($r1['damage'] * $youdata['strength'] / $odata['guard'])
+            (int) (($r1['damage'] * $user->strength / $opponent->guard)
                     * (rand(8000, 12000) / 10000));
-    $hitratio = min(50 * $ir['agility'] / $odata['agility'], 95);
+    $hitratio = min(50 * $user->agility / $opponent->agility, 95);
     if (rand(1, 100) <= $hitratio)
     {
         $q3 = mysqli_query(
@@ -155,39 +141,30 @@ if ($_GET['wepid'])
         );
         if (mysqli_num_rows($q3))
         {
-            $mydamage -= mysqli_data_seek($q3, 0, 0);
+            $mydamage -= mysqli_data_seek($q3, 0);
         }
-        if ($mydamage < 1)
+        if ($opponent->hp - $mydamage == 1)
         {
-            $mydamage = 1;
-        }
-        $odata['hp'] -= $mydamage;
-        if ($odata['hp'] == 1)
-        {
-            $odata['hp'] = 0;
             $mydamage += 1;
         }
-        mysqli_query(
-            $c,
-            "UPDATE users SET hp=hp-$mydamage WHERE userid={$_GET['ID']}"
-        );
+        $opponent->damage($mydamage);
+        
         print
-                "<font color=red>{$_GET['nextstep']}. Using your {$r1['itmname']} you hit {$odata['username']} doing $mydamage damage ({$odata['hp']})</font><br />\n";
+                "<font color=red>{$_GET['nextstep']}. Using your {$r1['itmname']} you hit {$opponent->username} doing $mydamage damage ({$opponent->hp})</font><br />\n";
         $_SESSION['attacklog'] .=
-                "<font color=red>{$_GET['nextstep']}. Using his {$r1['itmname']} {$ir['username']} hit {$odata['username']} doing $mydamage damage ({$odata['hp']})</font><br />\n";
+                "<font color=red>{$_GET['nextstep']}. Using his {$r1['itmname']} {$user->username} hit {$opponent->username} doing $mydamage damage ({$opponent->hp})</font><br />\n";
     }
     else
     {
         print
-                "<font color=red>{$_GET['nextstep']}. You tried to hit {$odata['username']} but missed ({$odata['hp']})</font><br />\n";
+                "<font color=red>{$_GET['nextstep']}. You tried to hit {$opponent->username} but missed ({$opponent->hp})</font><br />\n";
         $_SESSION['attacklog'] .=
-                "<font color=red>{$_GET['nextstep']}. {$ir['username']} tried to hit {$odata['username']} but missed ({$odata['hp']})</font><br />\n";
+                "<font color=red>{$_GET['nextstep']}. {$user->username} tried to hit {$opponent->username} but missed ({$opponent->hp})</font><br />\n";
     }
-    if ($odata['hp'] <= 0)
+    if ($opponent->hp <= 0)
     {
-        $odata['hp'] = 0;
         $_SESSION['attackwon'] = $_GET['ID'];
-        mysqli_query($c, "UPDATE users SET hp=0 WHERE userid={$_GET['ID']}");
+        $opponent->kill();
         print
                 "<form action='attackleave.php?ID={$_GET['ID']}' method='post'><input type='submit' value='Leave Them' /></form>
 <form action='attackmug.php?ID={$_GET['ID']}' method='post'><input type='submit' value='Mug Them'></form>
@@ -204,7 +181,7 @@ if ($_GET['wepid'])
         {
             $wep = "Fists";
             $dam =
-                    (int) ((((int) ($odata['strength'] / 100)) + 1)
+                    (int) ((((int) ($opponent->strength / 100)) + 1)
                             * (rand(8000, 12000) / 10000));
         }
         else
@@ -218,11 +195,11 @@ if ($_GET['wepid'])
             $weptouse = rand(0, $cnt - 1);
             $wep = $enweps[$weptouse]['itmname'];
             $dam =
-                    (int) (($enweps[$weptouse]['damage'] * $odata['strength']
-                            / $youdata['guard']) * (rand(8000, 12000) / 10000));
+                    (int) (($enweps[$weptouse]['damage'] * $opponent->strength
+                            / $user->guard) * (rand(8000, 12000) / 10000));
         }
-        $hitratio = min(50 * $odata['agility'] / $ir['agility'], 95);
-        if ($odata['userid'] == 1)
+        $hitratio = min(50 * $opponent->agility / $user->agility, 95);
+        if ($opponent->userid == 1)
         {
             $hitratio = 100;
         }
@@ -236,48 +213,42 @@ if ($_GET['wepid'])
             {
                 $dam -= mysqli_data_seek($q3, 0, 0);
             }
-            if ($dam < 1)
-            {
-                $dam = 1;
-            }
-            $youdata['hp'] -= $dam;
-            mysqli_query($c, "UPDATE users SET hp=hp-$dam WHERE userid=$userid");
+            $user->damage($dam);
             $ns = $_GET['nextstep'] + 1;
             print
-                    "<font color=blue>{$ns}. Using his $wep {$odata['username']} hit you doing $dam damage ({$youdata['hp']})</font><br />\n";
+                    "<font color=blue>{$ns}. Using his $wep {$opponent->username} hit you doing $dam damage ({$user->hp})</font><br />\n";
             $_SESSION['attacklog'] .=
-                    "<font color=blue>{$ns}. Using his $wep {$odata['username']} hit {$ir['username']} doing $dam damage ({$youdata['hp']})</font><br />\n";
+                    "<font color=blue>{$ns}. Using his $wep {$opponent->username} hit {$user->username} doing $dam damage ({$user->hp})</font><br />\n";
         }
         else
         {
             $ns = $_GET['nextstep'] + 1;
             print
-                    "<font color=blue>{$ns}. {$odata['username']} tried to hit you but missed ({$youdata['hp']})</font><br />\n";
+                    "<font color=blue>{$ns}. {$opponent->username} tried to hit you but missed ({$user->hp})</font><br />\n";
             $_SESSION['attacklog'] .=
-                    "<font color=blue>{$ns}. {$odata['username']} tried to hit {$ir['username']} but missed ({$youdata['hp']})</font><br />\n";
+                    "<font color=blue>{$ns}. {$opponent->username} tried to hit {$user->username} but missed ({$user->hp})</font><br />\n";
         }
-        if ($youdata['hp'] <= 0)
+        if ($user->hp <= 0)
         {
-            $youdata['hp'] = 0;
-            mysqli_query($c, "UPDATE users SET hp=0 WHERE userid=$userid");
+            $user->kill();
             print
                     "<form action='attacklost.php?ID={$_GET['ID']}' method='post'><input type='submit' value='Continue' />";
         }
     }
 }
-else if ($odata['hp'] < $odata['maxhp'] / 2)
+else if ($opponent->hp < $opponent->maxhp / 2)
 {
     print "You can only attack those who have at least 1/2 their max health";
     $h->endpage();
     exit;
 }
-else if ($youdata['energy'] < $youdata['maxenergy'] / 2)
+else if ($user->has_energy_to_attack())
 {
     print "You can only attack someone when you have 50% energy";
     $h->endpage();
     exit;
 }
-else if ($youdata['location'] != $odata['location'])
+else if ($user->location != $opponent->location)
 {
     print "You can only attack someone in the same location!";
     $h->endpage();
@@ -287,14 +258,14 @@ else
 {
 }
 print "</td></tr>";
-if ($youdata['hp'] <= 0 || $odata['hp'] <= 0)
+if ($user->hp <= 0 || $opponent->hp <= 0)
 {
     print "</table>";
 }
 else
 {
     print
-            "<tr><td>Your Health: {$youdata['hp']}/{$youdata['maxhp']}</td><td>Opponents Health: {$odata['hp']}/{$odata['maxhp']}</td></tr>";
+            "<tr><td>Your Health: {$user->hp}/{$user->max_hp}</td><td>Opponents Health: {$opponent->hp}/{$opponent->maxhp}</td></tr>";
     $mw = mysqli_query(
         $c,
         "SELECT iv.*,i.* FROM inventory iv LEFT JOIN items i ON iv.inv_itemid=i.itmid WHERE iv.inv_userid=$userid AND (i.itmtype = 3 || i.itmtype = 4)"

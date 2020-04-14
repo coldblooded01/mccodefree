@@ -27,30 +27,24 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 print "<h3>Schooling</h3>";
-if ($ir['course'] > 0)
+if ($user->course > 0)
 {
-    $cd = mysqli_query($c, "SELECT * FROM courses WHERE crID={$ir['course']}");
+    $cd = mysqli_query($c, "SELECT * FROM courses WHERE crID={$user->course}");
     $coud = mysqli_fetch_array($cd);
     print
-            "You are currently doing the {$coud['crNAME']}, you have {$ir['cdays']} days remaining.";
+            "You are currently doing the {$coud['crNAME']}, you have {$user->cdays} days remaining.";
 }
 else
 {
@@ -73,7 +67,7 @@ else
                 $c,
                 "SELECT * FROM coursesdone WHERE userid=$userid AND courseid={$_GET['cstart']}"
             );
-            if ($ir['money'] < $coud['crCOST'])
+            if ($user->money < $coud['crCOST'])
             {
                 print "You don't have enough money to start this course.";
                 $h->endpage();

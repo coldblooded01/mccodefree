@@ -27,24 +27,18 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header());
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
-if ($ir['donatordays'] == 0)
+if (!$user->is_donator())
 {
     die("This feature is for donators only.");
 }
@@ -70,11 +64,11 @@ default:
 
 function black_list()
 {
-    global $ir, $c, $userid;
+    global $user, $c;
     print 
             "<a href='blacklist.php?action=add'>&gt; Add an Enemy</a><br />
 These are the people on your black list. ";
-    $q_y = mysqli_query($c, "SELECT * FROM blacklist WHERE bl_ADDED=$userid");
+    $q_y = mysqli_query($c, "SELECT * FROM blacklist WHERE bl_ADDED=$user->userid");
     print 
             mysqli_num_rows($q_y)
                     . " people have added you to their list.<br />Most hated: [";
@@ -98,7 +92,7 @@ These are the people on your black list. ";
 <table width=90%><tr style='background:gray'> <th>ID</th> <th>Name</th> <th>Mail</th> <th>Attack</th> <th>Remove</th> <th>Comment</th> <th>Change Comment</th> <th>Online?</th></tr>";
     $q = mysqli_query(
         $c,
-        "SELECT bl.*,u.* FROM blacklist bl LEFT JOIN users u ON bl.bl_ADDED=u.userid WHERE bl.bl_ADDER=$userid ORDER BY u.username ASC"
+        "SELECT bl.*,u.* FROM blacklist bl LEFT JOIN users u ON bl.bl_ADDED=u.userid WHERE bl.bl_ADDER=$user->userid ORDER BY u.username ASC"
     );
     while ($r = mysqli_fetch_array($q))
     {
@@ -128,7 +122,7 @@ These are the people on your black list. ";
 
 function add_enemy()
 {
-    global $ir, $c, $userid;
+    global $user, $c;
     $_POST['ID'] = abs((int) $_POST['ID']);
     $_POST['comment'] = mysqli_real_escape_string(
         $c,
@@ -145,7 +139,7 @@ function add_enemy()
     {
         $qc = mysqli_query(
             $c,
-            "SELECT * FROM blacklist WHERE bl_ADDER=$userid AND bl_ADDED={$_POST['ID']}"
+            "SELECT * FROM blacklist WHERE bl_ADDER=$user->userid AND bl_ADDED={$_POST['ID']}"
         );
         $q = mysqli_query(
             $c,
@@ -155,7 +149,7 @@ function add_enemy()
         {
             print "You cannot add the same person twice.";
         }
-        else if ($userid == $_POST['ID'])
+        else if ($user->userid == $_POST['ID'])
         {
             print 
                     "You cannot be so lonely that you have to try and add yourself.";
@@ -168,7 +162,7 @@ function add_enemy()
         {
             mysqli_query(
                 $c,
-                "INSERT INTO blacklist VALUES(NULL, $userid, {$_POST['ID']}, '{$_POST['comment']}')"
+                "INSERT INTO blacklist VALUES(NULL, $user->userid, {$_POST['ID']}, '{$_POST['comment']}')"
             ) or die(mysqli_error($c));
             $r = mysqli_fetch_array($q);
             print 
@@ -193,10 +187,10 @@ Comment (optional): <br />
 
 function remove_enemy()
 {
-    global $ir, $c, $userid;
+    global $user, $c;
     mysqli_query(
         $c,
-        "DELETE FROM blacklist WHERE bl_ID={$_GET['f']} AND bl_ADDER=$userid"
+        "DELETE FROM blacklist WHERE bl_ID={$_GET['f']} AND bl_ADDER=$user->userid"
     );
     print 
             "Black list entry removed!<br />
@@ -205,7 +199,7 @@ function remove_enemy()
 
 function change_comment()
 {
-    global $ir, $c, $userid;
+    global $user, $c;
     $_POST['f'] = abs((int) $_POST['f']);
     $_POST['comment'] = mysqli_real_escape_string(
         $c,    
@@ -221,7 +215,7 @@ function change_comment()
     {
         mysqli_query(
             $c,
-            "UPDATE blacklist SET bl_COMMENT='{$_POST['comment']}' WHERE bl_ID={$_POST['f']} AND bl_ADDER=$userid"
+            "UPDATE blacklist SET bl_COMMENT='{$_POST['comment']}' WHERE bl_ID={$_POST['f']} AND bl_ADDER=$user->userid"
         );
         print 
                 "Comment for enemy changed!<br />
@@ -232,7 +226,7 @@ function change_comment()
         $_GET['f'] = abs((int) $_GET['f']);
         $q = mysqli_query(
             $c,
-            "SELECT * FROM blacklist WHERE bl_ID={$_GET['f']} AND bl_ADDER=$userid"
+            "SELECT * FROM blacklist WHERE bl_ID={$_GET['f']} AND bl_ADDER=$user->userid"
         );
         if (mysqli_num_rows($q))
         {

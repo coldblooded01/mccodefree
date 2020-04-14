@@ -26,13 +26,13 @@ if (strpos($_SERVER['PHP_SELF'], "header.php") !== false)
 
 include "mysql.php";
 require_once(dirname(__FILE__) . "/models/setting.php");
+require_once(dirname(__FILE__) . "/models/user.php");
 
-class headers
+class Header
 {
 
     function startheaders()
     {
-        global $ir;
         $GAME_NAME = Setting::get('GAME_NAME')->value;
         echo <<<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -47,15 +47,18 @@ class headers
 EOF;
     }
 
-    function userdata($ir, $lv, $fm, $cm, $dosessh = 1)
+    function userdata($user, $dosessh = 1)
     {
-        global $c, $userid;
+        global $c;
+        $fm = money_formatter($user->money);
+        $cm = money_formatter($user->crystals, '');
+        $lv = date('F j, Y, g:i a', $user->last_time_online);
         $GAME_NAME = Setting::get('GAME_NAME')->value;
         $ip = mysqli_real_escape_string($c, $_SERVER['REMOTE_ADDR']);
         mysqli_query($c,
                 "UPDATE users SET laston=" . time()
-                        . ",lastip='$ip' WHERE userid=$userid");
-        if (!$ir['email'])
+                        . ",lastip='$ip' WHERE userid=$user->userid");
+        if (!$user->email)
         {
             die(
                     "<body>Your account may be broken. Please mail help@yourgamename.com stating your username and player ID.");
@@ -65,41 +68,41 @@ EOF;
             if ($_SESSION['attacking'] > 0)
             {
                 print "You lost all your EXP for running from the fight.";
-                mysqli_query($c, "UPDATE users SET exp=0 WHERE userid=$userid");
+                mysqli_query($c, "UPDATE users SET exp=0 WHERE userid=$user->userid");
                 $_SESSION['attacking'] = 0;
             }
         }
-        $enperc = (int) ($ir['energy'] / $ir['maxenergy'] * 100);
-        $wiperc = (int) ($ir['will'] / $ir['maxwill'] * 100);
-        $experc = (int) ($ir['exp'] / $ir['exp_needed'] * 100);
-        $brperc = (int) ($ir['brave'] / $ir['maxbrave'] * 100);
-        $hpperc = (int) ($ir['hp'] / $ir['maxhp'] * 100);
+        $enperc = (int) ($user->energy / $user->max_energy * 100);
+        $wiperc = (int) ($user->will / $user->max_will * 100);
+        $experc = (int) ($user->exp / $user->exp_needed * 100);
+        $brperc = (int) ($user->brave / $user->max_brave * 100);
+        $hpperc = (int) ($user->hp / $user->max_hp * 100);
         $enopp = 100 - $enperc;
         $wiopp = 100 - $wiperc;
         $exopp = 100 - $experc;
         $bropp = 100 - $brperc;
         $hpopp = 100 - $hpperc;
         $d = "";
-        $u = $ir['username'];
-        if ($ir['donatordays'])
+        $u = $user->username;
+        if ($user->donatordays)
         {
-            $u = "<font color=red>{$ir['username']}</font>";
+            $u = "<font color=red>{$user->username}</font>";
             $d =
-                    "<img src='donator.gif' alt='Donator: {$ir['donatordays']} Days Left' title='Donator: {$ir['donatordays']} Days Left' />";
+                    "<img src='donator.gif' alt='Donator: {$user->username} Days Left' title='Donator: {$user->donatordays} Days Left' />";
         }
         print
                 "
 <table width=100%><tr><td><img src='logo.png'></td>
-<td><b>Name:</b> {$u} [{$ir['userid']}] $d<br />
+<td><b>Name:</b> {$u} [{$user->userid}] $d<br />
 <b>Money:</b> {$fm}<br />
-<b>Level:</b> {$ir['level']}<br />
-<b>Crystals:</b> {$ir['crystals']}<br />
+<b>Level:</b> {$user->level}<br />
+<b>Crystals:</b> {$user->crystals}<br />
 [<a href='logout.php'>Emergency Logout</a>]</td><td>
 <b>Energy:</b> {$enperc}%<br />
 <img src=bargreen.gif width=$enperc height=10><img src=barred.gif width=$enopp height=10><br />
 <b>Will:</b> {$wiperc}%<br />
 <img src=bargreen.gif width=$wiperc height=10><img src=barred.gif width=$wiopp height=10><br />
-<b>Brave:</b> {$ir['brave']}/{$ir['maxbrave']}<br />
+<b>Brave:</b> {$user->brave}/{$user->max_brave}<br />
 <img src=bargreen.gif width=$brperc height=10><img src=barred.gif width=$bropp height=10><br />
 <b>EXP:</b> {$experc}%<br />
 <img src=bargreen.gif width=$experc height=10><img src=barred.gif width=$exopp height=10><br />
@@ -117,12 +120,12 @@ EOF;
         }
         print "<table width=100%><tr><td width=20% valign='top'>
 ";
-        if ($ir['fedjail'])
+        if ($user->fedjail)
         {
             $q =
                     mysqli_query(
                             $c,
-                            "SELECT * FROM fedjail WHERE fed_userid=$userid"
+                            "SELECT * FROM fedjail WHERE fed_userid=$user->userid"
                     );
             $r = mysqli_fetch_array($q);
             die(
@@ -139,7 +142,7 @@ Reason: {$r['fed_reason']}</font></b></body></html>");
     function menuarea()
     {
         include "mainmenu.php";
-        global $ir, $c;
+        global $user, $c;
         print "</td><td valign='top'>
 ";
     }

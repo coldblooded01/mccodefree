@@ -23,8 +23,8 @@ if (strpos($_SERVER['PHP_SELF'], "mainmenu.php") !== false)
 {
     exit;
 }
-global $c, $ir;
-if (!$ir['hospital'])
+global $c, $user;
+if (!$user->is_in_hospital())
 {
     print
             "<a href='index.php'>Home</a><br />
@@ -33,7 +33,7 @@ if (!$ir['hospital'])
 <a href='events.php'>";
     $d = mysqli_query(
         $c,
-        "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$ir['userid']} AND evREAD=0"
+        "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$user->userid} AND evREAD=0"
     ) or die(mysqli_error($c));
     $r = mysqli_fetch_array($d);
     if ($r['cnt'] > 0)
@@ -48,7 +48,7 @@ if (!$ir['hospital'])
 <a href='mailbox.php'>";
     $d2 = mysqli_query(
         $c,
-        "SELECT COUNT(*) as cnt FROM mail WHERE mail_to={$ir['userid']} AND mail_read=0"
+        "SELECT COUNT(*) as cnt FROM mail WHERE mail_to={$user->userid} AND mail_read=0"
     ) or die(mysqli_error($c));
     $r = mysqli_fetch_array($d2);
     if ($r['cnt'] > 0)
@@ -67,16 +67,16 @@ if (!$ir['hospital'])
 <a href='monopaper.php'>Announcements</a><br />
 <a href='search.php'>Search</a><br />
 <a href='advsearch.php'>Advanced Search</a><br />";
-    if ($ir['user_level'] > 1)
+    if ($user->user_level > 1)
     {
         print "<hr />
 <b>Staff Only</b><br />\n";
-        if ($ir['user_level'] < 6 and $ir['user_level'] != 4)
+        if ($user->user_level < 6 and $user->user_level != 4)
         {
             print "<a href='new_staff.php'>Staff Panel</a><br />\n";
         }
     }
-    if ($ir['user_level'] > 1)
+    if ($user->user_level > 1)
     {
         print "<hr /><b>Staff Online:</b><br />";
         $q = mysqli_query(
@@ -106,7 +106,7 @@ if (!$ir['hospital'])
                     "<a href='viewuser.php?u={$r['userid']}'>{$r['username']}</a> ($la $unit)<br />";
         }
     }
-    if ($ir['donatordays'])
+    if ($user->donatordays)
     {
         print
                 "<hr />
@@ -120,7 +120,7 @@ if (!$ir['hospital'])
 <a href='preport.php'>Player Report</a><br />
 <a href='helptutorial.php'>Help Tutorial</a><br />
 <a href='gamerules.php'>Game Rules</a><br />
-<a href='viewuser.php?u={$ir['userid']}'>My Profile</a><br />
+<a href='viewuser.php?u={$user->userid}'>My Profile</a><br />
 <a href='logout.php'>Logout</a><br /><br />
 Time is now<br />
             ";
@@ -134,7 +134,7 @@ else
 <a href='events.php'>";
     $d = mysqli_query(
         $c,
-        "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$ir['userid']} AND evREAD=0"
+        "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$user->userid} AND evREAD=0"
     ) or die(mysqli_error($c));
     $r = mysqli_fetch_array($d);
     if ($r['cnt'] > 0)
@@ -149,7 +149,7 @@ else
 <a href='mailbox.php'>";
     $d2 = mysqli_query(
         $c,
-        "SELECT COUNT(*) as cnt FROM mail WHERE mail_to={$ir['userid']} AND mail_read=0"
+        "SELECT COUNT(*) as cnt FROM mail WHERE mail_to={$user->userid} AND mail_read=0"
     ) or die(mysqli_error($c));
     $r = mysqli_fetch_array($d2);
     if ($r['cnt'] > 0)
@@ -164,16 +164,16 @@ else
             "</a><br />
 <a href='monopaper.php'>Announcements</a><br />
 <a href='search.php'>Search</a><br />";
-    if ($ir['user_level'] > 1)
+    if ($user->user_level > 1)
     {
         print "<hr />
 <b>Staff Only</b><br />";
-        if ($ir['user_level'] < 6 and $ir['user_level'] != 4)
+        if ($user->user_level < 6 and $user->user_level != 4)
         {
             print "<a href='new_staff.php'>Staff Panel</a><br />\n";
         }
     }
-    if ($ir['user_level'] > 1)
+    if ($user->user_level > 1)
     {
         print "<hr /><b>Staff Online:</b><br />";
         $q = mysqli_query(
@@ -204,7 +204,7 @@ else
                     "<a href='viewuser.php?u={$r['userid']}'>{$r['username']}</a> ($la $unit)<br />";
         }
     }
-    if ($ir['donatordays'])
+    if ($user->donatordays)
     {
         print
                 "<hr />
@@ -218,7 +218,7 @@ else
 <a href='preport.php'>Player Report</a><br />
 <a href='helptutorial.php'>Help Tutorial</a><br />
 <a href='gamerules.php'>Game Rules</a><br />
-<a href='viewuser.php?u={$ir['userid']}'>My Profile</a><br />
+<a href='viewuser.php?u={$user->userid}'>My Profile</a><br />
 <a href='logout.php'>Logout</a><br /><br />
 Time is now<br />
             ";

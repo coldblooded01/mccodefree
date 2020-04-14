@@ -27,22 +27,16 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header());
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is = mysqli_query(
-    $c,
-    "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid"
-) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm);
+$h->userdata($user);
 $h->menuarea();
 $_GET['ID'] = abs((int) $_GET['ID']);
 print "<h3>Crystal Market</h3>";
@@ -67,7 +61,7 @@ default:
 
 function cmarket_index()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     print
             "<a href='cmarket.php?action=add'>&gt; Add A Listing</a><br /><br />
 Viewing all listings...
@@ -100,7 +94,7 @@ Viewing all listings...
 
 function crystal_remove()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     $q = mysqli_query(
         $c,
         "SELECT * FROM crystalmarket WHERE cmID='{$_GET['ID']}' AND cmADDER=$userid"
@@ -126,7 +120,7 @@ function crystal_remove()
 
 function crystal_buy()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     $q = mysqli_query(
         $c,
         "SELECT * FROM crystalmarket cm WHERE cmID='{$_GET['ID']}'"
@@ -140,7 +134,7 @@ function crystal_buy()
         exit;
     }
     $r = mysqli_fetch_array($q);
-    if ($r['cmPRICE'] > $ir['money'])
+    if ($r['cmPRICE'] > $user->money)
     {
         print
                 "Error, you do not have the funds to buy these crystals.<br />
@@ -162,7 +156,7 @@ function crystal_buy()
         "UPDATE users SET money=money+{$r['cmPRICE']} where userid={$r['cmADDER']}"
     );
     event_add($r['cmADDER'],
-            "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> bought your {$r['cmQTY']} crystals from the market for \$"
+            "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['cmQTY']} crystals from the market for \$"
                     . number_format($r['cmPRICE']) . ".", $c);
     print
             "You bought the {$r['cmQTY']} crystals from the market for \$"
@@ -172,12 +166,12 @@ function crystal_buy()
 
 function crystal_add()
 {
-    global $ir, $c, $userid, $h;
+    global $user, $c, $userid, $h;
     $_POST['amnt'] = abs((int) $_POST['amnt']);
     $_POST['price'] = abs((int) $_POST['price']);
     if ($_POST['amnt'])
     {
-        if ($_POST['amnt'] > $ir['crystals'])
+        if ($_POST['amnt'] > $user->crystals)
         {
             die(
                     "You are trying to add more crystals to the market than you have.");
@@ -199,8 +193,8 @@ function crystal_add()
     {
         print
                 "<b>Adding a listing...</b><br /><br />
-You have <b>{$ir['crystals']}</b> crystal(s) that you can add to the market.<form action='cmarket.php?action=add' method='post'><table width=50% border=2><tr>
-<td>Crystals:</td> <td><input type='text' name='amnt' value='{$ir['crystals']}' /></td></tr><tr>
+You have <b>{$user->crystals}</b> crystal(s) that you can add to the market.<form action='cmarket.php?action=add' method='post'><table width=50% border=2><tr>
+<td>Crystals:</td> <td><input type='text' name='amnt' value='{$user->crystals}' /></td></tr><tr>
 <td>Price Each:</td> <td><input type='text' name='price' value='200' /></td></tr><tr>
 <td colspan=2 align=center><input type='submit' value='Add To Market' /></tr></table></form>";
     }

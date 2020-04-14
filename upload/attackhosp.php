@@ -27,44 +27,38 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/user.php");
+$user = User::get($userid);
 require "header.php";
-$h = new headers;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-$is =
-        mysqli_query(
-                "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid=$userid",
-                $c) or die(mysqli_error($c));
-$ir = mysqli_fetch_array($is);
 
 check_level();
-$fm = money_formatter($ir['money']);
-$cm = money_formatter($ir['crystals'], '');
-$lv = date('F j, Y, g:i a', $ir['laston']);
-$h->userdata($ir, $lv, $fm, $cm, 0);
+$h->userdata($user, 0);
 $h->menuarea();
 
 $_GET['ID'] = abs((int) $_GET['ID']);
 $_SESSION['attacking'] = 0;
-$od = mysqli_query("SELECT * FROM users WHERE userid={$_GET['ID']}", $c);
+
 if ($_SESSION['attackwon'] != $_GET['ID'])
 {
     die("Cheaters don't get anywhere.");
 }
-if (mysqli_num_rows($od))
+if (User::exists($_GET['ID']))
 {
-    $r = mysqli_fetch_array($od);
-    if ($r['hp'] == 1)
+    $opponent = User::get($_GET['ID']);
+    if ($opponent->hp == 1)
     {
         print "What a cheater you are.";
     }
     else
     {
-        print "You beat {$r['username']} and hospitalized them.";
+        print "You beat {$opponent->username} and hospitalized them.";
 
-        event_add($r['userid'],
-                "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> hospitalized you.",
+        event_add($opponent->userid,
+                "<a href='viewuser.php?u=$userid'>{$user->username}</a> hospitalized you.",
                 $c);
 
         mysqli_query(
@@ -81,23 +75,23 @@ if (mysqli_num_rows($od))
                         2479 => 30000, 2480 => 30000, 2481 => 30000,
                         0 => 100000, 0 => 1400000, 0 => 1400000, 0 => 1400000,
                         0 => 5000000, 0 => 10000000);
-        if (in_array($r['userid'], $bots))
+        if (in_array($opponent->userid, $bots))
         {
             $qk =
                     mysqli_query(
-                            "SELECT * FROM challengesbeaten WHERE userid=$userid AND npcid={$r['userid']}",
+                            "SELECT * FROM challengesbeaten WHERE userid=$userid AND npcid={$opponent->userid}",
                             $c);
             if (!mysqli_num_rows($qk))
             {
-                $gain = $moneys[$r['userid']];
+                $gain = $moneys[$opponent->userid];
                 mysqli_query(
                         "UPDATE users SET money=money+$gain WHERE userid=$userid",
                         $c);
                 mysqli_query(
-                        "INSERT INTO challengesbeaten VALUES ($userid,{$r['userid']})",
+                        "INSERT INTO challengesbeaten VALUES ($userid,{$opponent->userid})",
                         $c);
                 print
-                        "<br /><br />Congrats, you have beaten the Challenge BOT {$r['username']}, you have earnt \$$gain!";
+                        "<br /><br />Congrats, you have beaten the Challenge BOT {$opponent->username}, you have earnt \$$gain!";
             }
         }
     }
