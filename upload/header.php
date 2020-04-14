@@ -27,6 +27,7 @@ if (strpos($_SERVER['PHP_SELF'], "header.php") !== false)
 include "mysql.php";
 require_once(dirname(__FILE__) . "/models/setting.php");
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/ad.php");
 
 class Header
 {
@@ -110,13 +111,12 @@ EOF;
 <img src=bargreen.gif width=$hpperc height=10><img src=barred.gif width=$hpopp height=10></td></tr></table></div><center><b><u><a href='voting.php'>Vote for {$GAME_NAME} on various gaming sites and be rewarded!</a></u></b></center><br />
 <center><b><u><a href='donator.php'>Donate to {$GAME_NAME}, it's only \$3 and gets you a lot of benefits!</a></u></b></center><br />
                 ";
-        $q = mysqli_query($c, "SELECT * FROM ads ORDER BY rand() LIMIT 1");
-        if (mysqli_num_rows($q))
+        $ad = Ad::get_random();
+        if ($ad->id)
         {
-            $r = mysqli_fetch_array($q);
             print
-                    "<center><a href='ad.php?ad={$r['adID']}'><img src='{$r['adIMG']}' alt='Paid Advertisement' /></a></center><br />";
-            mysqli_query($c, "UPDATE ads SET adVIEWS=adVIEWS+1 WHERE adID={$r['adID']}");
+                    "<center><a href='ad.php?ad={$ad->id}'><img src='{$ad->img}' alt='Paid Advertisement' /></a></center><br />";
+            $ad->view();
         }
         print "<table width=100%><tr><td width=20% valign='top'>
 ";
