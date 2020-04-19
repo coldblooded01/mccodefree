@@ -59,10 +59,8 @@ if (User::exists($_GET['ID']))
         print "You beat {$opponent->username} and hospitalized them.";
 
         Event::add($opponent->userid, "<a href='viewuser.php?u=$userid'>{$user->username}</a> hospitalized you.");
-
-        mysqli_query(
-                "UPDATE users SET hp=1,hospital=hospital+80+(rand()*230),hospreason='Hospitalized by <a href=\'viewuser.php?u={$userid}\'>{$ir['username']}</a>' WHERE userid={$r['userid']}",
-                $c);
+        $opponent->increase_hospital_time(80, 230, 'Hospitalized by <a href=\'viewuser.php?u={$user->userid}\'>{$user->username}</a>');
+        
         $atklog = mysql_escape_string($_SESSION['attacklog']);
         mysqli_query(
                 "INSERT INTO attacklogs VALUES(NULL,$userid,{$_GET['ID']},'won',"
@@ -83,9 +81,7 @@ if (User::exists($_GET['ID']))
             if (!mysqli_num_rows($qk))
             {
                 $gain = $moneys[$opponent->userid];
-                mysqli_query(
-                        "UPDATE users SET money=money+$gain WHERE userid=$userid",
-                        $c);
+                $user->increase_money($gain);
                 mysqli_query(
                         "INSERT INTO challengesbeaten VALUES ($userid,{$opponent->userid})",
                         $c);

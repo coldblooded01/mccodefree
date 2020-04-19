@@ -57,18 +57,15 @@ if (User::exists($_GET['ID']))
     {
         $stole = (int) (rand($opponent->money / 500, $opponent->money / 20));
         print "You beat {$opponent->username} and stole \$$stole";
-        $qe = $opponent->level ^ 3;
+        $qe = $opponent->level ** 3;
         $expgain = rand($qe / 4, $qe / 2);
         $expperc = (int) ($expgain / $user->get_exp_needed() * 100);
         print " and gained $expperc% EXP!";
-        mysqli_query(
-            $c,
-            "UPDATE users SET exp=exp+$expgain,money=money+$stole WHERE userid=$userid"
-        );
-        mysqli_query(
-            $c,
-            "UPDATE users SET hp=1,money=money-$stole WHERE userid={$opponent->userid}"
-        );
+        $user->increase_exp($expgain);
+        $user->increase_money($stole);
+        $opponent->increase_money(-$stole);
+        $opponent->set_hp(1);
+        
         Event::add(
             $opponent->userid,
             "<a href='viewuser.php?u=$userid'>{$username->username}</a> attacked you and stole $stole."
@@ -96,10 +93,8 @@ if (User::exists($_GET['ID']))
             if (!mysqli_num_rows($qk))
             {
                 $gain = $moneys[$opponent->userid];
-                mysqli_query(
-                    $c,
-                    "UPDATE users SET money=money+$gain WHERE userid=$userid"
-                );
+                $user->increase_money($gain);
+                
                 mysqli_query(
                     $c,
                     "INSERT INTO challengesbeaten VALUES ($userid,{$opponent->userid})"
