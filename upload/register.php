@@ -108,7 +108,7 @@ if ($_POST['username'])
         $i = mysqli_insert_id($c);
         mysqli_query(
             $c,
-            "INSERT INTO userstats mysqli_insert_id($i, 10, 10, 10, 10, 10)"
+            "INSERT INTO userstats VALUES ($i, 10, 10, 10, 10, 10)"
         );
 
         if ($_POST['ref'])
