@@ -202,6 +202,7 @@ class User {
             $query
         ) or die(mysqli_error($c));
         $r = mysqli_fetch_array($q);
+        mysqli_free_result($q);
         return $r;
     }
 
@@ -217,7 +218,7 @@ class User {
     }
 
     public function get_exp_needed() {
-        return ($this->level + 1) ^ 3;
+        return ($this->level + 1) ** 3;
     }
 
     public function damage($damage) {
@@ -244,6 +245,7 @@ class User {
             $c,
             $query
         ) or die(mysqli_error($c));
+        mysqli_free_result($q);
     }
 
     public function exp_penalty() {
@@ -254,6 +256,7 @@ class User {
             $c,
             $query
         ) or die(mysqli_error($c));
+        mysqli_free_result($q);
     }
 
     public function check_level()
@@ -276,5 +279,150 @@ class User {
                     hp=hp+50,maxhp=maxhp+50 where userid=$this->userid"
             );
         }
-}
+    }
+
+    public function increase_hospital_time($base_time, $random_seed, $reason) {
+        global $c;
+        $random_increase = rand() * $random_seed;
+        $this->hospital = $this->hospital + $base_time + $random_increase;
+        $this->hp = 1;
+        $query = "UPDATE users 
+            SET hp=$this->hp, hospital=$this->hospital, hospreason='$reason' WHERE userid={$this->userid}";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
+
+    public function increase_exp($exp_inc) {
+        global $c;
+        $this->exp = $this->exp + $exp_inc;
+        $query = "UPDATE users SET exp=$this->exp WHERE userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die("Couldn't increase experience - " . mysqli_error($c));
+    }
+
+    public function increase_money($money_inc) {
+        global $c;
+        $this->money = $this->money + $money_inc;
+        $query = "UPDATE users SET money=$this->money WHERE userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
+
+    public function increase_energy($energy_inc) {
+        global $c;
+        $this->energy = $this->energy + $energy_inc;
+        $query = "UPDATE users SET energy=$this->energy WHERE userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
+
+    public function set_will($new_will) {
+        global $c;
+        $this->will = $new_will;
+        $query = "UPDATE users SET will=$this->will WHERE userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
+
+    public function increase_will($will_inc) {
+        $this->set_will($this->will + $will_inc);
+    }
+
+    public function set_hp($new_hp) {
+        global $c;
+        $this->hp = $new_hp;
+        $query = "UPDATE users SET hp=$this->hp WHERE userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
+
+    public function increase_hp($hp_inc) {
+        $this->set_hp($this->hp + $hp_inc);
+    }
+
+    public function set_crystals($new_crystals) {
+        global $c;
+        $this->crystals = $new_crystals;
+        $query = "UPDATE users SET crystals=$this->crystals where userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
+
+    public function increase_crystals($crystals_inc) {
+        $this->set_crystals($this->crystals + $crystals_inc);
+    }
+
+    public function refill_energy() {
+        global $c;
+        $this->energy = $this->max_energy;
+        $query = "UPDATE users SET energy=maxenergy WHERE userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
+
+    public function buy_bank_account() {
+        global $c;
+        $BANK_ACCOUNT_COST = 50000;
+        $this->money = $this->monney - $BANK_ACCOUNT_COST;
+        $query = "UPDATE users SET money=$this->money,bankmoney=0 WHERE userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
+
+    public function bank_deposit($deposit) {
+        global $c;
+        $fee = ceil($deposit * 15 / 100);
+        if ($fee > 3000)
+        {
+            $fee = 3000;
+        }
+        $gain = $deposit - $fee;
+        $this->bank_money += $gain;
+        $this->money -= $deposit;
+        $query = "UPDATE users SET bankmoney=$this->bank_money,money=$this->money where userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+        return $fee;
+    }
+
+    public function bank_withdraw($withdraw) {
+        global $c;
+        $this->bank_money -= $withdraw;
+        $this->money += $withdraw;
+        $query = "UPDATE users SET bankmoney=$this->bank_money,money=$this->money where userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
 }
