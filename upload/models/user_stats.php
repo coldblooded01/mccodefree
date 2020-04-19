@@ -4,11 +4,11 @@ require_once(dirname(__FILE__) . "/../mysql.php");
 
 class UserStats {
 
-    const $STRENGTH = "strength";
-    const $AGILITY = "agility";
-    const $GUARD = "guard";
-    const $LABOUR = "labour";
-    const $IQ = "IQ";
+    const STRENGTH = "strength";
+    const AGILITY = "agility";
+    const GUARD = "guard";
+    const LABOUR = "labour";
+    const IQ = "IQ";
 
     public function __construct($user_id, $strength, $agility, $guard, $labour, $iq) {
         $this->user_id = $user_id;
@@ -16,23 +16,25 @@ class UserStats {
         $this->agility = $agility;
         $this->guard = $guard;
         $this->labour = $labour;
-        $this->iq = $iq;
+        $this->IQ = $iq;
     }
 
     public function set_stat($stat, $new_value) {
         global $c;
+        
         $stat = self::get_stat_field_name($stat);
-        $this->aliases[$stat] = $new_value;
-        $query = "UPDATE userstats SET $stat={$this->aliases[$stat]} WHERE userid=$this->user_id";
+        $this->{$stat} = $new_value;
+        $query = "UPDATE userstats SET $stat=$new_value WHERE userid=$this->user_id";
         $q = mysqli_query(
             $c,
             $query
-        ) or die(mysqli_error($c));
+        ) or die(
+            "Couldn't set stat $stat, value: {$new_value} - ". mysqli_error($c));
         mysqli_free_result($q);
     }
 
     public function increase_stat($stat, $inc) {
-        $new_value = $this->aliases[$stat];
+        $new_value = $this->{$stat};
         $this->set_stat($stat, $new_value);
     }
 
@@ -111,7 +113,7 @@ class UserStats {
     }
 
     public static function get_stat_field_name($stat) {
-        switch($stat):
+        switch ($stat) {
             case self::STRENGTH:
                 return self::STRENGTH;
             case self::AGILITY:
@@ -124,6 +126,8 @@ class UserStats {
                 return self::IQ;
             default:
                 die("Bad stat field name");
+        }
     }
+
 
 }

@@ -28,13 +28,10 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
-require_once(dirname(__FILE__) . "/models/userstats.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
 $h->startheaders();
-include "mysql.php";
-global $c;
 
 $user->check_level();
 $h->userdata($user);
@@ -64,10 +61,8 @@ else
         }
         else
         {
-            mysqli_query(
-                $c,
-                "UPDATE users SET energy=maxenergy,crystals=crystals-12 WHERE userid=$userid"
-            );
+            $user->increase_crystals(-12);
+            $user->refill_energy();
             print "You have paid 12 crystals to refill your energy bar.";
         }
     }
@@ -90,12 +85,8 @@ One crystal = 5 IQ.<form action='crystaltemple.php?spend=IQ2' method='post'><inp
         else
         {
             $iqgain = $_POST['crystals'] * 5;
-            mysqli_query(
-                $c,
-                "UPDATE users SET crystals=crystals-{$_POST['crystals']} WHERE userid=$userid"
-            );
-            $user_stats = UserStats::get($userid);
-            $user_stats->increase_iq($iqgain);
+            $user->increase_crystals(-$_POST['crystals']);
+            $user->user_stats->increase_iq($iqgain);
             print "You traded {$_POST['crystals']} crystals for $iqgain IQ.";
         }
     }
@@ -117,12 +108,10 @@ One crystal = \$200.<form action='crystaltemple.php?spend=money2' method='post'>
         }
         else
         {
-            $iqgain = $_POST['crystals'] * 200;
-            mysqli_query(
-                $c,
-                "UPDATE users SET crystals=crystals-{$_POST['crystals']},money=money+$iqgain WHERE userid=$userid"
-            );
-            print "You traded {$_POST['crystals']} crystals for \$$iqgain.";
+            $money_gain = $_POST['crystals'] * 200;
+            $user->increase_crystals(-$_POST['crystals']);
+            $user->increase_money($money_gain);
+            print "You traded {$_POST['crystals']} crystals for \$$money_gain.";
         }
     }
 }

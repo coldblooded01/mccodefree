@@ -47,15 +47,11 @@ if (User::exists($_GET['ID']))
     $_SESSION['attacklost'] = 0;
     $opponent = User::get($_GET['ID']);
     print "You lost to {$opponent->username}";
-    $expgain = abs(($user->level - $opponent->level) ^ 3);
+    $expgain = abs(($user->level - $opponent->level) ** 3);
     $expgainp = $expgain / $user->get_exp_needed() * 100;
     print " and lost $expgainp% EXP!";
-
-    mysqli_query(
-        $c,
-    "UPDATE users SET exp=exp-$expgain,hospital=40+(rand()*20),hospreason='Lost to <a href=\'viewuser.php?u={$opponent->userid}\'>{$opponent->username}</a>' WHERE userid={$userid}"
-    );
-    mysqli_query($c, "UPDATE users SET exp=0 WHERE exp<0");
+    $user->increase_exp(-$expgain);
+    $user->increase_hospital_time(40, 20, 'Lost to <a href=\'viewuser.php?u={$opponent->userid}\'>{$opponent->username}</a>');
     
     Event::add(
         $opponent->userid,

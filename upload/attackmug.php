@@ -58,24 +58,17 @@ if (User::exists($_GET['ID']))
     {
         $stole = (int) (rand($opponent->money / 500, $opponent->money / 20));
         print "You beat {$opponent->username} and stole \$$stole";
-        $qe = $opponent->level ^ 3;
+        $qe = $opponent->level ** 3;
         $expgain = rand($qe / 4, $qe / 2);
         $expperc = (int) ($expgain / $user->get_exp_needed() * 100);
         print " and gained $expperc% EXP!";
-        mysqli_query(
-            $c,
-            "UPDATE users SET exp=exp+$expgain,money=money+$stole WHERE userid=$userid"
-        );
-        mysqli_query(
-            $c,
-            "UPDATE users SET hp=1,money=money-$stole WHERE userid={$opponent->userid}"
-        );
-        Event::add($opponent->userid, "<a href='viewuser.php?u=$userid'>{$user->username}</a> attacked you and stole $stole.");
+        $user->increase_exp($expgain);
+        $user->increase_money($stole);
+        $opponent->increase_money(-$stole);
         
-        mysqli_query(
-            $c,
-            "UPDATE users SET hp=1,hospital=hospital+20+(rand()*20),hospreason='Attacked by <a href=\'viewuser.php?u={$userid}\'>{$user->username}</a>' WHERE userid={$opponent->userid}"
-        );
+        Event::add($opponent->userid, "<a href='viewuser.php?u=$userid'>{$user->username}</a> attacked you and stole $stole.");
+        $opponent->increase_hospital_time(20, 20, 'Attacked by <a href=\'viewuser.php?u={$user->userid}\'>{$user->username}</a>');
+       
         $atklog = mysqli_escape_string($c, $_SESSION['attacklog']);
         mysqli_query(
             $c,
@@ -99,10 +92,8 @@ if (User::exists($_GET['ID']))
             if (!mysqli_num_rows($qk))
             {
                 $gain = $moneys[$opponent->userid];
-                mysqli_query(
-                    $c,
-                    "UPDATE users SET money=money+$gain WHERE userid=$userid"
-                );
+                $user->increase_money($gain);
+                
                 mysqli_query(
                     $c,
                     "INSERT INTO challengesbeaten VALUES ($userid,{$opponent->userid})"
