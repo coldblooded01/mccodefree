@@ -28,6 +28,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/userstats.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
@@ -93,10 +94,8 @@ One crystal = 5 IQ.<form action='crystaltemple.php?spend=IQ2' method='post'><inp
                 $c,
                 "UPDATE users SET crystals=crystals-{$_POST['crystals']} WHERE userid=$userid"
             );
-            mysqli_query(
-                $c,
-                "UPDATE userstats SET IQ=IQ+$iqgain WHERE userid=$userid"
-            );
+            $user_stats = UserStats::get($userid);
+            $user_stats->increase_iq($iqgain);
             print "You traded {$_POST['crystals']} crystals for $iqgain IQ.";
         }
     }

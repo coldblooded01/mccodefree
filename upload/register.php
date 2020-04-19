@@ -24,6 +24,7 @@ require "mysql.php";
 require "global_func.php";
 require_once(dirname(__FILE__) . "/models/event.php");
 require_once(dirname(__FILE__) . "/models/setting.php");
+require_once(dirname(__FILE__) . "/models/userstats.php");
 $GAME_NAME = Setting::get('GAME_NAME')->value;
 print 
         <<<EOF
@@ -106,10 +107,7 @@ if ($_POST['username'])
                 . time() . ", '{$_POST['email']}', -1, '$ip')"
         );
         $i = mysqli_insert_id($c);
-        mysqli_query(
-            $c,
-            "INSERT INTO userstats VALUES ($i, 10, 10, 10, 10, 10)"
-        );
+        UserStats::add($i);
 
         if ($_POST['ref'])
         {
