@@ -65,7 +65,7 @@ class User {
         {
             array_push($result, self::create_from_mysqli_array($r));
         }
-        mysqli_num_rows($q)
+        mysqli_free_result($q);
         return $result;
     }
 
