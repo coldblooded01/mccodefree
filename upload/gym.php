@@ -64,15 +64,9 @@ if (isset($_GET['train']))
             $egain = $gain / 10;
             $ts = $user->aliases[$_GET['train']];
             $st = $_GET['train'];
-
-            mysqli_query(
-                $c,
-                "UPDATE userstats SET $st=$st+" . $gain
-                    . " WHERE userid=$userid"
-                ) or die(
-                    "UPDATE userstats SET $st=$st+$gain,energy=energy-1,exp=exp+$egain WHERE userid=$userid<br />"
-                        . mysqli_error($c)
-                );
+            $user_stats = UserStats::get($user->userid);
+            $user_stats->increase_stat($st, $gain);
+            
             $wu = (int) (rand(1, 3));
             if ($user->will >= $wu) {
                 $user->will -= $wu;
