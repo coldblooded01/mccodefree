@@ -65,6 +65,7 @@ class User {
         {
             array_push($result, self::create_from_mysqli_array($r));
         }
+        mysqli_num_rows($q)
         return $result;
     }
 
@@ -123,7 +124,9 @@ class User {
             $c,
             $query
         );
-        return mysqli_num_rows($q) != 0;
+        $num_rows = mysqli_num_rows($q);
+        mysqli_free_result($q);
+        return $num_rows != 0;
     }
 
     public static function get($userid) {
@@ -137,6 +140,7 @@ class User {
             $query
         ) or die(mysqli_error($c));
         $r = mysqli_fetch_array($q);
+        mysqli_free_result($q);
         return self::create_from_mysqli_array($r);
     }
 
@@ -152,6 +156,7 @@ class User {
         {
             array_push($result, self::create_from_mysqli_array($r));
         }
+        mysqli_free_result($q);
         return $result;
     }
 
@@ -167,6 +172,7 @@ class User {
         {
             array_push($result, self::create_from_mysqli_array($r));
         }
+        mysqli_free_result($q);
         return $result;
     }
 
@@ -215,6 +221,7 @@ class User {
             $c,
             $query
         ) or die(mysqli_error($c));
+        mysqli_free_result($q);
     }
 
     public function get_exp_needed() {
@@ -234,6 +241,7 @@ class User {
             $c,
             $query
         ) or die(mysqli_error($c));
+        mysqli_free_result($q);
     }
 
     public function spend_attack_energy() {
@@ -273,11 +281,12 @@ class User {
             $this->max_brave += 2;
             $this->hp += 50;
             $this->max_hp += 50;
-            mysqli_query(
+            $q = mysqli_query(
                 $c,
                 "UPDATE users SET level=level+1,exp=$expu,energy=energy+2,brave=brave+2,maxenergy=maxenergy+2,maxbrave=maxbrave+2,
                     hp=hp+50,maxhp=maxhp+50 where userid=$this->userid"
             );
+            mysqli_free_result($q);
         }
     }
 
