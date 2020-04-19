@@ -32,8 +32,6 @@ $user = User::get($userid);
 require "header.php";
 $h = new Header();
 $h->startheaders();
-include "mysql.php";
-global $c;
 
 require_once(dirname(__FILE__) . "/models/setting.php");
 $GAME_NAME = Setting::get('GAME_NAME')->value;

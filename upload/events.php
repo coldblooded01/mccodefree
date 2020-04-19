@@ -33,8 +33,6 @@ $user = User::get($userid);
 require "header.php";
 $h = new Header();
 $h->startheaders();
-include "mysql.php";
-global $c;
 
 $user->check_level();
 $h->userdata($user);
