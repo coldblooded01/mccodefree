@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 session_start();
 require "mysql.php";
 require "global_func.php";
+require_once(dirname(__FILE__) . "/models/event.php");
 require_once(dirname(__FILE__) . "/models/setting.php");
 $GAME_NAME = Setting::get('GAME_NAME')->value;
 print 
@@ -117,9 +118,10 @@ if ($_POST['username'])
                 "UPDATE `users`
                     SET `crystals` = `crystals` + 2
                     WHERE `userid` = {$_POST['ref']}");
-            event_add($_POST['ref'],
-                    "For refering $username to the game, you have earnt 2 valuable crystals!",
-                    $c);
+            Event::add(
+                $_POST['ref'],
+                "For refering $username to the game, you have earnt 2 valuable crystals!"
+            );
             $e_rip = mysqli_real_escape_string($c, $rem_IP);
             $e_oip = mysqli_real_escape_string($c, $ip);
             mysqli_query(

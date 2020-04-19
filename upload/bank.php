@@ -39,7 +39,7 @@ $user->check_level();
 $h->userdata($user);
 $h->menuarea();
 print "<h3>Bank</h3>";
-if ($user->bankmoney > -1)
+if ($user->bank_money > -1)
 {
     switch ($_GET['action'])
     {
@@ -90,7 +90,7 @@ function index()
 {
     global $user, $c, $userid, $h;
     print
-            "\n<b>You currently have \${$user->bankmoney} in the bank.</b><br />
+            "\n<b>You currently have \${$user->bank_money} in the bank.</b><br />
 At the end of each day, your bank balance will go up by 2%.<br />
 <table width='75%' border='2'> <tr> <td width='50%'><b>Deposit Money</b><br />
 It will cost you 15% of the money you deposit, rounded up. The maximum fee is \$3,000.<form action='bank.php?action=deposit' method='post'>
@@ -98,7 +98,7 @@ Amount: <input type='text' name='deposit' value='{$user->money}' /><br />
 <input type='submit' value='Deposit' /></form></td> <td>
 <b>Withdraw Money</b><br />
 There is no fee on withdrawals.<form action='bank.php?action=withdraw' method='post'>
-Amount: <input type='text' name='withdraw' value='{$user->bankmoney}' /><br />
+Amount: <input type='text' name='withdraw' value='{$user->bank_money}' /><br />
 <input type='submit' value='Withdraw' /></form></td> </tr> </table>";
 }
 

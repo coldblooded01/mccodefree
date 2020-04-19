@@ -5,6 +5,8 @@ if (!defined('IN_STAFF'))
     exit;
 }
 
+require_once(dirname(__FILE__) . "/models/event.php");
+
 // Admin/Secretary/Assistant
 
 function fed_user_form()
@@ -322,10 +324,9 @@ function mail_user_submit()
         $c,
         "UPDATE users SET mailban={$ins_days},mb_reason='{$ins_reason}' WHERE userid={$ins_user}"
     );
-    event_add(
+    Event::add(
         $ins_user,
-        "You were banned from mail for {$ins_days} day(s) for the following reason: {$log_reason}",
-        $c
+        "You were banned from mail for {$ins_days} day(s) for the following reason: {$log_reason}"
     );
     print "User mail banned.";
 }
@@ -1353,8 +1354,10 @@ us.IQ=us.IQ+180,u.donatordays=u.donatordays+115 WHERE u.userid={$r['dp_userid']}
         );
     }
     mysqli_query($c, "DELETE FROM dps_process WHERE dp_id={$_GET['ID']}");
-    event_add($r['dp_userid'],
-            "Your Donation has been accepted and credited.", $c);
+    Event::add(
+        $r['dp_userid'],
+        "Your Donation has been accepted and credited."
+    );
     print "Donation accepted and credited to user.";
 }
 
@@ -1365,7 +1368,7 @@ function decline_dp()
     $q = mysqli_query($c, "SELECT * FROM dps_process WHERE dp_id={$del_id}");
     $r = mysqli_fetch_array($q);
     mysqli_query($c, "DELETE FROM dps_process WHERE dp_id={$del_id}");
-    event_add($r['dp_userid'], "Your Donation has been rejected.", $c);
+    Event::add($r['dp_userid'], "Your Donation has been rejected.");
     print "Donation rejected.";
 }
 
@@ -1439,9 +1442,10 @@ us.IQ=us.IQ+180,u.donatordays=u.donatordays+115 WHERE u.userid={$dp_user}"
     $esc_type =
             htmlentities(stripslashes($_POST['type']), ENT_QUOTES,
                     'ISO-8859-1');
-    event_add($dp_user,
-            "You were given one $d -day donator pack (Pack {$esc_type}) from the administration.",
-            $c);
+    Event::add(
+        $dp_user,
+        "You were given one $d -day donator pack (Pack {$esc_type}) from the administration."
+    );
     print "User given a DP.";
 }
 

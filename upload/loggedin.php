@@ -45,7 +45,7 @@ $h->userdata($user);
 $h->menuarea();
 print
         "<h1>You have logged on, {$user->username}!</h1>
-<h2>Welcome back, your last visit was: $lv.</h2>";
+<h2>Welcome back, your last visit was: {$user->get_last_visit()}.</h2>";
 $q = mysqli_query($c, "SELECT * FROM papercontent LIMIT 1");
 $content = mysqli_result($q, 0);
 print "{$GAME_NAME} Latest News:<br />

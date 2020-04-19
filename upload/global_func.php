@@ -217,48 +217,11 @@ function fed_user_dropdown($connection, $ddname = "user", $selected = -1)
     return $ret;
 }
 
-function event_add($userid, $text, $connection)
-{
-    $text = mysql_real_escape_string($connection, $text);
-    mysqli_query(
-        $connection,
-        "INSERT INTO events VALUES(NULL,$userid," . time() . ",0,'$text')"
-    ) or die(mysqli_error($connection));
-    return 1;
-}
 
 function mysql_escape($str)
 {
     global $c;
     return mysql_real_escape_string($c, $str);
-}
-
-function check_level()
-{
-    global $ir, $c, $userid;
-    $ir['exp_needed'] =
-            (int) (($ir['level'] + 1) * ($ir['level'] + 1)
-                    * ($ir['level'] + 1) * 2.2);
-    if ($ir['exp'] >= $ir['exp_needed'])
-    {
-        $expu = $ir['exp'] - $ir['exp_needed'];
-        $ir['level'] += 1;
-        $ir['exp'] = $expu;
-        $ir['energy'] += 2;
-        $ir['brave'] += 2;
-        $ir['maxenergy'] += 2;
-        $ir['maxbrave'] += 2;
-        $ir['hp'] += 50;
-        $ir['maxhp'] += 50;
-        $ir['exp_needed'] =
-                (int) (($ir['level'] + 1) * ($ir['level'] + 1)
-                        * ($ir['level'] + 1) * 2.2);
-        mysqli_query(
-            $c,
-            "UPDATE users SET level=level+1,exp=$expu,energy=energy+2,brave=brave+2,maxenergy=maxenergy+2,maxbrave=maxbrave+2,
-                hp=hp+50,maxhp=maxhp+50 where userid=$userid"
-        );
-    }
 }
 
 function get_rank($stat, $mykey)

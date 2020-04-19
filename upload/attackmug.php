@@ -28,6 +28,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/event.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
@@ -69,10 +70,8 @@ if (User::exists($_GET['ID']))
             $c,
             "UPDATE users SET hp=1,money=money-$stole WHERE userid={$opponent->userid}"
         );
-        event_add($opponent->userid,
-                "<a href='viewuser.php?u=$userid'>{$user->username}</a> attacked you and stole $stole.",
-                $c);
-
+        Event::add($opponent->userid, "<a href='viewuser.php?u=$userid'>{$user->username}</a> attacked you and stole $stole.");
+        
         mysqli_query(
             $c,
             "UPDATE users SET hp=1,hospital=hospital+20+(rand()*20),hospreason='Attacked by <a href=\'viewuser.php?u={$userid}\'>{$user->username}</a>' WHERE userid={$opponent->userid}"

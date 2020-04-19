@@ -27,6 +27,7 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/event.php");
 require_once(dirname(__FILE__) . "/models/user.php");
 $user = User::get($userid);
 require "header.php";
@@ -67,9 +68,10 @@ else
                 "UPDATE users SET money=money+{$_POST['money']} WHERE userid={$_GET['ID']}"
             );
             print "You sent \${$_POST['money']} to ID {$_GET['ID']}.";
-            event_add($_GET['ID'],
-                    "You received \${$_POST['money']} from {$user->username}.",
-                    $c);
+            Event::add(
+                $_GET['ID'],
+                "You received \${$_POST['money']} from {$user->username}."
+            );
             $it = mysqli_query(
                 $c,
                 "SELECT u.*,us.* FROM users u LEFT JOIN userstats us ON u.userid=us.userid WHERE u.userid={$_GET['ID']}"

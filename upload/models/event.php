@@ -54,11 +54,24 @@ class Event {
     public static function count_new_events($user_id) {
         global $c;
         $query = "SELECT COUNT(*) as cnt FROM events WHERE evUSER={$user_id} AND evREAD=0";
-        $r = mysqli_query(
+        $q = mysqli_query(
             $c,
             $query
         ) or die(mysqli_error($c));
-        $r = mysqli_fetch_array($d);
+        $r = mysqli_fetch_array($q);
+        mysqli_free_result($q);
+        return $r['cnt'];
+    }
+
+    public static function count_total_events() {
+        global $c;
+        $query = "SELECT COUNT(`evID`) as cnt FROM events";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        $r = mysqli_fetch_array($q);
+        mysqli_free_result($q);
         return $r['cnt'];
     }
 
@@ -73,6 +86,7 @@ class Event {
         while ($r = mysqli_fetch_array($q)) {
             array_push($events, self::create($r));
         }
+        mysqli_free_result($q);
         return $events;
     }
 

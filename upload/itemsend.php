@@ -28,6 +28,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/event.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
@@ -95,9 +96,10 @@ if ($_GET['qty'] && $_GET['user'])
             }
             print
                     "You sent {$_GET['qty']} {$r['itmname']}(s) to {$rm['username']}";
-            event_add($_GET['user'],
-                    "You received {$_GET['qty']} {$r['itmname']}(s) from <a href='viewuser.php?u=$userid'>{$user->username}</a>",
-                    $c);
+            Event::add(
+                $_GET['user'],
+                "You received {$_GET['qty']} {$r['itmname']}(s) from <a href='viewuser.php?u=$userid'>{$user->username}</a>"
+            );
             mysqli_query(
                 $c,
                 "INSERT INTO itemxferlogs VALUES(NULL,$userid,{$_GET['user']},{$r['itmid']},{$_GET['qty']},"

@@ -28,9 +28,10 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/event.php");
 $user = User::get($userid);
 require "header.php";
-$h = new Header());
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
@@ -155,9 +156,11 @@ function crystal_buy()
         $c,
         "UPDATE users SET money=money+{$r['cmPRICE']} where userid={$r['cmADDER']}"
     );
-    event_add($r['cmADDER'],
-            "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['cmQTY']} crystals from the market for \$"
-                    . number_format($r['cmPRICE']) . ".", $c);
+    Event::add(
+        $r['cmADDER'],
+        "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['cmQTY']} crystals from the market for \$"
+            . number_format($r['cmPRICE']) . "."
+    );
     print
             "You bought the {$r['cmQTY']} crystals from the market for \$"
                     . number_format($r['cmPRICE']) . ".";

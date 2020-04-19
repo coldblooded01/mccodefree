@@ -88,9 +88,7 @@ mysqli_free_result($q);
 $q = mysqli_query($c, "SELECT COUNT(`mail_id`) FROM `mail`");
 $mail = mysqli_data_seek($q, 0);
 mysqli_free_result($q);
-$q = mysqli_query($c, "SELECT COUNT(`evID`) FROM `events`");
-$events = mysqli_data_seek($q, 0);
-mysqli_free_result($q);
+$events = Event::count_total_events();
 echo "<h3>Country Statistics</h3>
 You step into the Statistics Department and login to the service. You see some stats that interest you.<br />
 <table width='75%' cellspacing='1' class='table'>

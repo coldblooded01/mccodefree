@@ -38,6 +38,7 @@ class User {
         $this->course = $course;
         $this->cdays = $cdays;
         $this->email = $email;
+        $this->bank_money = $bankmoney;
         $this->strength = $strength;
         $this->agility = $agility;
         $this->guard = $guard;
@@ -141,6 +142,10 @@ class User {
         return $this->energy > ($this->max_energy / 2);
     }
 
+    public function get_last_visit() {
+        return date('F j, Y, g:i a', $this->last_time_online);
+    }
+
     public function get_house() {
         global $c;
         $query = "SELECT * FROM houses WHERE hWILL = {$this->max_will}";
@@ -196,7 +201,7 @@ class User {
     public function exp_penalty() {
         global $c;
         $this->exp = 0;
-        $query = "UPDATE users SET exp=0 where userid=$this->userid";
+        $query = "UPDATE users SET exp=0 WHERE userid=$this->userid";
         $q = mysqli_query(
             $c,
             $query

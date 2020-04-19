@@ -28,6 +28,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/event.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header;
@@ -49,14 +50,16 @@ if (User::exists($_GET['ID']))
     $expgain = abs(($user->level - $opponent->level) ^ 3);
     $expgainp = $expgain / $user->get_exp_needed() * 100;
     print " and lost $expgainp% EXP!";
+
     mysqli_query(
         $c,
     "UPDATE users SET exp=exp-$expgain,hospital=40+(rand()*20),hospreason='Lost to <a href=\'viewuser.php?u={$opponent->userid}\'>{$opponent->username}</a>' WHERE userid={$userid}"
     );
     mysqli_query($c, "UPDATE users SET exp=0 WHERE exp<0");
+    
     Event::add(
         $opponent->userid,
-        "<a href='viewuser.php?u=$userid'>{$user->username}</a> attacked you and lost."
+        "<a href=\'viewuser.php?u={$userid}\'>{$user->username}</a> attacked you and lost."
     );
     $atklog = mysqli_escape_string($c, $_SESSION['attacklog']);
     mysqli_query(
