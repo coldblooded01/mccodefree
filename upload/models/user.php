@@ -66,12 +66,12 @@ class User {
         $result = [];
         while ($r = mysqli_fetch_array($q))
         {
-            array_push($result, self::create($r));
+            array_push($result, self::create_from_mysqli_array($r));
         }
         return $result;
     }
 
-    public static function create($r) {
+    public static function create_from_mysqli_array($r) {
         return new User(
             $r['userid'],
             $r['username'],
@@ -144,7 +144,7 @@ class User {
             $query
         ) or die(mysqli_error($c));
         $r = mysqli_fetch_array($q);
-        return self::create($r);
+        return self::create_from_mysqli_array($r);
     }
 
     public static function get_mailban() {
@@ -157,7 +157,7 @@ class User {
         $result = [];
         while ($r = mysqli_fetch_array($q))
         {
-            array_push($result, self::create($r));
+            array_push($result, self::create_from_mysqli_array($r));
         }
         return $result;
     }
@@ -172,7 +172,7 @@ class User {
         $result = [];
         while ($r = mysqli_fetch_array($q))
         {
-            array_push($result, self::create($r));
+            array_push($result, self::create_from_mysqli_array($r));
         }
         return $result;
     }
