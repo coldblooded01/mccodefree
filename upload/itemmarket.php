@@ -28,13 +28,14 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/event.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-check_level();
+$user->check_level();
 $h->userdata($user);
 $h->menuarea();
 print "<h3>Item Market</h3>";
@@ -172,9 +173,11 @@ function item_buy()
         $c,
         "UPDATE users SET money=money+{$r['imPRICE']} where userid={$r['imADDER']}"
     );
-    event_add($r['imADDER'],
-            "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['itmname']} item from the market for \$"
-                    . number_format($r['imPRICE']) . ".", $c);
+    Event::add(
+        $r['imADDER'],
+        "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['itmname']} item from the market for \$"
+            . number_format($r['imPRICE']) . "."
+    )
     mysqli_query(
         $c,
         "INSERT INTO imbuylogs VALUES(NULL, {$r['imITEM']}, {$r['imADDER']}, $userid,  {$r['imPRICE']}, {$r['imID']}, $i, "
@@ -260,17 +263,18 @@ function item_gift2()
         $c,
         "UPDATE users SET money=money+{$r['imPRICE']} where userid={$r['imADDER']}"
     );
-    event_add($r['imADDER'],
+    Event::add(
+        $r['imADDER'],
         "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['itmname']} item from the market for \$"
-            . number_format($r['imPRICE']) . ".",
-        $c
+            . number_format($r['imPRICE']) . "."
+    );
+    Event::add(
+        $_POST['user'],
+        "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought you a {$r['itmname']} from the item market as a gift."
     );
 
-    event_add($_POST['user'],
-        "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought you a {$r['itmname']} from the item market as a gift.",
-            $c);
     $u = mysqli_query($c, "SELECT * FROM users WHERE userid={$_POST['user']}");
-    $uname = mysqli_data_seek($u, 0, 1);
+    $uname = mysqli_data_seek($u, 1);
     mysqli_query(
         $c,
         "INSERT INTO imbuylogs VALUES(NULL, {$r['imITEM']}, {$r['imADDER']}, $userid,  {$r['imPRICE']}, {$r['imID']}, $i, "

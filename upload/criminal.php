@@ -35,7 +35,7 @@ $h->startheaders();
 include "mysql.php";
 global $c;
 
-check_level();
+$user->check_level();
 $h->userdata($user);
 $h->menuarea();
 $q = mysqli_query($c, "SELECT * FROM crimegroups ORDER by cgORDER ASC");

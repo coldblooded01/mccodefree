@@ -35,7 +35,7 @@ $h->startheaders();
 include "mysql.php";
 global $c;
 
-check_level();
+$user->check_level();
 $out = "";
 $_GET['times'] = abs((int) $_GET['times']);
 if (isset($_GET['train']))

@@ -28,6 +28,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/event.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
@@ -35,7 +36,7 @@ $h->startheaders();
 include "mysql.php";
 global $c;
 
-check_level();
+$user->check_level();
 $h->userdata($user, 0);
 $h->menuarea();
 
@@ -57,9 +58,7 @@ if (User::exists($_GET['ID']))
     {
         print "You beat {$opponent->username} and hospitalized them.";
 
-        event_add($opponent->userid,
-                "<a href='viewuser.php?u=$userid'>{$user->username}</a> hospitalized you.",
-                $c);
+        Event::add($opponent->userid, "<a href='viewuser.php?u=$userid'>{$user->username}</a> hospitalized you.");
 
         mysqli_query(
                 "UPDATE users SET hp=1,hospital=hospital+80+(rand()*230),hospreason='Hospitalized by <a href=\'viewuser.php?u={$userid}\'>{$ir['username']}</a>' WHERE userid={$r['userid']}",

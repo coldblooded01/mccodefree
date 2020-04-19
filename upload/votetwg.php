@@ -34,7 +34,7 @@ $h = new Header();
 include "mysql.php";
 global $c;
 
-check_level();
+$user->check_level();
 
 $q = mysqli_query(
     $c,

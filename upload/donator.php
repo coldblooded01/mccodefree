@@ -39,7 +39,7 @@ require_once(dirname(__FILE__) . "/models/setting.php");
 $GAME_NAME = Setting::get('GAME_NAME')->value;
 $PAYPAL = Setting::get('PAYPAL')->value;
 
-check_level();
+$user->check_level();
 $h->userdata($user);
 $h->menuarea();
 $game_url = determine_game_urlbase();

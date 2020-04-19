@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 require_once(dirname(__FILE__) . "/../mysql.php");
 require_once(dirname(__FILE__) . "/../global_func.php");
+require_once(dirname(__FILE__) . "/../models/event.php");
 require_once(dirname(__FILE__) . "/../models/setting.php");
 
 
@@ -125,9 +126,10 @@ while ($r = mysqli_fetch_assoc($q))
             SET `u`.`course` = 0{$upd}
             WHERE `u`.`userid` = {$userid}"
     );
-    event_add($userid,
-            "Congratulations, you completed the {$coud['crNAME']} and gained {$ev}!",
-            $c);
+    Event::add(
+        $userid,
+        "Congratulations, you completed the {$coud['crNAME']} and gained {$ev}!"
+    );
 }
 mysqli_free_result($q);
 mysqli_query("TRUNCATE TABLE `votes`", $c);

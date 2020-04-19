@@ -35,7 +35,7 @@ $h->startheaders();
 include "mysql.php";
 global $c;
 
-check_level();
+$user->check_level();
 $fm = money_formatter($user->money);
 $cm = money_formatter($user->crystals, '');
 $h->userdata($user);

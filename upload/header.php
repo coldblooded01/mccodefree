@@ -53,7 +53,7 @@ EOF;
         global $c;
         $fm = money_formatter($user->money);
         $cm = money_formatter($user->crystals, '');
-        $lv = date('F j, Y, g:i a', $user->last_time_online);
+        $lv = $user->get_last_visit();
         $GAME_NAME = Setting::get('GAME_NAME')->value;
         $ip = mysqli_real_escape_string($c, $_SERVER['REMOTE_ADDR']);
         mysqli_query($c,
@@ -75,7 +75,7 @@ EOF;
         }
         $enperc = (int) ($user->energy / $user->max_energy * 100);
         $wiperc = (int) ($user->will / $user->max_will * 100);
-        $experc = (int) ($user->exp / $user->exp_needed * 100);
+        $experc = (int) ($user->exp / $user->get_exp_needed() * 100);
         $brperc = (int) ($user->brave / $user->max_brave * 100);
         $hpperc = (int) ($user->hp / $user->max_hp * 100);
         $enopp = 100 - $enperc;

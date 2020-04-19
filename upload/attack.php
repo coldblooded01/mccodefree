@@ -36,7 +36,7 @@ $h->startheaders();
 include "mysql.php";
 global $c;
 
-check_level();
+$user->check_level();
 $h->userdata($user, 0);
 $_GET['ID'] == (int) $_GET['ID'];
 if (!$_GET['ID'])
@@ -236,13 +236,13 @@ if ($_GET['wepid'])
         }
     }
 }
-else if ($opponent->hp < $opponent->maxhp / 2)
+else if (!$opponent->has_energy_to_attack())
 {
     print "You can only attack those who have at least 1/2 their max health";
     $h->endpage();
     exit;
 }
-else if ($user->has_energy_to_attack())
+else if (!$user->has_energy_to_attack())
 {
     print "You can only attack someone when you have 50% energy";
     $h->endpage();
@@ -265,7 +265,7 @@ if ($user->hp <= 0 || $opponent->hp <= 0)
 else
 {
     print
-            "<tr><td>Your Health: {$user->hp}/{$user->max_hp}</td><td>Opponents Health: {$opponent->hp}/{$opponent->maxhp}</td></tr>";
+            "<tr><td>Your Health: {$user->hp}/{$user->max_hp}</td><td>Opponents Health: {$opponent->hp}/{$opponent->max_hp}</td></tr>";
     $mw = mysqli_query(
         $c,
         "SELECT iv.*,i.* FROM inventory iv LEFT JOIN items i ON iv.inv_itemid=i.itmid WHERE iv.inv_userid=$userid AND (i.itmtype = 3 || i.itmtype = 4)"

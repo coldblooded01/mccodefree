@@ -28,13 +28,14 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/event.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
-check_level();
+$user->check_level();
 
 $h->userdata($user, 0);
 $h->menuarea();
@@ -58,7 +59,7 @@ if (User::exists($_GET['ID']))
         print "You beat {$opponent->username} and stole \$$stole";
         $qe = $opponent->level ^ 3;
         $expgain = rand($qe / 4, $qe / 2);
-        $expperc = (int) ($expgain / $user->exp_needed * 100);
+        $expperc = (int) ($expgain / $user->get_exp_needed() * 100);
         print " and gained $expperc% EXP!";
         mysqli_query(
             $c,
@@ -68,9 +69,10 @@ if (User::exists($_GET['ID']))
             $c,
             "UPDATE users SET hp=1,money=money-$stole WHERE userid={$opponent->userid}"
         );
-        event_add($opponent->userid,
-                "<a href='viewuser.php?u=$userid'>{$username->username}</a> attacked you and stole $stole.",
-                $c);
+        Event::add(
+            $opponent->userid,
+            "<a href='viewuser.php?u=$userid'>{$username->username}</a> attacked you and stole $stole."
+        );
         $atklog = mysqli_escape_string($c, $_SESSION['attacklog']);
         mysqli_query(
             $c,
