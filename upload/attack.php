@@ -31,7 +31,7 @@ require_once(dirname(__FILE__) . "/models/user.php");
 $user = User::get($userid);
 
 require "header.php";
-$h = new Header;
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
