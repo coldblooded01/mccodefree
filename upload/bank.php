@@ -32,8 +32,6 @@ $user = User::get($userid);
 require "header.php";
 $h = new Header();
 $h->startheaders();
-include "mysql.php";
-global $c;
 
 $user->check_level();
 $h->userdata($user);
@@ -66,10 +64,7 @@ else
             print
                     "Congratulations, you bought a bank account for \$50,000!<br />
 <a href='bank.php'>Start using my account</a>";
-            mysqli_query(
-                $c,
-                "UPDATE users SET money=money-50000,bankmoney=0 WHERE userid=$userid"
-            );
+            $user->buy_bank_account();
         }
         else
         {
@@ -88,7 +83,7 @@ else
 
 function index()
 {
-    global $user, $c, $userid, $h;
+    global $user;
     print
             "\n<b>You currently have \${$user->bank_money} in the bank.</b><br />
 At the end of each day, your bank balance will go up by 2%.<br />
@@ -104,54 +99,41 @@ Amount: <input type='text' name='withdraw' value='{$user->bank_money}' /><br />
 
 function deposit()
 {
-    global $user, $c, $userid, $h;
+    global $user;
     $_POST['deposit'] = abs((int) $_POST['deposit']);
-    if ($_POST['deposit'] > $user->money)
+    $deposit = $_POST['deposit'];
+    if ($deposit > $user->money)
     {
         print "You do not have enough money to deposit this amount.";
     }
     else
     {
-        $fee = ceil($_POST['deposit'] * 15 / 100);
-        if ($fee > 3000)
-        {
-            $fee = 3000;
-        }
-        $gain = $_POST['deposit'] - $fee;
-        $user->bankmoney += $gain;
-        mysqli_query(
-            $c,
-            "UPDATE users SET bankmoney=bankmoney+$gain, money=money-{$_POST['deposit']} where userid=$userid"
-        );
+        $fee = $user->bank_deposit($deposit);
+        $final_amount = $deposit - $fee;
         print
-                "You hand over \${$_POST['deposit']} to be deposited, <br />
-after the fee is taken (\$$fee), \$$gain is added to your account. <br />
-<b>You now have \${$user->bankmoney} in the bank.</b><br />
+                "You hand over \${$deposit} to be deposited, <br />
+after the fee is taken (\$$fee), \$$final_amount is added to your account. <br />
+<b>You now have \${$user->bank_money} in the bank.</b><br />
 <a href='bank.php'>&gt; Back</a>";
     }
 }
 
 function withdraw()
 {
-    global $user, $c, $userid, $h;
+    global $user;
     $_POST['withdraw'] = abs((int) $_POST['withdraw']);
-    if ($_POST['withdraw'] > $user->bankmoney)
+    $withdraw = $_POST['withdraw'];
+    if ($withdraw > $user->bank_money)
     {
         print "You do not have enough banked money to withdraw this amount.";
     }
     else
     {
-
-        $gain = $_POST['withdraw'];
-        $user->bankmoney -= $gain;
-        mysqli_query(
-            $c,
-            "UPDATE users SET bankmoney=bankmoney-$gain, money=money+$gain where userid=$userid"
-        );
+        $user->bank_withdraw($withdraw);
         print
-                "You ask to withdraw $gain, <br />
+                "You ask to withdraw $withdraw, <br />
 the banking lady grudgingly hands it over. <br />
-<b>You now have \${$user->bankmoney} in the bank.</b><br />
+<b>You now have \${$user->bank_money} in the bank.</b><br />
 <a href='bank.php'>&gt; Back</a>";
     }
 }
