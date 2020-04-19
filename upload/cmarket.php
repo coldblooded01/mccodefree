@@ -109,10 +109,7 @@ function crystal_remove()
         exit;
     }
     $r = mysqli_fetch_array($q);
-    mysqli_query(
-        $c,
-        "UPDATE users SET crystals=crystals+{$r['cmQTY']} where userid=$userid"
-    ) or die(mysqli_error($c));
+    $user->increase_crystals($r['cmQTY']);
     mysqli_query($c, "DELETE FROM crystalmarket WHERE cmID='{$_GET['ID']}'");
     print
             "Crystals removed from market!<br />
@@ -143,19 +140,12 @@ function crystal_buy()
         $h->endpage();
         exit;
     }
-    mysqli_query(
-        $c,
-        "UPDATE users SET crystals=crystals+{$r['cmQTY']} where userid=$userid"
-    ) or die(mysqli_error($c));
+    $user->increase_crystals($r['cmQTY']);
     mysqli_query($c, "DELETE FROM crystalmarket WHERE cmID='{$_GET['ID']}'");
-    mysqli_query(
-        $c,
-        "UPDATE users SET money=money-{$r['cmPRICE']} where userid=$userid"
-    );
-    mysqli_query(
-        $c,
-        "UPDATE users SET money=money+{$r['cmPRICE']} where userid={$r['cmADDER']}"
-    );
+    $user->increase_money(-$r['cmPRICE']);
+    $seller = User::get($r['cmADDER']);
+    $seller->increase_money($r['cmPRICE'])
+    
     Event::add(
         $r['cmADDER'],
         "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['cmQTY']} crystals from the market for \$"
@@ -172,22 +162,20 @@ function crystal_add()
     global $user, $c, $userid, $h;
     $_POST['amnt'] = abs((int) $_POST['amnt']);
     $_POST['price'] = abs((int) $_POST['price']);
-    if ($_POST['amnt'])
+    $amount = $_POST['amnt'];
+    if ($amount)
     {
-        if ($_POST['amnt'] > $user->crystals)
+        if ($amount > $user->crystals)
         {
             die(
                     "You are trying to add more crystals to the market than you have.");
         }
-        $tp = $_POST['amnt'] * $_POST['price'];
+        $tp = $amount * $_POST['price'];
         mysqli_query(
             $c,
-            "INSERT INTO crystalmarket VALUES(NULL,{$_POST['amnt']},$userid,$tp)"
+            "INSERT INTO crystalmarket VALUES(NULL,{$amount,$userid,$tp)"
         );
-        mysqli_query(
-            $c,
-            "UPDATE users SET crystals=crystals-{$_POST['amnt']} WHERE userid=$userid"
-        );
+        $user->increase_crystals(-$amount);
         print
                 "Crystals added to market!<br />
 <a href='cmarket.php'>&gt; Back</a>";
