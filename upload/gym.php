@@ -60,35 +60,28 @@ if (isset($_GET['train']))
             {
                 $gain /= 100;
             }
-            $user->aliases[$_GET['train']] += $gain;
+            $user->{$_GET['train']} += $gain;
             $egain = $gain / 10;
-            $ts = $user->aliases[$_GET['train']];
+            $ts = $user->{$_GET['train']};
             $st = $_GET['train'];
             $user_stats = UserStats::get($user->userid);
             $user_stats->increase_stat($st, $gain);
             
             $wu = (int) (rand(1, 3));
+            $user->increase_exp($egain);
+            $user->increase_energy(-1);
+
             if ($user->will >= $wu) {
-                $user->will -= $wu;
-                mysqli_query(
-                    $c,
-                    "UPDATE users SET energy=energy-1,exp=exp+$egain,will=will-$wu WHERE userid=$userid"
-                );
+                $user->increase_will(-$wu);
             } else {
-                $user->will = 0;
-                mysqli_query(
-                    $c,
-                    "UPDATE users SET energy=energy-1,exp=exp+$egain,will=0 WHERE userid=$userid"
-                );
+                $user->set_will(0);
             }
-            $user->energy -= 1;
-            $user->exp += $egain;
 
         } else {
             $out = "You do not have enough energy to train.";
         }
     }
-    $stat = $user->aliases[$st];
+    $stat = $user->{$st};
     $i--;
     $out =
             "You begin training your $st.<br />
