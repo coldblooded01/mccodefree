@@ -56,7 +56,7 @@ if (!$_GET['c']) {
                 "\$sucrate="
                         . str_replace(array("LEVEL", "EXP", "WILL", "IQ"),
                                 array($user->level, $user->exp, $user->will,
-                                        $user->IQ), $r['crimePERCFORM']) . ";";
+                                        $user->user_stats->iq), $r['crimePERCFORM']) . ";";
         eval($ec);
         print $r['crimeITEXT'];
         $ir['brave'] -= $r['crimeBRAVE'];

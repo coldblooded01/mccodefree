@@ -4,11 +4,11 @@ require_once(dirname(__FILE__) . "/../mysql.php");
 
 class UserStats {
 
-    const $STRENGTH = "strength";
-    const $AGILITY = "agility";
-    const $GUARD = "guard";
-    const $LABOUR = "labour";
-    const $IQ = "IQ";
+    const STRENGTH = "strength";
+    const AGILITY = "agility";
+    const GUARD = "guard";
+    const LABOUR = "labour";
+    const IQ = "IQ";
 
     public function __construct($user_id, $strength, $agility, $guard, $labour, $iq) {
         $this->user_id = $user_id;
@@ -111,7 +111,7 @@ class UserStats {
     }
 
     public static function get_stat_field_name($stat) {
-        switch($stat):
+        switch ($stat) {
             case self::STRENGTH:
                 return self::STRENGTH;
             case self::AGILITY:
@@ -124,6 +124,8 @@ class UserStats {
                 return self::IQ;
             default:
                 die("Bad stat field name");
+        }
     }
+
 
 }

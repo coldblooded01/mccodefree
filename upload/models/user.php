@@ -1,6 +1,7 @@
 <?php
 
 require_once(dirname(__FILE__) . "/../mysql.php");
+require_once(dirname(__FILE__) . "/user_stats.php");
 
 class User {
 
@@ -9,7 +10,7 @@ class User {
             $lastrest_life, $lastrest_other, $location, $hospital, $jail, $fedjail, $user_level,
             $gender, $daysold, $signedup, $course, $cdays, $donatordays, $email, $login_name,
             $display_pic, $duties, $bankmoney, $cybermoney, $staffnotes, $mailban, $mb_reason,
-            $hospreason, $pass_salt, $strength, $agility, $guard, $labour, $IQ) {
+            $hospreason, $pass_salt, $user_stats) {
         $this->userid = $userid;
         $this->username = $username;
         $this->userpass = $userpass;
@@ -39,11 +40,7 @@ class User {
         $this->cdays = $cdays;
         $this->email = $email;
         $this->bank_money = $bankmoney;
-        $this->strength = $strength;
-        $this->agility = $agility;
-        $this->guard = $guard;
-        $this->labour = $labour;
-        $this->IQ = $IQ;
+        $this->user_stats = $user_stats;
     }
 
     public static function search($levelmin, $levelmax, $nom, $gender, $house, $online, $dayo_min, $dayo_max) {
@@ -115,11 +112,7 @@ class User {
             $r['mb_reason'],
             $r['hospreason'],
             $r['pass_salt'],
-            $r['strength'],
-            $r['agility'],
-            $r['guard'],
-            $r['labour'],
-            $r['IQ']
+            UserStats::create_from_mysqli_array($r)
         );
     }
 

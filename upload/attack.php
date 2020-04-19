@@ -130,9 +130,9 @@ if ($_GET['wepid'])
     );
     $r1 = mysqli_fetch_array($qo);
     $mydamage =
-            (int) (($r1['damage'] * $user->strength / $opponent->guard)
+            (int) (($r1['damage'] * $user->user_stats->strength / $opponent->user_stats->guard)
                     * (rand(8000, 12000) / 10000));
-    $hitratio = min(50 * $user->agility / $opponent->agility, 95);
+    $hitratio = min(50 * $user->user_stats->agility / $opponent->user_stats->agility, 95);
     if (rand(1, 100) <= $hitratio)
     {
         $q3 = mysqli_query(
@@ -195,10 +195,10 @@ if ($_GET['wepid'])
             $weptouse = rand(0, $cnt - 1);
             $wep = $enweps[$weptouse]['itmname'];
             $dam =
-                    (int) (($enweps[$weptouse]['damage'] * $opponent->strength
-                            / $user->guard) * (rand(8000, 12000) / 10000));
+                    (int) (($enweps[$weptouse]['damage'] * $opponent->user_stats->strength
+                            / $user->user_stats->guard) * (rand(8000, 12000) / 10000));
         }
-        $hitratio = min(50 * $opponent->agility / $user->agility, 95);
+        $hitratio = min(50 * $opponent->user_stats->agility / $user->user_stats->agility, 95);
         if ($opponent->userid == 1)
         {
             $hitratio = 100;
