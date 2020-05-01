@@ -29,6 +29,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/house.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header;
@@ -81,10 +82,9 @@ Gender: <select name="gender" type="dropdown">
 House: <select name=house type=dropdown>
 <option value=0 selected>Any House</option>
 EOF;
-    $q = mysqli_query($c, "SELECT * FROM houses ORDER BY hWILL ASC");
-    while ($r = mysqli_fetch_array($q))
-    {
-        print "\n<option value='{$r['hWILL']}'>{$r['hNAME']}</option>";
+    $houses = House::get_all('hWILL');
+    foreach($houses as $house_instance) {
+        print "\n<option value='{$house_instance->will}'>{$house_instance->name}</option>";
     }
     print
             <<<EOF

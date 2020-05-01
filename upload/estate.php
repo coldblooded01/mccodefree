@@ -38,70 +38,49 @@ global $c;
 $user->check_level();
 $h->userdata($user);
 $h->menuarea();
-$mpq = mysqli_query($c, "SELECT * FROM houses WHERE hWILL={$user->max_will}");
-$mp = mysqli_fetch_array($mpq);
+$user_house = $user->get_house();
 $_GET['property'] = abs((int) $_GET['property']);
 if ($_GET['property'])
 {
-    $npq = mysqli_query(
-        $c,
-        "SELECT * FROM houses WHERE hID={$_GET['property']}"
-    );
-    $np = mysqli_fetch_array($npq);
-    if ($np['hWILL'] < $mp['hWILL'])
+    $house_on_sale = House::get($_GET['property']);
+    if ($house_on_sale->will < $user_house->will)
     {
         print "You cannot go backwards in houses!";
     }
-    else if ($np['hPRICE'] > $user->money)
+    else if ($house_on_sale->price > $user->money)
     {
-        print "You do not have enough money to buy the {$np['hrNAME']}.";
+        print "You do not have enough money to buy the {$house_on_sale->name}.";
     }
     else
     {
-        mysqli_query(
-            $c,
-            "UPDATE users SET money=money-{$np['hPRICE']},will=0,maxwill={$np['hWILL']} WHERE userid=$userid"
-        );
-        print "Congrats, you bought the {$np['hNAME']} for \${$np['hPRICE']}!";
+        $user->buy_house($house_on_sale);
+        print "Congrats, you bought the {$house_on_sale->name} for \${$house_on_sale->price}!";
     }
 }
 else if (isset($_GET['sellhouse']))
 {
-    $npq = mysqli_query(
-        $c,
-        "SELECT * FROM houses WHERE hWILL={$user->max_will}"
-    );
-    $np = mysqli_fetch_array($npq);
     if ($user->max_will == 100)
     {
         print "You already live in the lowest property!";
     }
     else
     {
-        mysqli_query(
-            $c,
-            "UPDATE users SET money=money+{$np['hPRICE']},will=0,maxwill=100 WHERE userid=$userid"
-        );
-        print "You sold your {$np['hNAME']} and went back to your shed.";
+        $user->sell_house();
+        print "You sold your {$user_house->name} and went back to your shed.";
     }
 }
 else
 {
     print
-            "Your current property: <b>{$mp['hNAME']}</b><br />
+            "Your current property: <b>{$user_house->name}</b><br />
 The houses you can buy are listed below. Click a house to buy it.<br />";
     if ($user->max_will > 100)
     {
         print "<a href='estate.php?sellhouse'>Sell Your House</a><br />";
     }
-    $hq = mysqli_query(
-        $c,
-        "SELECT * FROM houses WHERE hWILL>{$user->max_will} ORDER BY hWILL ASC"
-    );
-    while ($r = mysqli_fetch_array($hq))
-    {
-        print
-                "<a href='estate.php?property={$r['hID']}'>{$r['hNAME']}</a>&nbsp;&nbsp - Cost: \${$r['hPRICE']}&nbsp;&nbsp - Will Bar: {$r['hWILL']}<br />";
+    $houses = House::filter_by_will_gt($user->max_will, 'hWILL');
+    foreach($houses as $house) {
+        print "<a href='estate.php?property={$house->id}'>{$house->name}</a>&nbsp;&nbsp - Cost: \${$house->price}&nbsp;&nbsp - Will Bar: {$house->will}<br />";
     }
 }
 $h->endpage();

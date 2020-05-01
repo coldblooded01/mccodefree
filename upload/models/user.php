@@ -2,6 +2,7 @@
 
 require_once(dirname(__FILE__) . "/../mysql.php");
 require_once(dirname(__FILE__) . "/user_stats.php");
+require_once(dirname(__FILE__) . "/house.php");
 
 class User {
 
@@ -201,15 +202,30 @@ class User {
     }
 
     public function get_house() {
+        return House::get_by_will($this->max_will);
+    }
+
+    public function buy_house($house) {
         global $c;
-        $query = "SELECT * FROM houses WHERE hWILL = {$this->max_will}";
+        $query = "UPDATE users SET money=money-{$house->price},will=0,maxwill={$house->will} WHERE userid=$this->userid";
         $q = mysqli_query(
             $c,
             $query
         ) or die(mysqli_error($c));
-        $r = mysqli_fetch_array($q);
         mysqli_free_result($q);
-        return $r;
+    }
+
+    public function sell_house() {
+        global $c;
+        $ZERO_WILL = 0;
+        $SHED_WILL = 100;
+        $house = $this->get_house();
+        $query = "UPDATE users SET money=money+{$house->price},will=$ZERO_WILL,maxwill=$SHED_WILL WHERE userid=$this->userid";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
     }
 
     public function kill() {
