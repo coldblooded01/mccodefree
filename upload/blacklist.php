@@ -28,9 +28,10 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/blacklist_record.php");
 $user = User::get($userid);
 require "header.php";
-$h = new Header());
+$h = new Header();
 $h->startheaders();
 include "mysql.php";
 global $c;
@@ -64,20 +65,16 @@ default:
 
 function black_list()
 {
-    global $user, $c;
+    global $user;
     print 
             "<a href='blacklist.php?action=add'>&gt; Add an Enemy</a><br />
 These are the people on your black list. ";
-    $q_y = mysqli_query($c, "SELECT * FROM blacklist WHERE bl_ADDED=$user->userid");
+    $others_blacklist = BlacklistRecord::filter_by_added($user);
     print 
-            mysqli_num_rows($q_y)
+            count($others_blacklist)
                     . " people have added you to their list.<br />Most hated: [";
-    $q2r = mysqli_query(
-        $c,
-        "SELECT u.username,count( * ) as cnt,bl.bl_ADDED FROM blacklist bl LEFT JOIN users u on bl.bl_ADDED=u.userid GROUP BY bl.bl_ADDED ORDER BY cnt DESC LIMIT 5"
-    ) or die(mysqli_error($c));
     $r = 0;
-    while ($r2r = mysqli_fetch_array($q2r))
+    foreach (BlacklistRecord::filter_most_hated() as $mh_user)
     {
         $r++;
         if ($r > 1)
@@ -85,18 +82,17 @@ These are the people on your black list. ";
             print " | ";
         }
         print 
-                "<a href='viewuser.php?u={$r2r['bl_ADDED']}'>{$r2r['username']}</a>";
+                "<a href='viewuser.php?u={$mh_user->userid}'>{$mh_user->username}</a>";
     }
     print 
             "]
 <table width=90%><tr style='background:gray'> <th>ID</th> <th>Name</th> <th>Mail</th> <th>Attack</th> <th>Remove</th> <th>Comment</th> <th>Change Comment</th> <th>Online?</th></tr>";
-    $q = mysqli_query(
-        $c,
-        "SELECT bl.*,u.* FROM blacklist bl LEFT JOIN users u ON bl.bl_ADDED=u.userid WHERE bl.bl_ADDER=$user->userid ORDER BY u.username ASC"
-    );
-    while ($r = mysqli_fetch_array($q))
+    $blacklist = BlacklistRecord::filter_by_adder($user->userid);
+    
+    foreach ($blacklist as $bl_record)
     {
-        if ($r['laston'] >= time() - 15 * 60)
+        $added_user = $bl_record->added_user;
+        if ($added_user->last_time_online >= time() - 15 * 60)
         {
             $on = "<font color=green><b>Online</b></font>";
         }
@@ -105,18 +101,20 @@ These are the people on your black list. ";
             $on = "<font color=red><b>Offline</b></font>";
         }
         $d = "";
-        if ($r['donatordays'])
+        $formatted_comment = $bl_record->comment;
+        $formatted_username = $added_user->username;
+        if ($added_user->donatordays)
         {
-            $r['username'] = "<font color=red>{$r['username']}</font>";
+            $formatted_username = "<font color=red>{$added_user->username}</font>";
             $d =
-                    "<img src='donator.gif' alt='Donator: {$r['donatordays']} Days Left' title='Donator: {$r['donatordays']} Days Left' />";
+                    "<img src='donator.gif' alt='Donator: {$added_user->donatordays} Days Left' title='Donator: {$added_user->donatordays} Days Left' />";
         }
-        if (!$r['bl_COMMENT'])
+        if (!$bl_record->comment)
         {
-            $r['bl_COMMENT'] = "N/A";
+            $formatted_comment = "N/A";
         }
         print 
-                "<tr> <td>{$r['userid']}</td> <td><a href='viewuser.php?u={$r['userid']}'>{$r['username']}</a> $d</td> <td><a href='mailbox.php?action=compose&ID={$r['userid']}'>Mail</a></td> <td><a href='attack.php?ID={$r['userid']}'>Attack</a></td> <td><a href='blacklist.php?action=remove&f={$r['bl_ID']}'>Remove</a></td> <td>{$r['bl_COMMENT']}</td> <td><a href='blacklist.php?action=ccomment&f={$r['bl_ID']}'>Change</a></td> <td>$on</td></tr>";
+                "<tr> <td>{$added_user->userid}</td> <td><a href='viewuser.php?u={$added_user->userid}'>{$formatted_username}</a> $d</td> <td><a href='mailbox.php?action=compose&ID={$added_user->userid}'>Mail</a></td> <td><a href='attack.php?ID={$added_user->userid}'>Attack</a></td> <td><a href='blacklist.php?action=remove&f={$bl_record->id}'>Remove</a></td> <td>{$formatted_comment}</td> <td><a href='blacklist.php?action=ccomment&f={$bl_record->id}'>Change</a></td> <td>$on</td></tr>";
     }
 }
 
@@ -138,12 +136,8 @@ function add_enemy()
     if ($_POST['ID'])
     {
         $enemy_id = $_POST['ID'];
-        $qc = mysqli_query(
-            $c,
-            "SELECT * FROM blacklist WHERE bl_ADDER=$user->userid AND bl_ADDED={$enemy_id}"
-        );
-        
-        if (mysqli_num_rows($qc))
+        $enemy = User::get($enemy_id);
+        if (BlacklistRecord::is_user_in_blacklist($user, $enemy))
         {
             print "You cannot add the same person twice.";
         }
@@ -152,18 +146,14 @@ function add_enemy()
             print 
                     "You cannot be so lonely that you have to try and add yourself.";
         }
-        else if (User::exists($enemy_id))
+        else if (!User::exists($enemy_id))
         {
             print "Oh no, you're trying to add a ghost.";
         }
         else
         {
             $comment = $_POST['comment'];
-            mysqli_query(
-                $c,
-                "INSERT INTO blacklist VALUES(NULL, $user->userid, {$enemy_id}, '{$comment}')"
-            ) or die(mysqli_error($c));
-            $enemy = User::get($enemy_id);
+            BlacklistRecord::add($user, $enemy, $comment);
             print 
                     "{$enemy->username} was added to your black list.<br />
 <a href='blacklist.php'>&gt; Back</a>";
@@ -186,11 +176,8 @@ Comment (optional): <br />
 
 function remove_enemy()
 {
-    global $user, $c;
-    mysqli_query(
-        $c,
-        "DELETE FROM blacklist WHERE bl_ID={$_GET['f']} AND bl_ADDER=$user->userid"
-    );
+    global $user;
+    BlacklistRecord::remove($_GET['f'], $user->userid);
     print 
             "Black list entry removed!<br />
 <a href='blacklist.php'>&gt; Back</a>";
@@ -212,10 +199,7 @@ function change_comment()
     );
     if ($_POST['comment'])
     {
-        mysqli_query(
-            $c,
-            "UPDATE blacklist SET bl_COMMENT='{$_POST['comment']}' WHERE bl_ID={$_POST['f']} AND bl_ADDER=$user->userid"
-        );
+        BlacklistRecord::edit_comment($_POST['f'], $user->userid, $_POST['comment']);
         print 
                 "Comment for enemy changed!<br />
 <a href='blacklist.php'>&gt; Back</a>";
@@ -223,14 +207,11 @@ function change_comment()
     else
     {
         $_GET['f'] = abs((int) $_GET['f']);
-        $q = mysqli_query(
-            $c,
-            "SELECT * FROM blacklist WHERE bl_ID={$_GET['f']} AND bl_ADDER=$user->userid"
-        );
-        if (mysqli_num_rows($q))
+        
+        if (BlacklistRecord::check_adder($_GET['f'], $user->userid))
         {
-            $r = mysqli_fetch_array($q);
-            $comment = str_replace('<br />', "\n", $r['bl_COMMENT']);
+            $bl_record = BlacklistRecord::get($_GET['f']);
+            $comment = str_replace('<br />', "\n", $bl_record->comment);
             print 
                     "Changing a comment.<form action='blacklist.php?action=ccomment' method='post'>
 <input type='hidden' name='f' value='{$_GET['f']}' /><br />
