@@ -59,7 +59,7 @@ if (!$_GET['c']) {
                                         $user->user_stats->IQ), $r['crimePERCFORM']) . ";";
         eval($ec);
         print $r['crimeITEXT'];
-        $ir['brave'] -= $r['crimeBRAVE'];
+        $user->brave -= $r['crimeBRAVE'];
         mysqli_query(
             $c,
             "UPDATE users SET brave={$user->brave} WHERE userid=$userid"
@@ -68,8 +68,8 @@ if (!$_GET['c']) {
             print
                     str_replace("{money}", $r['crimeSUCCESSMUNY'],
                             $r['crimeSTEXT']);
-            $ir['money'] += $r['crimeSUCCESSMUNY'];
-            $ir['exp'] += (int) ($r['crimeSUCCESSMUNY'] / 8);
+            $user->money += $r['crimeSUCCESSMUNY'];
+            $user->exp += (int) ($r['crimeSUCCESSMUNY'] / 8);
             mysqli_query(
                 $c,
                 "UPDATE users SET money={$user->money},exp={$user->exp} WHERE userid=$userid"
