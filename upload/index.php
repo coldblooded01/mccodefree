@@ -49,7 +49,7 @@ print
 <td><b>Exp:</b> {$exp}%</td></tr><tr>
 <td><b>Money:</b> $fm</td>
 <td><b>HP:</b> {$user->hp}/{$user->max_hp}</td></tr>
-<tr><td><b>Property:</b> {$user->get_house()['hNAME']}</td></tr></table>";
+<tr><td><b>Property:</b> {$user->get_house()->name}</td></tr></table>";
 print "<hr><h3>Stats Info:</h3>";
 $ts = $user->user_stats->strength + $user->user_stats->agility
         + $user->user_stats->guard + $user->user_stats->labour
