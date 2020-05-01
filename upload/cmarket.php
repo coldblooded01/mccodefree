@@ -144,7 +144,7 @@ function crystal_buy()
     mysqli_query($c, "DELETE FROM crystalmarket WHERE cmID='{$_GET['ID']}'");
     $user->increase_money(-$r['cmPRICE']);
     $seller = User::get($r['cmADDER']);
-    $seller->increase_money($r['cmPRICE'])
+    $seller->increase_money($r['cmPRICE']);
     
     Event::add(
         $r['cmADDER'],
