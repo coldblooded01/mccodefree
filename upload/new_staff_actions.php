@@ -6,6 +6,7 @@ if (!defined('IN_STAFF'))
 }
 
 require_once(dirname(__FILE__) . "/models/event.php");
+require_once(dirname(__FILE__) . "/models/referral.php");
 
 // Admin/Secretary/Assistant
 
@@ -1897,14 +1898,8 @@ function admin_user_changeid()
             $c,
             "UPDATE preports SET prREPORTER=$new_id WHERE prREPORTER = $user"
         );
-        mysqli_query(
-            $c,
-            "UPDATE referals SET refREFER=$new_id WHERE refREFER = $user"
-        );
-        mysqli_query(
-            $c,
-            "UPDATE referals SET refREFED=$new_id WHERE refREFED = $user"
-        );
+        Referral::change_referer_id($user, $new_id);
+        Referral::change_refered_id($user, $new_id);
         mysqli_query(
             $c,
             "UPDATE seclogs SET secUSER=$new_id WHERE secUSER = $user"
