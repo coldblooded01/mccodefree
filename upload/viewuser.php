@@ -28,6 +28,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/referral.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
@@ -130,11 +131,7 @@ Money: \${$r['money']}<br />
 Crystals: {$r['crystals']}<br />
 Property: {$r['hNAME']}<br />
 Referals: ";
-        $rr = mysqli_query(
-            $c,
-            "SELECT * FROM referals WHERE refREFER={$r['userid']}"
-        );
-        print mysqli_num_rows($rr);
+        print Referral::count_referrals_by_referer($r['userid']);
         $q_y = mysqli_query(
             $c,
             "SELECT * FROM friendslist WHERE fl_ADDED={$r['userid']}"

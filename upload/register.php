@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 session_start();
-require "mysql.php";
 require "global_func.php";
 require_once(dirname(__FILE__) . "/models/event.php");
+require_once(dirname(__FILE__) . "/models/referral.php");
 require_once(dirname(__FILE__) . "/models/setting.php");
 require_once(dirname(__FILE__) . "/models/user.php");
 $GAME_NAME = Setting::get('GAME_NAME')->value;
@@ -102,12 +102,7 @@ if ($_POST['username'])
                 );
                 $e_rip = mysql_escape($rem_IP);
                 $e_oip = mysql_escape($ip);
-                mysqli_query(
-                    $c,
-                    "INSERT INTO `referals`
-                        VALUES(NULL, {$_POST['ref']}, $i, " . time()
-                        . ", '{$e_rip}', '$e_oip')"
-                );
+                Referral::add($_POST['ref'], $i, $e_rip, $e_oip);
             }
         }
         
