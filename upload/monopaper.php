@@ -28,6 +28,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/paper_content.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
@@ -39,8 +40,7 @@ $user->check_level();
 $h->userdata($user);
 $h->menuarea();
 print "<h3>The MonoPaper</h3>";
-$q = mysqli_query($c, "SELECT * FROM papercontent LIMIT 1");
-$content = mysqli_data_seek($q, 0, 0);
+$content = PaperContent::get_paper_content()->content;
 print
         "<table width=75% border=1><tr><td>&nbsp;</td> <td><a href='gym.php'>LOCAL GYM</a></td> <td><a href='halloffame.php'>HALL OF FAME</a></td></tr><tr><td><img src='http://img190.imageshack.us/img190/6798/ad1za.png' alt='Ad' /></td><td colspan=2>$content</td></tr>
 </table>";
