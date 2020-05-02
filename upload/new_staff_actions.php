@@ -6,6 +6,7 @@ if (!defined('IN_STAFF'))
 }
 
 require_once(dirname(__FILE__) . "/models/event.php");
+require_once(dirname(__FILE__) . "/models/paper_content.php");
 require_once(dirname(__FILE__) . "/models/referral.php");
 
 // Admin/Secretary/Assistant
@@ -1266,8 +1267,8 @@ function fed_edit_submit()
 function newspaper_form()
 {
     global $ir, $c, $h, $userid;
-    $q = mysqli_query($c, "SELECT * FROM papercontent LIMIT 1");
-    $news = htmlentities(mysqli_data_seek($q, 0), ENT_QUOTES, 'ISO-8859-1');
+    $content = PaperContent::get_paper_content()->content;
+    $news = htmlentities($content, ENT_QUOTES, 'ISO-8859-1');
     print 
             "<h3>Editing Newspaper</h3><form action='new_staff.php?action=subnews' method='post'>
 <textarea rows='7' cols='35' name='newspaper'>$news</textarea><br /><input type='submit' value='Change' /></form>";
@@ -1277,7 +1278,7 @@ function newspaper_submit()
 {
     global $ir, $c, $h, $userid;
     $news = mysqli_real_escape_string($c, stripslashes($_POST['newspaper']));
-    mysqli_query($c, "UPDATE papercontent SET content='$news'");
+    PaperContent::update_paper_content($news);
     print "Newspaper updated!";
 }
 

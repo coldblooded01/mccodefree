@@ -33,6 +33,7 @@ if ($_SESSION['loggedin'] == 0)
 }
 $userid = $_SESSION['userid'];
 require_once(dirname(__FILE__) . "/models/user.php");
+require_once(dirname(__FILE__) . "/models/paper_content.php");
 $user = User::get($userid);
 require "header.php";
 $h = new Header();
@@ -46,8 +47,7 @@ $h->menuarea();
 print
         "<h1>You have logged on, {$user->username}!</h1>
 <h2>Welcome back, your last visit was: {$user->get_last_visit()}.</h2>";
-$q = mysqli_query($c, "SELECT * FROM papercontent LIMIT 1");
-$content = mysqli_result($q, 0);
+$content = PaperContent::get_paper_content()->content;
 print "{$GAME_NAME} Latest News:<br />
 $content
 ";
