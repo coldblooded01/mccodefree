@@ -221,7 +221,7 @@ function fed_user_dropdown($connection, $ddname = "user", $selected = -1)
 function mysql_escape($str)
 {
     global $c;
-    return mysql_real_escape_string($c, $str);
+    return mysqli_real_escape_string($c, $str);
 }
 
 function get_rank($stat, $mykey)

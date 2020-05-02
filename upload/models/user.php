@@ -130,6 +130,52 @@ class User {
         return $num_rows != 0;
     }
 
+    public static function exists_by_username($username) {
+        global $c;
+        $query = "SELECT * FROM users WHERE username='{$username}'";
+        $q = mysqli_query(
+            $c,
+            $query
+        );
+        $num_rows = mysqli_num_rows($q);
+        mysqli_free_result($q);
+        return $num_rows != 0;
+    }
+
+    public static function check_ref_ip($ref_id, $ip) {
+        global $c;
+        $query = "SELECT lastip FROM users WHERE u.username={$ref_id}";
+        $q = mysqli_query(
+            $c,
+            $query
+        );
+        $num_rows = mysqli_num_rows($q);
+        mysqli_free_result($q);
+        return $num_rows != 0;
+    }
+
+    public static function add(
+        $username,
+        $login_name,
+        $password,
+        $money,
+        $email,
+        $ip
+    ) {
+        global $c;
+        $query = "INSERT INTO users (username, login_name, userpass, level, money, crystals, donatordays, user_level, energy, maxenergy, will, maxwill, brave, maxbrave, hp, maxhp, location, gender, signedup, email, bankmoney, lastip) VALUES( '{$username}', '{$login_name}', md5('{$password}'), 1, $money, 0, 0, 1, 12, 12, 100, 100, 5, 5, 100, 100, 1, 'Male', "
+                . time() . ", '{$email}', -1, '$ip')";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+        $i = mysqli_insert_id($c);
+        
+        UserStats::add_user_stats($i);
+        return $i;
+    }
+
     public static function get($userid) {
         global $c;
         $query = "SELECT u.*,us.*

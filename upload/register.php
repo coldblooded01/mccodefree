@@ -24,7 +24,7 @@ require "mysql.php";
 require "global_func.php";
 require_once(dirname(__FILE__) . "/models/event.php");
 require_once(dirname(__FILE__) . "/models/setting.php");
-require_once(dirname(__FILE__) . "/models/userstats.php");
+require_once(dirname(__FILE__) . "/models/user.php");
 $GAME_NAME = Setting::get('GAME_NAME')->value;
 print 
         <<<EOF
@@ -50,88 +50,75 @@ if (file_exists('ipbans/' . $ip))
 }
 if ($_POST['username'])
 {
-    $sm = 100;
+    $starting_money = 100;
     if ($_POST['promo'] == "Your Promo Code Here")
     {
-        $sm += 100;
+        $starting_money += 100;
     }
     $username = $_POST['username'];
-    $username = mysqli_real_escape_string(
-        $c,
+    $username = mysql_escape(
         htmlentities(
             stripslashes($username),
             ENT_QUOTES,
             'ISO-8859-1'
         )
     );
-    $q = mysqli_query($c, "SELECT * FROM users WHERE username='{$username}'");
-    if (mysqli_num_rows($q))
+    $error = "";
+
+    if (User::exists_by_username($username))
     {
-        print "Username already in use. Choose another.";
+        $error = "Username already in use. Choose another.<br/>&gt; <a href='register.php'>Back</a>";
     }
     else if ($_POST['password'] != $_POST['cpassword'])
     {
-        print "The passwords did not match, go back and try again.";
+        $error = "The passwords did not match, go back and try again.<br/>&gt; <a href='register.php'>Back</a>";
     }
     else
     {
-        $_POST['ref'] = abs((int) $_POST['ref']);
+        $ref_id = abs((int) $_POST['ref']);
         $ip = $_SERVER['REMOTE_ADDR'];
-        if ($_POST['ref'])
+        if ($ref_id)
         {
-            $q = mysqli_query(
-                $c,
-                "SELECT `lastip`
-                    FROM `users`
-                    WHERE `userid` = {$_POST['ref']}"
-            );
-            if (mysqli_num_rows($q) == 0)
+            if (User::exists_by_username($ref_id))
             {
-                mysqli_free_result($q);
-                echo "Referrer does not exist.<br />
+                $error = "Referrer does not exist.<br />
 				&gt; <a href='register.php'>Back</a>";
-                die('</body></html>');
             }
-            $rem_IP = mysqli_data_seek($q, 0, 0);
-            mysqli_free_result($q);
-            if ($rem_IP == $ip)
+            
+            if (User::check_ref_ip($ref_id, $ip))
             {
-                echo "No creating referral multies.<br />
+                $error = "No creating referral multies.<br />
 				&gt; <a href='register.php'>Back</a>";
-                die('</body></html>');
             }
         }
-        mysqli_query(
-            $c,
-            "INSERT INTO users (username, login_name, userpass, level, money, crystals, donatordays, user_level, energy, maxenergy, will, maxwill, brave, maxbrave, hp, maxhp, location, gender, signedup, email, bankmoney, lastip) VALUES( '{$username}', '{$username}', md5('{$_POST['password']}'), 1, $sm, 0, 0, 1, 12, 12, 100, 100, 5, 5, 100, 100, 1, 'Male', "
-                . time() . ", '{$_POST['email']}', -1, '$ip')"
-        );
-        $i = mysqli_insert_id($c);
-        UserStats::add($i);
+        if(!$error) {
+            $new_user_id = User::add($username, $username, $_POST['password'], $starting_money, $_POST['email'], $ip);
+            if ($ref_id)
+            {
+                User::get($ref_id)->increase_crystals(2);
+                Event::add(
+                    $ref_id,
+                    "For refering $username to the game, you have earnt 2 valuable crystals!"
+                );
+                $e_rip = mysql_escape($rem_IP);
+                $e_oip = mysql_escape($ip);
+                mysqli_query(
+                    $c,
+                    "INSERT INTO `referals`
+                        VALUES(NULL, {$_POST['ref']}, $i, " . time()
+                        . ", '{$e_rip}', '$e_oip')"
+                );
+            }
+        }
+        
 
-        if ($_POST['ref'])
-        {
-            mysqli_query(
-                $c,
-                "UPDATE `users`
-                    SET `crystals` = `crystals` + 2
-                    WHERE `userid` = {$_POST['ref']}");
-            Event::add(
-                $_POST['ref'],
-                "For refering $username to the game, you have earnt 2 valuable crystals!"
-            );
-            $e_rip = mysqli_real_escape_string($c, $rem_IP);
-            $e_oip = mysqli_real_escape_string($c, $ip);
-            mysqli_query(
-                $c,
-                "INSERT INTO `referals`
-                    VALUES(NULL, {$_POST['ref']}, $i, " . time()
-                    . ", '{$e_rip}', '$e_oip')"
-            );
-        }
-        print 
-                "You have signed up, enjoy the game.<br />
-&gt; <a href='login.php'>Login</a>";
+        
+        
+    }
+    if($error == "") {
+        print "You have signed up, enjoy the game.<br />&gt; <a href='login.php'>Login</a>";
+    } else {
+        echo $error;
     }
 }
 else
