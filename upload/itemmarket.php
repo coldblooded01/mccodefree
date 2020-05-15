@@ -177,7 +177,7 @@ function item_buy()
         $r['imADDER'],
         "<a href='viewuser.php?u=$userid'>{$user->username}</a> bought your {$r['itmname']} item from the market for \$"
             . number_format($r['imPRICE']) . "."
-    )
+    );
     mysqli_query(
         $c,
         "INSERT INTO imbuylogs VALUES(NULL, {$r['imITEM']}, {$r['imADDER']}, $userid,  {$r['imPRICE']}, {$r['imID']}, $i, "
