@@ -24,6 +24,8 @@ if (strpos($_SERVER['PHP_SELF'], "global_func.php") !== false)
     exit;
 }
 
+require_once(dirname(__FILE__) . "/models/item_type.php");
+
 function money_formatter($muny, $symb = '$')
 {
     $moneys = "";
@@ -48,8 +50,7 @@ function money_formatter($muny, $symb = '$')
 function itemtype_dropdown($connection, $ddname = "item_type", $selected = -1)
 {
     $ret = "<select name='$ddname' type='dropdown'>";
-    $q =
-            mysqli_query($connection, "SELECT * FROM itemtypes ORDER BY itmtypename ASC");
+    $item_types = ItemType::get_all('itmtypename', 'ASC');
     if ($selected == -1)
     {
         $first = 0;
@@ -58,15 +59,14 @@ function itemtype_dropdown($connection, $ddname = "item_type", $selected = -1)
     {
         $first = 1;
     }
-    while ($r = mysqli_fetch_array($q))
-    {
-        $ret .= "\n<option value='{$r['itmtypeid']}'";
-        if ($selected == $r['itmtypeid'] || $first == 0)
+    foreach($item_types as $item_type) {
+        $ret .= "\n<option value='{$item_type->id}'";
+        if ($selected == $item_type->id || $first == 0)
         {
             $ret .= " selected='selected'";
             $first = 1;
         }
-        $ret .= ">{$r['itmtypename']}</option>";
+        $ret .= ">{$item_type->name}</option>";
     }
     $ret .= "\n</select>";
     return $ret;

@@ -6,6 +6,7 @@ if (!defined('IN_STAFF'))
 }
 
 require_once(dirname(__FILE__) . "/models/event.php");
+require_once(dirname(__FILE__) . "/models/item_type.php");
 require_once(dirname(__FILE__) . "/models/paper_content.php");
 require_once(dirname(__FILE__) . "/models/referral.php");
 
@@ -632,11 +633,8 @@ function new_item_submit()
     }
     // verify item type
     $itmtype = abs(@intval($_POST['itmtype']));
-    $itq = mysqli_query(
-        $c,
-        "SELECT COUNT(`itmtypeid`) FROM itemtypes WHERE `itmtypeid` = {$itmtype}"
-    );
-    if (mysqli_data_seek($itq, 0, 0) == 0)
+    
+    if (!ItemType::exists($itmtype))
     {
         print 
                 "That item type doesn't exist.<br />
@@ -850,11 +848,7 @@ function edit_item_sub()
     }
     // verify item type
     $itmtype = abs(@intval($_POST['itmtype']));
-    $itq = mysqli_query(
-        $c,
-        "SELECT COUNT(`itmtypeid`) FROM itemtypes WHERE `itmtypeid` = {$itmtype}"
-    );
-    if (mysqli_data_seek($itq, 0) == 0)
+    if (!ItemType::exists($itmtype))
     {
         print 
                 "That item type doesn't exist.<br />
