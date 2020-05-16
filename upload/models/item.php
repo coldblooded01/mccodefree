@@ -67,6 +67,25 @@ class Item {
         return $num_rows != 0;
     }
 
+    public static function add($name, $item_type_id, $description, $buy_price, $sell_price, $buyable) {
+        global $c;
+        
+        $query = "INSERT INTO items VALUES (
+            NULL,
+            {$item_type_id},
+            '{$name}',
+            '{$description}',
+            {$buy_price},
+            {$sell_price},
+            {$buyable}
+        )";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
+
     public function is_buyable() {
         return !!$this->buyable;
     }
