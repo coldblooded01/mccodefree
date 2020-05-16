@@ -84,10 +84,45 @@ class Item {
             $query
         ) or die(mysqli_error($c));
         mysqli_free_result($q);
+        return mysqli_insert_id($c);
     }
 
     public function is_buyable() {
         return !!$this->buyable;
     }
 
+    public function is_food() {
+        return $this->item_type->id == ItemType::$FOOD;
+    }
+
+    public function is_weapon() {
+        $item_type_id = $this->item_type->id;
+        return $item_type_id == ItemType::$MELEE_WEAPON || $item_type_id == ItemType::$GUN;
+    }
+
+    public function is_medical() {
+        return $this->item_type->id == ItemType::$MEDICAL;
+    }
+
+    public function is_armour() {
+        return $this->item_type->id == ItemType::$ARMOUR;
+    }
+
+    public function save() {
+        global $c;
+        $query = "UPDATE items 
+            SET 
+                itmtype={$this->item_type->id},
+                itmname='{$this->name}',
+                itmdesc='{$this->description}',
+                itmbuyprice={$this->buy_price},
+                itmsellprice={$this->sell_price},
+                itmbuyable={$this->buyable}
+            WHERE itmid={$this->id}";
+        $q = mysqli_query(
+            $c,
+            $query
+        ) or die(mysqli_error($c));
+        mysqli_free_result($q);
+    }
 }
