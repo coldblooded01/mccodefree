@@ -27,6 +27,7 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/item.php");
 require_once(dirname(__FILE__) . "/models/user.php");
 $user = User::get($userid);
 require "header.php";
@@ -41,44 +42,34 @@ $h->menuarea();
 //look up item
 $_GET['ID'] = abs((int) $_GET['ID']);
 $itmid = $_GET['ID'];
-if (!$itmid)
+if (!$itmid || !Item::exists($itmid))
 {
     print "Invalid item ID";
 }
 else
 {
-    $q = mysqli_query(
-        $c,
-        "SELECT i.*,it.* FROM items i LEFT JOIN itemtypes it ON i.itmtype=itmtypeid WHERE i.itmid=$itmid LIMIT 1"
-    );
-    if (!mysqli_num_rows($q))
+    $item = Item::get($itmid);
+
+    print "<table width=75%><tr style='background: gray;'><th colspan=2><b>Looking up info on {$item->name}</b></th></table>
+<table width=75%><tr bgcolor=#dfdfdf><th colspan=2>The <b>{$item->name}</b> is a/an {$item->item_type->name} Item - <b>{$item->description}</b></th></table><br />
+<table width=75%><tr style='background: gray;'><th colspan=2>Item Info</th></tr><tr style='background:gray'><th>Item Buy Price</th><th>Item Sell Price</th></tr><tr><td>";
+    if ($item->buy_price)
     {
-        print "Invalid item ID";
+        print money_formatter($item->buy_price);
     }
     else
     {
-        $id = mysqli_fetch_array($q);
-        print
-                "<table width=75%><tr style='background: gray;'><th colspan=2><b>Looking up info on {$id['itmname']}</b></th></table>
-<table width=75%><tr bgcolor=#dfdfdf><th colspan=2>The <b>{$id['itmname']}</b> is a/an {$id['itmtypename']} Item - <b>{$id['itmdesc']}</b></th></table><br />
-<table width=75%><tr style='background: gray;'><th colspan=2>Item Info</th></tr><tr style='background:gray'><th>Item Buy Price</th><th>Item Sell Price</th></tr><tr><td>";
-        if ($id['itmbuyprice'])
-        {
-            print money_formatter($id['itmbuyprice']);
-        }
-        else
-        {
-            print "N/A";
-        }
-        print "</td><td>";
-        if ($id['itmsellprice'])
-        {
-            print money_formatter($id['itmsellprice']);
-        }
-        else
-        {
-            print "N/A</td></tr></table>";
-        }
+        print "N/A";
     }
+    print "</td><td>";
+    if ($item->sell_price)
+    {
+        print money_formatter($item->sell_price);
+    }
+    else
+    {
+        print "N/A</td></tr></table>";
+    }
+
 }
 $h->endpage();

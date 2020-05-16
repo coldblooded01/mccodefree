@@ -27,6 +27,7 @@ if ($_SESSION['loggedin'] == 0)
     exit;
 }
 $userid = $_SESSION['userid'];
+require_once(dirname(__FILE__) . "/models/item.php");
 require_once(dirname(__FILE__) . "/models/user.php");
 $user = User::get($userid);
 require "header.php";
@@ -51,30 +52,29 @@ else if ($_POST['qty'] <= 0)
 }
 else
 {
-    $q = mysqli_query($c, "SELECT * FROM items WHERE itmid={$_GET['ID']}");
-    if (mysqli_num_rows($q) == 0)
+    if (!Item::exists($_GET['ID']))
     {
         print "Invalid item ID";
     }
     else
     {
-        $itemd = mysqli_fetch_array($q);
-        if ($user->money < $itemd['itmbuyprice'] * $_POST['qty'])
+        $itemd = Item::get($_GET['ID']);
+        if ($user->money < $itemd->buy_price * $_POST['qty'])
         {
             print "You don't have enough money to buy this item!";
             $h->endpage();
             exit;
         }
-        if ($itemd['itmbuyable'] == 0)
+        if (!$itemd->is_buyable())
         {
             print "This item can't be bought!";
             $h->endpage();
             exit;
         }
-        $price = ($itemd['itmbuyprice'] * $_POST['qty']);
+        $price = ($itemd->buy_price * $_POST['qty']);
         mysqli_query(
             $c,
-            "INSERT INTO inventory VALUES(NULL,{$_GET['ID']},$userid,{$_POST['qty']});"
+            "INSERT INTO inventory VALUES(NULL,{$itemd->id},$userid,{$_POST['qty']});"
         );
         mysqli_query(
             $c,
@@ -82,11 +82,11 @@ else
         );
         mysqli_query(
             $c,
-            "INSERT INTO itembuylogs VALUES (NULL, $userid, {$_GET['ID']}, $price, {$_POST['qty']}, "
+            "INSERT INTO itembuylogs VALUES (NULL, $userid, {$itemd->id}, $price, {$_POST['qty']}, "
                 . time()
-                . ", '{$user->username} bought {$_POST['qty']} {$itemd['itmname']}(s) for {$price}')"
+                . ", '{$user->username} bought {$_POST['qty']} {$itemd->name}(s) for {$price}')"
         );
-        print "You bought {$_POST['qty']} {$itemd['itmname']}(s) for \$$price";
+        print "You bought {$_POST['qty']} {$itemd->name}(s) for \$$price";
     }
 }
 $h->endpage();

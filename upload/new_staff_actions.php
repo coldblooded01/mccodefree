@@ -6,6 +6,7 @@ if (!defined('IN_STAFF'))
 }
 
 require_once(dirname(__FILE__) . "/models/event.php");
+require_once(dirname(__FILE__) . "/models/item.php");
 require_once(dirname(__FILE__) . "/models/item_type.php");
 require_once(dirname(__FILE__) . "/models/paper_content.php");
 require_once(dirname(__FILE__) . "/models/referral.php");
@@ -278,21 +279,18 @@ function give_item_submit()
     $_POST['item'] = abs(@intval($_POST['item']));
     $_POST['user'] = abs(@intval($_POST['user']));
     $_POST['qty'] = abs(@intval($_POST['qty']));
-    $d = mysqli_query(
-        $c,
-        "SELECT COUNT(itmid) FROM items WHERE itmid={$_POST['item']}"
-    );
-    if (mysqli_data_seek($d, 0, 0) == 0)
+    $item_id = $_POST['item'];
+    if (!Item::exists($item_id))
     {
         print "There is no such item.";
         return;
     }
     mysqli_query(
         $c,
-        "INSERT INTO inventory VALUES(NULL,{$_POST['item']},{$_POST['user']},{$_POST['qty']})"
+        "INSERT INTO inventory VALUES(NULL,{$item_id},{$_POST['user']},{$_POST['qty']})"
     ) or die(mysqli_error($c));
     print 
-            "You gave {$_POST['qty']} of item ID {$_POST['item']} to user ID {$_POST['user']}";
+            "You gave {$_POST['qty']} of item ID {$item_id} to user ID {$_POST['user']}";
 }
 
 function mail_user_form()
@@ -644,40 +642,32 @@ function new_item_submit()
     }
     $itmbuyp = abs(@intval($_POST['itmbuyprice']));
     $itmsellp = abs(@intval($_POST['itmsellprice']));
-    $m = mysqli_query(
-        $c,
-        "INSERT INTO items VALUES(NULL,{$itmtype},'$itmname','$itmdesc',
-            {$itmbuyp},{$itmsellp},$itmbuy)"
-    ) or die(mysqli_error($c));
-    if ($_POST['itmtype'] == 1)
+    $item = Item::get(Item::add($itmname, $itmtype, $itmdesc, $itmbuyp, $itmsellp, $itmbuy));
+    if ($item->is_food())
     {
         $stat = abs(@intval($_POST['energy']));
-        $i = mysqli_insert_id();
-        mysqli_query( $c, "INSERT INTO food VALUES($i,{$stat})")
+        mysqli_query( $c, "INSERT INTO food VALUES($item->id,{$stat})")
             or die(mysqli_error($c));
     }
-    if ($_POST['itmtype'] == 3 || $_POST['itmtype'] == 4)
+    if ($item->is_weapon())
     {
         $stat = abs(@intval($_POST['damage']));
-        $i = mysqli_insert_id();
-        mysqli_query($c, "INSERT INTO weapons VALUES($i,{$stat})")
+        mysqli_query($c, "INSERT INTO weapons VALUES($item->id,{$stat})")
             or die(mysqli_error($c));
     }
-    if ($_POST['itmtype'] == 5)
+    if ($item->is_medical())
     {
         $stat = abs(@intval($_POST['health']));
-        $i = mysqli_insert_id();
-        mysqli_query($c, "INSERT INTO medical VALUES($i,{$stat})")
+        mysqli_query($c, "INSERT INTO medical VALUES($item->id,{$stat})")
             or die(mysqli_error($c));
     }
-    if ($_POST['itmtype'] == 7)
+    if ($item->is_armour())
     {
         $stat = abs(@intval($_POST['Defence']));
-        $i = mysqli_insert_id();
-        mysqli_query($c, "INSERT INTO armour VALUES($i,{$stat})")
+        mysqli_query($c, "INSERT INTO armour VALUES($item->id,{$stat})")
             or die(mysqli_error($c));
     }
-    print "The {$_POST['itmname']} Item was added to the game.";
+    print "The {$item->name} Item was added to the game.";
 }
 
 function kill_item_form()
@@ -697,16 +687,13 @@ function kill_item_submit()
 {
     global $ir, $c, $h, $userid;
     $_POST['item'] = abs(@intval($_POST['item']));
-    $d = mysqli_query(
-        $c,
-        "SELECT * FROM items WHERE itmid={$_POST['item']}"
-    );
-    if (mysqli_num_rows($d) == 0)
+    $item_id = $_POST['item'];
+    if (!Item::exists($item_id))
     {
         print "There is no such item.";
         return;
     }
-    $itemi = mysqli_fetch_array($d);
+    $itemi = Item::get($item_id);
     mysqli_query($c, "DELETE FROM items WHERE itmid={$_POST['item']}");
     mysqli_query($c, "DELETE FROM shopitems WHERE sitemITEMID={$_POST['item']}");
     mysqli_query($c, "DELETE FROM inventory WHERE inv_itemid={$_POST['item']}");
@@ -715,7 +702,7 @@ function kill_item_submit()
     mysqli_query($c, "DELETE FROM medical WHERE item_id={$_POST['item']}");
     mysqli_query($c, "DELETE FROM armour WHERE item_ID={$_POST['item']}");
     mysqli_query($c, "DELETE FROM itemmarket WHERE imITEM={$_POST['item']}");
-    print "The {$itemi['itmname']} Item was removed from the game.";
+    print "The {$itemi->name} Item was removed from the game.";
 }
 
 function edit_item_begin()
@@ -733,15 +720,14 @@ Item: " . item_dropdown($c, 'item')
 function edit_item_form()
 {
     global $ir, $c, $h;
-    $_POST['item'] = abs(@intval($_POST['item']));
-    $d = mysqli_query($c, "SELECT * FROM items WHERE itmid={$_POST['item']}");
-    if (mysqli_num_rows($d) == 0)
+    $item_id = abs(@intval($_POST['item']));
+    if (!Item::exists($item_id))
     {
         print "There is no such item.";
         return;
     }
-    $itemi = mysqli_fetch_array($d);
-    $f = mysqli_query($c, "SELECT * FROM food WHERE item_id={$_POST['item']}");
+    $itemi = Item::get($item_id);
+    $f = mysqli_query($c, "SELECT * FROM food WHERE item_id={$item_id}");
     if (mysqli_num_rows($f) > 0)
     {
         $a = mysqli_fetch_array($f);
@@ -751,7 +737,7 @@ function edit_item_form()
     {
         $energy = 1;
     }
-    $f = mysqli_query($c, "SELECT * FROM medical WHERE item_id={$_POST['item']}");
+    $f = mysqli_query($c, "SELECT * FROM medical WHERE item_id={$item_id}");
     if (mysqli_num_rows($f) > 0)
     {
         $a = mysqli_fetch_array($f);
@@ -761,7 +747,7 @@ function edit_item_form()
     {
         $health = 10;
     }
-    $f = mysqli_query($c, "SELECT * FROM weapons WHERE item_id={$_POST['item']}");
+    $f = mysqli_query($c, "SELECT * FROM weapons WHERE item_id={$item_id}");
     if (mysqli_num_rows($f) > 0)
     {
         $a = mysqli_fetch_array($f);
@@ -771,7 +757,7 @@ function edit_item_form()
     {
         $damage = 1;
     }
-    $f = mysqli_query($c, "SELECT * FROM armour WHERE item_ID={$_POST['item']}");
+    $f = mysqli_query($c, "SELECT * FROM armour WHERE item_ID={$item_id}");
     if (mysqli_num_rows($f) > 0)
     {
         $a = mysqli_fetch_array($f);
@@ -784,20 +770,20 @@ function edit_item_form()
     print 
             "<h3>Editing Item</h3>
 <form action='new_staff.php?action=edititemsub' method='post'>
-<input type='hidden' name='itmid' value='{$_POST['item']}' />
-Item Name: <input type='text' name='itmname' value='{$itemi['itmname']}' /><br />
-Item Desc.: <input type='text' name='itmdesc' value='{$itemi['itmdesc']}' /><br />
-Item Type: " . itemtype_dropdown($c, 'itmtype', $itemi['itmtype'])
+<input type='hidden' name='itmid' value='{$item_id}' />
+Item Name: <input type='text' name='itmname' value='{$itemi->name}' /><br />
+Item Desc.: <input type='text' name='itmdesc' value='{$itemi->description}' /><br />
+Item Type: " . itemtype_dropdown($c, 'itmtype', $itemi->item_type->id)
                     . "<br />
 Item Buyable: <input type='checkbox' name='itmbuyable'";
-    if ($itemi['itmbuyable'])
+    if ($itemi->is_buyable())
     {
         print " checked='checked'";
     }
     print 
             " /><br />
-Item Price: <input type='text' name='itmbuyprice' value='{$itemi['itmbuyprice']}' /><br />
-Item Sell Value: <input type='text' name='itmsellprice' value='{$itemi['itmsellprice']}'/><br /><br />
+Item Price: <input type='text' name='itmbuyprice' value='{$itemi->buy_price}' /><br />
+Item Sell Value: <input type='text' name='itmsellprice' value='{$itemi->sell_price}'/><br /><br />
 <b>Specialized</b><br />
 Item Energy Regen (food only): <input type='text' name='energy' value='$energy' /><br />
 Item Health Regen (medical only): <input type='text' name='health' value='$health' /><br />
@@ -806,8 +792,7 @@ Damage Off (armor only): <input type='text' name='Defence' value='$def' /><br />
 <input type='submit' value='Edit Item' /></form>";
 }
 
-function edit_item_sub()
-{
+function edit_item_sub() {
     global $ir, $c, $h, $userid;
 
     if (!isset($_POST['itmname']) || !isset($_POST['itmdesc'])
@@ -821,8 +806,7 @@ function edit_item_sub()
         exit;
     }
     $itmid = abs(@intval($_POST['itmid']));
-    $iq = mysqli_query($c, "SELECT COUNT(`itmid`) FROM items WHERE `itmid` = {$itmid}");
-    if (mysqli_data_seek($iq, 0) == 0)
+    if (!Item::exists($itmid))
     {
         print 
                 "That item doesn't exist.<br />
@@ -858,17 +842,21 @@ function edit_item_sub()
     }
     $itmbuyp = abs(@intval($_POST['itmbuyprice']));
     $itmsellp = abs(@intval($_POST['itmsellprice']));
-    mysqli_query($c, "DELETE FROM items WHERE itmid={$itmid}");
+    $item = Item::get($itmid);
+    // mysqli_query($c, "DELETE FROM items WHERE itmid={$itmid}");
     mysqli_query($c, "DELETE FROM food WHERE item_id={$itmid}");
     mysqli_query($c, "DELETE FROM weapons WHERE item_id={$itmid}");
     mysqli_query($c, "DELETE FROM medical WHERE item_id={$itmid}");
     mysqli_query($c, "DELETE FROM armour WHERE item_ID={$itmid}");
-    $m = mysqli_query(
-        $c,
-        "INSERT INTO items VALUES('{$itmid}',{$itmtype},'$itmname',
-            '$itmdesc',{$itmbuyp},{$itmsellp},$itmbuy)"
-    ) or die(mysqli_error($c));
-    if ($_POST['itmtype'] == 1)
+    $item->item_type = ItemType::get($itmtype);
+    $item->name = $itmname;
+    $item->description = $itmdesc;
+    $item->buy_price = $itmbuyp;
+    $item->sell_price = $itmsellp;
+    $item->buyable = $itmbuy;
+    $item->save();
+    
+    if ($item->is_food())
     {
         $stat = abs(@intval($_POST['energy']));
         mysqli_query(
@@ -876,7 +864,7 @@ function edit_item_sub()
             "INSERT INTO food VALUES({$itmid},{$stat})"
         ) or die(mysqli_error($c));
     }
-    if ($_POST['itmtype'] == 5)
+    if ($item->is_medical())
     {
         $stat = abs(@intval($_POST['health']));
         mysqli_query(
@@ -884,7 +872,7 @@ function edit_item_sub()
             "INSERT INTO medical VALUES({$itmid},{$stat})"
         ) or die(mysqli_error($c));
     }
-    if ($_POST['itmtype'] == 3 || $_POST['itmtype'] == 4)
+    if ($item->is_weapon())
     {
         $stat = abs(@intval($_POST['damage']));
         mysqli_query(
@@ -892,16 +880,15 @@ function edit_item_sub()
             "INSERT INTO weapons VALUES({$itmid},{$stat})"
         ) or die(mysqli_error($c));
     }
-    if ($_POST['itmtype'] == 7)
+    if ($item->is_armour())
     {
         $stat = abs(@intval($_POST['Defence']));
-        $i = mysqli_insert_id();
         mysqli_query(
             $c,
             "INSERT INTO armour VALUES({$itmid},{$stat})"
         ) or die(mysqli_error($c));
     }
-    print "The {$_POST['itmname']} Item was edited successfully.";
+    print "The {$item->name} Item was edited successfully.";
 }
 
 function new_shop_form()
@@ -971,7 +958,7 @@ function new_stock_submit()
 {
     global $ir, $c, $h;
     $shop = abs(@intval($_POST['shop']));
-    $item = abs(@intval($_POST['item']));
+    $item_id = abs(@intval($_POST['item']));
     // Verify details
     $shopq = mysqli_query(
         $c,
@@ -985,11 +972,7 @@ function new_stock_submit()
         $h->endpage();
         exit;
     }
-    $itemq = mysqli_query(
-        $c,
-        "SELECT COUNT(`itmid`) FROM items WHERE `itmid` = {$item}"
-    );
-    if (mysqli_data_seek($itemq, 0) == 0)
+    if (!Item::exists($item_id))
     {
         print 
                 "That item doesn't exist.<br />
@@ -997,8 +980,8 @@ function new_stock_submit()
         $h->endpage();
         exit;
     }
-    mysqli_query($c, "INSERT INTO shopitems VALUES(NULL,{$shop},{$item})");
-    print "Item ID {$item} was successfully added to shop ID {$shop}";
+    mysqli_query($c, "INSERT INTO shopitems VALUES(NULL,{$shop},{$item_id})");
+    print "Item ID {$item_id} was successfully added to shop ID {$shop}";
 }
 
 function edit_user_begin()

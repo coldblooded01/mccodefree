@@ -4,6 +4,12 @@ require_once(dirname(__FILE__) . "/../mysql.php");
 
 class ItemType {
 
+    public static $FOOD = 1;
+    public static $MELEE_WEAPON = 3;
+    public static $GUN = 4;
+    public static $MEDICAL = 5;
+    public static $ARMOUR = 7;
+
     public function __construct($id, $name) {
         $this->id = $id;
         $this->name = $name;
@@ -30,6 +36,18 @@ class ItemType {
         }
         mysqli_free_result($q);
         return $result;
+    }
+
+    public static function get($id) {
+        global $c;
+        $query = "SELECT * FROM itemtypes WHERE itmtypeid={$id}";
+        $q = mysqli_query(
+            $c,
+            $query
+        );
+        $r = mysqli_fetch_array($q);
+        mysqli_free_result($q);
+        return self::create_from_mysqli_array($r);
     }
 
     public static function exists($id) {
