@@ -395,7 +395,6 @@ class User {
             $c,
             $query
         ) or die(mysqli_error($c));
-        mysqli_free_result($q);
     }
 
     public function set_will($new_will) {
@@ -406,7 +405,6 @@ class User {
             $c,
             $query
         ) or die(mysqli_error($c));
-        mysqli_free_result($q);
     }
 
     public function increase_will($will_inc) {

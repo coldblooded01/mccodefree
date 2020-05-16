@@ -30,11 +30,10 @@ class UserStats {
             $query
         ) or die(
             "Couldn't set stat $stat, value: {$new_value} - ". mysqli_error($c));
-        mysqli_free_result($q);
     }
 
     public function increase_stat($stat, $inc) {
-        $new_value = $this->{$stat};
+        $new_value = $this->{$stat} + $inc;
         $this->set_stat($stat, $new_value);
     }
 
