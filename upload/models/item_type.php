@@ -4,6 +4,12 @@ require_once(dirname(__FILE__) . "/../mysql.php");
 
 class ItemType {
 
+    public static $FOOD = 1;
+    public static $MELEE_WEAPON = 3;
+    public static $GUN = 4;
+    public static $MEDICAL = 5;
+    public static $ARMOUR = 7;
+
     public function __construct($id, $name) {
         $this->id = $id;
         $this->name = $name;
