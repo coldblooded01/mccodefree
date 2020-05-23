@@ -888,7 +888,7 @@ CREATE TABLE `seclogs` (
 
 CREATE TABLE `settings` (
   `settingID` varchar(256) NOT NULL,
-  `settingVALUE` longtext NOT NULL,
+  `settingVALUE` longtext,
   PRMIARY KEY (`settingID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
@@ -1167,11 +1167,11 @@ CREATE TABLE `users` (
   `donatordays` int(11) NOT NULL default '0',
   `email` varchar(255) NOT NULL default '',
   `login_name` varchar(255) NOT NULL default '',
-  `display_pic` text NOT NULL,
+  `display_pic` text,
   `duties` varchar(255) NOT NULL default 'N/A',
   `bankmoney` int(11) NOT NULL default '0',
   `cybermoney` int(11) NOT NULL default '-1',
-  `staffnotes` longtext NOT NULL,
+  `staffnotes` longtext,
   `mailban` int(11) NOT NULL default '0',
   `mb_reason` varchar(255) NOT NULL default '',
   `hospreason` varchar(255) NOT NULL default '',
