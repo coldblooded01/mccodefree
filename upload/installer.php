@@ -442,7 +442,7 @@ EOF;
              '{$adm_gender}', " . time()
                     . ", '{$ins_email}', -1, '$IP',
              '{$e_salt}')") or die(mysqli_error($c));
-    $i = mysql_insert_id($c);
+    $i = mysqli_insert_id($c);
     mysqli_query(
         $c,
         "INSERT INTO `userstats`
