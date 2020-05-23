@@ -889,7 +889,7 @@ CREATE TABLE `seclogs` (
 CREATE TABLE `settings` (
   `settingID` varchar(256) NOT NULL,
   `settingVALUE` longtext,
-  PRMIARY KEY (`settingID`)
+  PRIMARY KEY (`settingID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
