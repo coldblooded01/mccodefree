@@ -889,7 +889,7 @@ CREATE TABLE `seclogs` (
 CREATE TABLE `settings` (
   `settingID` varchar(256) NOT NULL,
   `settingVALUE` longtext,
-  PRMIARY KEY (`settingID`)
+  PRIMARY KEY (`settingID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -1118,7 +1118,7 @@ CREATE TABLE `txsused` (
 CREATE TABLE `unjaillogs` (
   `ujaID` int(11) NOT NULL auto_increment,
   `ujaJAILER` int(11) NOT NULL default '0',
-  `ujaJAILED` int(11) NOT NULL default SET'0',
+  `ujaJAILED` int(11) NOT NULL default '0',
   `ujaTIME` int(11) NOT NULL default '0',
   PRIMARY KEY  (`ujaID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
